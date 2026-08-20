@@ -30,10 +30,9 @@
   let activeSession = null;
   let realmLevel = 0;
   let swordLevel = 0;
-  let todoGoldClaimed = {};
 
   function collectState() {
-    return { schedules, todosByDate, gold, subjects, studyByDate, activeSession, realmLevel, swordLevel, todoGoldClaimed };
+    return { schedules, todosByDate, gold, subjects, studyByDate, activeSession, realmLevel, swordLevel };
   }
 
   function applyState(data) {
@@ -45,7 +44,6 @@
     activeSession = data.activeSession ?? null;
     realmLevel = data.realmLevel ?? 0;
     swordLevel = data.swordLevel ?? 0;
-    todoGoldClaimed = data.todoGoldClaimed ?? {};
   }
 
   function sumStudySecondsForDate(dateKey) {
@@ -224,104 +222,103 @@
 
   /* ---------------- Cultivation realm ladder (경지) ---------------- */
   const REALMS = [
-    { name: '삼류무사', hanja: '三流武士', price: 0, studyBonus: 0, dailyBonus: 0,
+    { name: '삼류무사', hanja: '三流武士', price: 0, studyBonus: 0,
       desc: '무공의 첫걸음을 뗀 초심자. 검을 쥐는 법조차 서투르지만, 모든 전설은 여기서 시작된다.' },
-    { name: '이류무사', hanja: '二流武士', price: 8000, studyBonus: 1000, dailyBonus: 10000,
+    { name: '이류무사', hanja: '二流武士', price: 10000, studyBonus: 1000,
       desc: '어설프던 초식이 제법 날카로워졌다. 이제 겨우 무림의 문턱을 넘본다.' },
-    { name: '일류무사', hanja: '一流武士', price: 18000, studyBonus: 1000, dailyBonus: 14000,
+    { name: '일류무사', hanja: '一流武士', price: 23000, studyBonus: 1000,
       desc: '정파 명문 문파의 후기지수들과 어깨를 견줄 만한 실력을 갖췄다.' },
-    { name: '절정 초입', hanja: '絶頂 初入', price: 36000, studyBonus: 1000, dailyBonus: 20000,
+    { name: '절정 초입', hanja: '絶頂 初入', price: 47000, studyBonus: 1000,
       desc: '내공이 단전에 뿌리내리기 시작하며, 비로소 「고수」라 불리기 시작한다.' },
-    { name: '절정 중반', hanja: '絶頂 中盤', price: 64000, studyBonus: 2000, dailyBonus: 26000,
+    { name: '절정 중반', hanja: '絶頂 中盤', price: 83000, studyBonus: 2000,
       desc: '일 갑자에 가까운 내공을 다루며, 한 지역을 대표하는 강자로 자리매김한다.' },
-    { name: '절정 대성', hanja: '絶頂 大成', price: 110000, studyBonus: 2000, dailyBonus: 34000,
+    { name: '절정 대성', hanja: '絶頂 大成', price: 140000, studyBonus: 2000,
       desc: '절정의 끝에 다다라, 펼치는 초식 하나하나에 산을 가르는 기세가 실린다.' },
-    { name: '초절정', hanja: '超絶頂', price: 190000, studyBonus: 3000, dailyBonus: 44000,
+    { name: '초절정', hanja: '超絶頂', price: 250000, studyBonus: 3000,
       desc: '인간의 한계를 넘어섰다는 평가를 받는 경지. 구파일방의 장로급 고수다.' },
-    { name: '화경 초입', hanja: '化境 初入', price: 320000, studyBonus: 4000, dailyBonus: 56000,
+    { name: '화경 초입', hanja: '化境 初入', price: 420000, studyBonus: 4000,
       desc: '몸과 내공이 하나로 화하기 시작하며, 검이 곧 몸이 되는 감각을 깨우친다.' },
-    { name: '화경 중반', hanja: '化境 中盤', price: 520000, studyBonus: 5000, dailyBonus: 70000,
+    { name: '화경 중반', hanja: '化境 中盤', price: 680000, studyBonus: 5000,
       desc: '이기어검(以氣馭劍)의 초입에 다다른, 천하에 손꼽히는 절대 고수.' },
-    { name: '화경 대성', hanja: '化境 大成', price: 840000, studyBonus: 6000, dailyBonus: 86000,
+    { name: '화경 대성', hanja: '化境 大成', price: 1100000, studyBonus: 6000,
       desc: '한 문파의 장문인조차 함부로 대하지 못하는, 사실상 무림 최정상의 반열.' },
-    { name: '현경', hanja: '玄境', price: 1400000, studyBonus: 8000, dailyBonus: 104000,
+    { name: '현경', hanja: '玄境', price: 1800000, studyBonus: 8000,
       desc: '생각이 곧 검이 되는 경지. 이미 인간의 무학을 초월했다는 평을 듣는다.' },
-    { name: '생사경', hanja: '生死境', price: 2200000, studyBonus: 10000, dailyBonus: 124000,
+    { name: '생사경', hanja: '生死境', price: 2900000, studyBonus: 10000,
       desc: '삶과 죽음의 경계를 손끝으로 다루는 자. 전설 속 인물로나 회자되던 경지.' },
-    { name: '삼화취정', hanja: '三花聚頂', price: 3400000, studyBonus: 12000, dailyBonus: 148000,
+    { name: '삼화취정', hanja: '三花聚頂', price: 4400000, studyBonus: 12000,
       desc: '정(精)·기(氣)·신(神) 세 송이 꽃이 정수리에 모이며, 신선의 반열에 발을 들인다.' },
-    { name: '오기조원', hanja: '五氣朝元', price: 5200000, studyBonus: 14000, dailyBonus: 176000,
+    { name: '오기조원', hanja: '五氣朝元', price: 6800000, studyBonus: 14000,
       desc: '오장육부의 기운이 하나의 근원으로 모이는, 우화등선을 목전에 둔 경지.' },
-    { name: '반로환동', hanja: '返老還童', price: 8000000, studyBonus: 16000, dailyBonus: 208000,
+    { name: '반로환동', hanja: '返老還童', price: 10000000, studyBonus: 16000,
       desc: '늙은 육신이 다시 어린아이처럼 회춘하는, 인간의 굴레를 벗어난 신비의 경지.' },
-    { name: '탈태환골', hanja: '奪胎換骨', price: 12000000, studyBonus: 20000, dailyBonus: 246000,
+    { name: '탈태환골', hanja: '奪胎換骨', price: 16000000, studyBonus: 20000,
       desc: '범인의 태를 벗고 신선의 뼈로 다시 태어나는, 전설로만 전해지던 경지.' },
-    { name: '우화등선', hanja: '羽化登仙', price: 18000000, studyBonus: 24000, dailyBonus: 292000,
+    { name: '우화등선', hanja: '羽化登仙', price: 23000000, studyBonus: 24000,
       desc: '육신을 벗고 날개를 얻어 하늘로 오른다. 그 이름 자체가 곧 신화가 된다.' },
-    { name: '자연경', hanja: '自然境', price: 27000000, studyBonus: 31000, dailyBonus: 350000,
+    { name: '자연경', hanja: '自然境', price: 35000000, studyBonus: 31000,
       desc: '자연과 하나가 되어, 더 이상 「경지」라는 말로도 설명할 수 없는 무학의 종착점.' },
-    { name: '지선', hanja: '地仙', price: 40000000, studyBonus: 37000, dailyBonus: 410000,
+    { name: '지선', hanja: '地仙', price: 52000000, studyBonus: 37000,
       desc: '속세를 떠나지 않고도 신선의 경지에 이른 자. 인간과 신선의 경계에 선 존재.' },
-    { name: '천선', hanja: '天仙', price: 58000000, studyBonus: 45000, dailyBonus: 480000,
+    { name: '천선', hanja: '天仙', price: 75000000, studyBonus: 45000,
       desc: '하늘의 반열에 오른 신선. 더 이상 인간의 잣대로는 가늠할 수 없는 존재가 되었다.' },
-    { name: '금선', hanja: '金仙', price: 84000000, studyBonus: 54000, dailyBonus: 560000,
+    { name: '금선', hanja: '金仙', price: 109000000, studyBonus: 54000,
       desc: '황금빛 법신을 이룬 대신선. 하늘의 도(道) 그 자체를 다루기 시작한다.' },
-    { name: '대라금선', hanja: '大羅金仙', price: 120000000, studyBonus: 65000, dailyBonus: 650000,
+    { name: '대라금선', hanja: '大羅金仙', price: 156000000, studyBonus: 65000,
       desc: '삼계를 통틀어 손꼽히는 지고의 신선. 그 존재만으로 하나의 하늘이 열린다.' },
-    { name: '조화경', hanja: '造化境', price: 172000000, studyBonus: 78000, dailyBonus: 760000,
+    { name: '조화경', hanja: '造化境', price: 224000000, studyBonus: 78000,
       desc: '이치를 넘어 조화(造化) 그 자체를 손에 쥔, 언어로는 형용할 수 없는 미지의 영역.' },
-    { name: '천인합일', hanja: '天人合一', price: 248000000, studyBonus: 95000, dailyBonus: 890000,
+    { name: '천인합일', hanja: '天人合一', price: 322000000, studyBonus: 95000,
       desc: '하늘과 사람이 마침내 하나가 되었다. 더는 오를 곳이 없는, 구도(求道)의 완성.' },
   ];
 
   /* ---------------- Sword ladder (검) ---------------- */
   const SWORDS = [
-    { name: '목검', hanja: '木劍', price: 0, studyBonus: 0, dailyBonus: 0,
+    { name: '목검', hanja: '木劍', price: 0, studyBonus: 0,
       desc: '수련용 목검. 볼품없지만 이 검으로 시작한 고수가 한둘이 아니다.' },
-    { name: '철검', hanja: '鐵劍', price: 6000, studyBonus: 1000, dailyBonus: 8000,
+    { name: '철검', hanja: '鐵劍', price: 8000, studyBonus: 1000,
       desc: '저잣거리 대장간에서 벼려낸 투박한 첫 애병.' },
-    { name: '청강검', hanja: '靑鋼劍', price: 14000, studyBonus: 1000, dailyBonus: 13000,
+    { name: '청강검', hanja: '靑鋼劍', price: 18000, studyBonus: 1000,
       desc: '푸른 강철로 정련되어 예기가 살아있는 검.' },
-    { name: '백은검', hanja: '白銀劍', price: 28000, studyBonus: 1000, dailyBonus: 19000,
+    { name: '백은검', hanja: '白銀劍', price: 36000, studyBonus: 1000,
       desc: '은은한 백색 광택을 내는, 명문 무기점의 수작.' },
-    { name: '한빙검', hanja: '寒氷劍', price: 52000, studyBonus: 2000, dailyBonus: 27000,
+    { name: '한빙검', hanja: '寒氷劍', price: 68000, studyBonus: 2000,
       desc: '베는 순간 서릿발이 서린다는 극음(極陰)의 명검.' },
-    { name: '적염검', hanja: '赤炎劍', price: 92000, studyBonus: 3000, dailyBonus: 37000,
+    { name: '적염검', hanja: '赤炎劍', price: 120000, studyBonus: 3000,
       desc: '칼날에 불꽃이 어른거린다는 극양(極陽)의 보검.' },
-    { name: '뇌명검', hanja: '雷鳴劍', price: 160000, studyBonus: 3000, dailyBonus: 50000,
+    { name: '뇌명검', hanja: '雷鳴劍', price: 210000, studyBonus: 3000,
       desc: '휘두르면 천둥소리가 울린다는 전설의 신병(神兵).' },
-    { name: '파풍검', hanja: '破風劍', price: 280000, studyBonus: 5000, dailyBonus: 66000,
+    { name: '파풍검', hanja: '破風劍', price: 360000, studyBonus: 5000,
       desc: '바람조차 갈라버린다는, 쾌검의 극의가 담긴 검.' },
-    { name: '용린검', hanja: '龍鱗劍', price: 480000, studyBonus: 6000, dailyBonus: 86000,
+    { name: '용린검', hanja: '龍鱗劍', price: 620000, studyBonus: 6000,
       desc: '용의 비늘을 벼려 만들었다는 전설 속의 신검.' },
-    { name: '천마검', hanja: '天魔劍', price: 800000, studyBonus: 8000, dailyBonus: 110000,
+    { name: '천마검', hanja: '天魔劍', price: 1000000, studyBonus: 8000,
       desc: '마교 역대 교주만이 다뤘다는, 하늘마저 두려워한 마검.' },
-    { name: '만년현철검', hanja: '萬年玄鐵劍', price: 1400000, studyBonus: 10000, dailyBonus: 140000,
+    { name: '만년현철검', hanja: '萬年玄鐵劍', price: 1800000, studyBonus: 10000,
       desc: '만년 묵은 현철로 주조된, 그 자체로 하나의 보물인 신검.' },
-    { name: '파천검', hanja: '破天劍', price: 2200000, studyBonus: 13000, dailyBonus: 178000,
+    { name: '파천검', hanja: '破天劍', price: 2900000, studyBonus: 13000,
       desc: '하늘을 가른다는 이름 그대로, 존재 자체가 재앙인 신검.' },
-    { name: '주선검', hanja: '誅仙劍', price: 3700000, studyBonus: 16000, dailyBonus: 224000,
+    { name: '주선검', hanja: '誅仙劍', price: 4800000, studyBonus: 16000,
       desc: '선인마저 베어낸다는 태고의 흉기. 그 이름만으로 강호를 떨게 한다.' },
-    { name: '반고신검', hanja: '盤古神劍', price: 6000000, studyBonus: 21000, dailyBonus: 280000,
+    { name: '반고신검', hanja: '盤古神劍', price: 7800000, studyBonus: 21000,
       desc: '천지를 개벽한 반고가 남겼다는 전설의 신검. 이 검을 쥔 자, 곧 하늘이 된다.' },
-    { name: '개천검', hanja: '開天劍', price: 8800000, studyBonus: 25000, dailyBonus: 330000,
+    { name: '개천검', hanja: '開天劍', price: 11000000, studyBonus: 25000,
       desc: '닫힌 하늘을 강제로 열어젖힌다는 창세의 신검. 반고 이후 두 번째로 하늘을 가른 자만이 얻는다.' },
-    { name: '창세검', hanja: '創世劍', price: 13000000, studyBonus: 31000, dailyBonus: 390000,
+    { name: '창세검', hanja: '創世劍', price: 17000000, studyBonus: 31000,
       desc: '무(無)에서 유(有)를 빚어낸다는 태초의 권능이 깃든 검.' },
-    { name: '삼라만상검', hanja: '森羅萬象劍', price: 19000000, studyBonus: 37000, dailyBonus: 460000,
+    { name: '삼라만상검', hanja: '森羅萬象劍', price: 25000000, studyBonus: 37000,
       desc: '세상 만물의 이치가 검신에 아로새겨진, 존재 자체가 하나의 우주인 신검.' },
-    { name: '육도윤회검', hanja: '六道輪廻劍', price: 27000000, studyBonus: 45000, dailyBonus: 540000,
+    { name: '육도윤회검', hanja: '六道輪廻劍', price: 35000000, studyBonus: 45000,
       desc: '생과 사, 윤회의 여섯 갈래 길을 넘나든다는 금단의 신검.' },
-    { name: '태극혼돈검', hanja: '太極混沌劍', price: 39000000, studyBonus: 55000, dailyBonus: 640000,
+    { name: '태극혼돈검', hanja: '太極混沌劍', price: 51000000, studyBonus: 55000,
       desc: '혼돈에서 태극이, 태극에서 삼라만상이 태어났다는 만물의 근원을 담은 검.' },
-    { name: '심검', hanja: '心劍', price: 57000000, studyBonus: 67000, dailyBonus: 760000,
+    { name: '심검', hanja: '心劍', price: 74000000, studyBonus: 67000,
       desc: '검은 손이 아닌 마음에 있다. 실체 없는 검으로도 천하를 벤다는 절대의 깨달음.' },
-    { name: '무형검', hanja: '無形劍', price: 82000000, studyBonus: 82000, dailyBonus: 900000,
+    { name: '무형검', hanja: '無形劍', price: 107000000, studyBonus: 82000,
       desc: '형(形)조차 초월한 검의 종착점. 검을 쥐지 않아도, 그 앞에 설 자가 없다.' },
   ];
 
   const BASE_STUDY_MIN = 2500;
-  const BASE_DAILY_MAX = 150000;
 
   /* ---------------- Quotes ---------------- */
   const QUOTES = [
@@ -542,7 +539,6 @@
     ringFg.style.strokeDashoffset = String(offset);
     ringPercent.textContent = `${pct}%`;
     ringFg.style.stroke = pct >= 80 ? 'var(--accent-3)' : 'var(--accent)';
-    settleDailyTodoGold(pct);
 
     streakValue.textContent = computeStreak();
     todoCount.textContent = getTodosFor(todayK).length;
@@ -849,32 +845,11 @@
     return [min, min * 2];
   }
 
-  function dailyMaxAt(realmIdx, swordIdx) {
-    const bonus = cumulativeBonus(REALMS, realmIdx, 'dailyBonus') + cumulativeBonus(SWORDS, swordIdx, 'dailyBonus');
-    return BASE_DAILY_MAX + bonus;
-  }
-
   function currentStudyRange() { return studyRangeAt(realmLevel, swordLevel); }
-  function currentDailyMax() { return dailyMaxAt(realmLevel, swordLevel); }
 
   function renderStudyHint() {
     const [min, max] = currentStudyRange();
     timerHint.textContent = `10분마다 ${min.toLocaleString('ko-KR')}~${max.toLocaleString('ko-KR')} 골드를 획득해요 🪙`;
-  }
-
-  /* ---------------- 오늘 할 일 달성 보상 (자동 정산) ---------------- */
-  function settleDailyTodoGold(pctToday) {
-    const todayK = todayKey();
-    const target = Math.round((pctToday / 100) * currentDailyMax());
-    const claimed = todoGoldClaimed[todayK] || 0;
-    if (target <= claimed) return;
-    const diff = target - claimed;
-    todoGoldClaimed[todayK] = target;
-    queueSave();
-    addGold(diff);
-    if (pctToday >= 100) {
-      showToast(`🎉 오늘 할 일 100% 달성! +${diff.toLocaleString('ko-KR')} 골드 획득!`);
-    }
   }
 
   /* ---------------- 경지 / 검 승급 (공용) ---------------- */
@@ -887,7 +862,7 @@
       getOtherLevel: () => swordLevel,
       els: {
         name: el('realmName'), hanja: el('realmHanja'), desc: el('realmDesc'),
-        studyRange: el('realmStudyRange'), dailyMax: el('realmDailyMax'), badge: el('realmBadge'),
+        studyRange: el('realmStudyRange'), badge: el('realmBadge'),
         nextName: el('realmNextName'), upgradeBtn: el('realmUpgradeBtn'), ladderList: el('realmLadderList'),
       },
       maxedNextText: '이미 구도의 완성, 천인합일(天人合一)에 이르렀습니다',
@@ -901,7 +876,7 @@
       getOtherLevel: () => realmLevel,
       els: {
         name: el('swordName'), hanja: el('swordHanja'), desc: el('swordDesc'),
-        studyRange: el('swordStudyRange'), dailyMax: el('swordDailyMax'), badge: el('swordBadge'),
+        studyRange: el('swordStudyRange'), badge: el('swordBadge'),
         nextName: el('swordNextName'), upgradeBtn: el('swordUpgradeBtn'), ladderList: el('swordLadderList'),
       },
       maxedNextText: '이미 검의 종착점, 무형검(無形劍)의 경지에 이르렀습니다',
@@ -913,11 +888,6 @@
     const other = track.getOtherLevel();
     return track.axis === 'realm' ? studyRangeAt(index, other) : studyRangeAt(other, index);
   }
-  function dailyMaxForTrackIndex(track, index) {
-    const other = track.getOtherLevel();
-    return track.axis === 'realm' ? dailyMaxAt(index, other) : dailyMaxAt(other, index);
-  }
-
   const tierOf = (index) => Math.floor(index / 3);
 
   function renderCultivationTrack(track) {
@@ -931,7 +901,6 @@
     e.desc.textContent = cur.desc;
     const [min, max] = rangeForTrackIndex(track, level);
     e.studyRange.textContent = `${min.toLocaleString('ko-KR')}~${max.toLocaleString('ko-KR')}C`;
-    e.dailyMax.textContent = `${dailyMaxForTrackIndex(track, level).toLocaleString('ko-KR')}C`;
     e.badge.textContent = `${level + 1} / ${track.list.length}`;
 
     const next = track.list[level + 1];
