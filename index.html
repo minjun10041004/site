@@ -12,6 +12,23 @@
 </head>
 <body>
 
+<div class="auth-gate" id="authGate">
+  <div class="auth-card">
+    <div class="auth-brand"><span>🔥</span> Momentum</div>
+    <div class="auth-tabs">
+      <button type="button" class="auth-tab active" data-mode="login">로그인</button>
+      <button type="button" class="auth-tab" data-mode="signup">회원가입</button>
+    </div>
+    <form id="authForm" class="auth-form">
+      <input type="text" id="authUsername" placeholder="아이디" autocomplete="username" required maxlength="24">
+      <input type="password" id="authPassword" placeholder="비밀번호 (4자 이상)" autocomplete="current-password" required maxlength="64" minlength="4">
+      <button type="submit" class="btn-primary auth-submit" id="authSubmitBtn">로그인</button>
+    </form>
+    <p class="auth-error" id="authError"></p>
+    <p class="auth-note">아이디와 비밀번호는 이 브라우저에만 안전하게 저장돼요.</p>
+  </div>
+</div>
+
 <div class="bg-decor" aria-hidden="true">
   <span class="blob blob-a"></span>
   <span class="blob blob-b"></span>
@@ -30,6 +47,7 @@
       <button class="tab-btn" data-tab="study">⏱️ 공부 시간</button>
       <button class="tab-btn" data-tab="realm">🧘 경지</button>
       <button class="tab-btn" data-tab="sword">⚔️ 검</button>
+      <button class="tab-btn" data-tab="settings">⚙️ 설정</button>
     </nav>
   </div>
 
@@ -42,7 +60,6 @@
         <span class="brand-mark">🔥</span>
         <span class="brand-name">Momentum</span>
       </div>
-      <button id="themeToggle" class="icon-btn" title="테마 전환" aria-label="테마 전환">☀️</button>
     </div>
 
     <div class="hero-main">
@@ -235,6 +252,33 @@
           <span class="badge" id="swordBadge">1 / 1</span>
         </div>
         <ul class="ladder-list" id="swordLadderList"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Settings Tab -->
+  <section class="tab-panel" id="panel-settings">
+    <div class="card settings-card">
+      <div class="card-head">
+        <h2><span class="card-icon">⚙️</span> 설정</h2>
+      </div>
+
+      <div class="settings-row">
+        <div class="settings-row-text">
+          <p class="settings-row-title">테마</p>
+          <p class="settings-row-desc">라이트 / 다크 모드를 전환해요</p>
+        </div>
+        <button class="theme-switch" id="themeSwitch" type="button" role="switch" aria-checked="true">
+          <span class="theme-switch-thumb"></span>
+        </button>
+      </div>
+
+      <div class="settings-row">
+        <div class="settings-row-text">
+          <p class="settings-row-title">계정</p>
+          <p class="settings-row-desc">현재 로그인: <strong id="settingsUsername">-</strong></p>
+        </div>
+        <button class="chip-btn danger" id="logoutBtn" type="button">로그아웃</button>
       </div>
     </div>
   </section>
