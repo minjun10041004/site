@@ -25,7 +25,7 @@
       <button type="submit" class="btn-primary auth-submit" id="authSubmitBtn">로그인</button>
     </form>
     <p class="auth-error" id="authError"></p>
-    <p class="auth-note">아이디와 비밀번호는 이 브라우저에만 안전하게 저장돼요.</p>
+    <p class="auth-note">계정으로 로그인하면 어떤 기기에서든 이어서 사용할 수 있어요.</p>
   </div>
 </div>
 
@@ -284,7 +284,7 @@
   </section>
 
   <footer class="footer">
-    <p>모든 데이터는 이 브라우저에만 저장됩니다 (localStorage).</p>
+    <p>모든 데이터는 로그인한 계정에 안전하게 저장되며, 다른 기기에서도 로그인하면 이어서 볼 수 있어요.</p>
   </footer>
 </div>
 
@@ -334,6 +334,7 @@
   </li>
 </template>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
