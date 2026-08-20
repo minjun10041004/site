@@ -245,57 +245,57 @@
   const REALMS = [
     { name: '삼류무사', hanja: '三流武士', price: 0, studyBonus: 0,
       desc: '무공의 첫걸음을 뗀 초심자. 검을 쥐는 법조차 서투르지만, 모든 전설은 여기서 시작된다.' },
-    { name: '이류무사', hanja: '二流武士', price: 28000, studyBonus: 40,
+    { name: '이류무사', hanja: '二流武士', price: 100000, studyBonus: 60,
       desc: '어설프던 초식이 제법 날카로워졌다. 이제 겨우 무림의 문턱을 넘본다.' },
-    { name: '일류무사', hanja: '一流武士', price: 36000, studyBonus: 50,
+    { name: '일류무사', hanja: '一流武士', price: 142000, studyBonus: 90,
       desc: '정파 명문 문파의 후기지수들과 어깨를 견줄 만한 실력을 갖췄다.' },
-    { name: '절정 초입', hanja: '絶頂 初入', price: 47000, studyBonus: 70,
+    { name: '절정 초입', hanja: '絶頂 初入', price: 203000, studyBonus: 120,
       desc: '내공이 단전에 뿌리내리기 시작하며, 명문 대파의 제자로 인정받기 시작하는 경지.' },
-    { name: '절정 완숙', hanja: '絶頂 完熟', price: 64000, studyBonus: 100,
+    { name: '절정 완숙', hanja: '絶頂 完熟', price: 296000, studyBonus: 170,
       desc: '다루는 무공이 물 흐르듯 자연스러워지고, 한 지역을 대표하는 강자로 자리잡는다.' },
-    { name: '절정 극', hanja: '絶頂 極', price: 86000, studyBonus: 130,
+    { name: '절정 극', hanja: '絶頂 極', price: 439000, studyBonus: 240,
       desc: '절정의 끝자락. 이때부터는 어엿한 「고수」로 불리며, 문파나 가문의 수장을 넘보게 된다.' },
-    { name: '초절정 초입', hanja: '超絶頂 初入', price: 120000, studyBonus: 180,
+    { name: '초절정 초입', hanja: '超絶頂 初入', price: 665000, studyBonus: 350,
       desc: '구파일방과 천마신교의 장로 바로 아래 서열. 중원 전역에 이름이 알려지기 시작한다.' },
-    { name: '초절정 완숙', hanja: '超絶頂 完熟', price: 169000, studyBonus: 240,
+    { name: '초절정 완숙', hanja: '超絶頂 完熟', price: 1000000, studyBonus: 490,
       desc: '문주, 가주, 방주, 채주급의 실력. 단신으로 수십의 일류 고수를 상대할 수 있다.' },
-    { name: '초절정 극', hanja: '超絶頂 極', price: 238000, studyBonus: 320,
+    { name: '초절정 극', hanja: '超絶頂 極', price: 1600000, studyBonus: 700,
       desc: '초절정의 정점. 「초고수」라 불리며, 대문파의 장로 자리를 넘보는 실력자.' },
-    { name: '화경 초입', hanja: '化境 初入', price: 339000, studyBonus: 430,
+    { name: '화경 초입', hanja: '化境 初入', price: 2400000, studyBonus: 990,
       desc: '몸과 진기가 하나로 화(化)하기 시작하며, 어검(馭劍)의 실마리를 잡는 경지.' },
-    { name: '화경 완숙', hanja: '化境 完熟', price: 486000, studyBonus: 580,
+    { name: '화경 완숙', hanja: '化境 完熟', price: 3700000, studyBonus: 1400,
       desc: '천마신교 좌우 호법, 구파일방 장문인급. 진기만으로 병기를 부린다.' },
-    { name: '화경 극', hanja: '化境 極', price: 697000, studyBonus: 770,
+    { name: '화경 극', hanja: '化境 極', price: 5700000, studyBonus: 2000,
       desc: '화경의 정점. 삼대 세력 수뇌부와 어깨를 나란히 하는, 사실상 무림 최정상.' },
-    { name: '현경 초입', hanja: '炫境 初入', price: 995000, studyBonus: 1000,
+    { name: '현경 초입', hanja: '炫境 初入', price: 8900000, studyBonus: 2800,
       desc: '생각이 곧 진기가 되어 눈부시게(炫) 빛나는 경지. 살아서는 닿기 힘들다는 벽 너머.' },
-    { name: '현경 완숙', hanja: '炫境 完熟', price: 1400000, studyBonus: 1400,
+    { name: '현경 완숙', hanja: '炫境 完熟', price: 13800000, studyBonus: 4000,
       desc: '이기어검을 자유자재로 다루며, 존재 자체가 눈부신 빛으로 화한다.' },
-    { name: '현경 극', hanja: '炫境 極', price: 2100000, studyBonus: 1900,
+    { name: '현경 극', hanja: '炫境 極', price: 21600000, studyBonus: 5700,
       desc: '현경의 끝. 전설로만 회자되던 경지에 실제로 도달한 극소수의 존재.' },
-    { name: '생사경 초입', hanja: '生死境 初入', price: 3000000, studyBonus: 2500,
+    { name: '생사경 초입', hanja: '生死境 初入', price: 33600000, studyBonus: 8100,
       desc: '삶과 죽음의 경계를 손끝으로 다루기 시작하는, 죽어야만 넘볼 수 있다던 금단의 영역.' },
-    { name: '생사경 완숙', hanja: '生死境 完熟', price: 4400000, studyBonus: 3400,
+    { name: '생사경 완숙', hanja: '生死境 完熟', price: 53200000, studyBonus: 12000,
       desc: '생과 사가 손안에서 하나가 된다. 존재만으로도 강호에 죽음의 그림자를 드리운다.' },
-    { name: '생사경 극', hanja: '生死境 極', price: 6500000, studyBonus: 4600,
+    { name: '생사경 극', hanja: '生死境 極', price: 82200000, studyBonus: 16000,
       desc: '생사경의 정점. 산 자의 몸으로 죽음 너머를 완전히 지배하는, 전설 속 인물의 경지.' },
-    { name: '자연경 초입', hanja: '自然境 初入', price: 9400000, studyBonus: 6200,
+    { name: '자연경 초입', hanja: '自然境 初入', price: 128000000, studyBonus: 23000,
       desc: '불로불사에 이르러 자연과 동화되기 시작하는, 인간의 굴레를 벗어난 신비의 경지.' },
-    { name: '자연경 완숙', hanja: '自然境 完熟', price: 13700000, studyBonus: 8300,
+    { name: '자연경 완숙', hanja: '自然境 完熟', price: 200000000, studyBonus: 33000,
       desc: '천지의 기운과 완전히 하나가 되어, 늙지도 죽지도 않는 존재로 거듭난다.' },
-    { name: '자연경 극', hanja: '自然境 極', price: 20000000, studyBonus: 11000,
+    { name: '자연경 극', hanja: '自然境 極', price: 313000000, studyBonus: 47000,
       desc: '자연경의 정점. 스스로가 곧 자연의 일부가 되어, 더는 「인간」이라 부를 수 없는 존재.' },
-    { name: '공허경 초입', hanja: '空虛境 初入', price: 29100000, studyBonus: 15000,
+    { name: '공허경 초입', hanja: '空虛境 初入', price: 489000000, studyBonus: 67000,
       desc: '우주의 이치를 어렴풋이 깨닫기 시작하는, 공(空)과 허(虛)의 경계에 선 경지.' },
-    { name: '공허경 완숙', hanja: '空虛境 完熟', price: 42400000, studyBonus: 20000,
+    { name: '공허경 완숙', hanja: '空虛境 完熟', price: 765000000, studyBonus: 95000,
       desc: '우주의 지혜가 온전히 몸에 스며들어, 만물의 근원을 손바닥 위에 놓고 본다.' },
-    { name: '공허경 극', hanja: '空虛境 極', price: 61900000, studyBonus: 27000,
+    { name: '공허경 극', hanja: '空虛境 極', price: 1193000000, studyBonus: 134000,
       desc: '공허경의 정점. 텅 빈 듯하나 만물을 품은, 언어로는 형용할 수 없는 미지의 영역.' },
-    { name: '여의경 초입', hanja: '如意境 初入', price: 90700000, studyBonus: 37000,
+    { name: '여의경 초입', hanja: '如意境 初入', price: 1864000000, studyBonus: 191000,
       desc: '뜻하는 대로 만물이 응하기 시작하는, 그 누구도 이르지 못했던 미지의 첫걸음.' },
-    { name: '여의경 완숙', hanja: '如意境 完熟', price: 132000000, studyBonus: 49000,
+    { name: '여의경 완숙', hanja: '如意境 完熟', price: 2912000000, studyBonus: 271000,
       desc: '무한한 의지(意志) 그 자체가 되어, 이치와 조화를 자유로이 넘나든다.' },
-    { name: '여의경 극', hanja: '如意境 極', price: 193000000, studyBonus: 66000,
+    { name: '여의경 극', hanja: '如意境 極', price: 4549000000, studyBonus: 385000,
       desc: '여의경의 정점이자 구도(求道)의 완성. 뜻이 곧 하늘이 되는, 더는 오를 곳이 없는 경지.' },
   ];
 
@@ -1146,6 +1146,8 @@
     return n;
   }
 
+  let expandedRarity = null;
+
   function renderGachaPanel() {
     const cur = SWORDS[swordLevel];
     const rar = RARITIES[cur.rarity];
@@ -1169,16 +1171,46 @@
 
     rarityTable.innerHTML = '';
     RARITIES.forEach((r, i) => {
-      const count = SWORDS.filter((s) => s.rarity === i).length;
-      const li = document.createElement('li');
-      li.className = `rarity-row rar-${i}`;
-      li.innerHTML = `
+      const swords = SWORDS.map((s, idx) => ({ ...s, idx })).filter((s) => s.rarity === i);
+      const isOpen = expandedRarity === i;
+
+      const group = document.createElement('li');
+      group.className = 'rarity-group';
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `rarity-row rar-${i}${isOpen ? ' open' : ''}`;
+      btn.dataset.rarity = String(i);
+      btn.setAttribute('aria-expanded', String(isOpen));
+      btn.innerHTML = `
         <span class="rarity-name">${r.name}<small>${r.hanja}</small></span>
         <span class="rarity-chance">${r.chance}%</span>
-        <span class="rarity-count">${count}종</span>`;
-      rarityTable.appendChild(li);
+        <span class="rarity-count">${swords.length}종</span>
+        <span class="rarity-caret">▾</span>`;
+      group.appendChild(btn);
+
+      const sub = document.createElement('ul');
+      sub.className = `rarity-sword-list${isOpen ? ' show' : ''}`;
+      swords.forEach((s, j) => {
+        const item = document.createElement('li');
+        item.className = `rarity-sword-item${discovered.includes(s.idx) ? '' : ' undiscovered'}`;
+        item.style.animationDelay = isOpen ? `${j * 30}ms` : '0ms';
+        item.innerHTML = `<span class="rarity-sword-name">${s.name}</span><span class="rarity-sword-hanja">(${s.hanja})</span>`;
+        sub.appendChild(item);
+      });
+      group.appendChild(sub);
+
+      rarityTable.appendChild(group);
     });
   }
+
+  rarityTable.addEventListener('click', (e) => {
+    const btn = e.target.closest('.rarity-row');
+    if (!btn) return;
+    const i = Number(btn.dataset.rarity);
+    expandedRarity = expandedRarity === i ? null : i;
+    renderGachaPanel();
+  });
 
   function renderGachaResults(results) {
     gachaResults.innerHTML = '';
