@@ -550,13 +550,14 @@
     heatmap.innerHTML = '';
     const todayK = todayKey();
     const days = [];
-    for (let i = 13; i >= 0; i--) days.push(addDays(todayK, -i));
+    for (let i = 6; i >= 0; i--) days.push(addDays(todayK, -i));
 
     let hasAny = false;
 
     days.forEach((key) => {
       const pct = computeDayPercent(key);
-      if (pct !== null) hasAny = true;
+      const studySeconds = sumStudySecondsForDate(key);
+      if (pct !== null || studySeconds > 0) hasAny = true;
       const cell = document.createElement('div');
       cell.className = 'heat-cell' + (pct === null ? ' empty' : '') + (key === todayK ? ' today-cell' : '');
       if (pct !== null) {
@@ -569,8 +570,12 @@
       const pctLabel = document.createElement('span');
       pctLabel.className = 'heat-pct';
       pctLabel.textContent = pct === null ? '–' : `${pct}%`;
+      const studyLabel = document.createElement('span');
+      studyLabel.className = 'heat-study';
+      studyLabel.textContent = studySeconds > 0 ? formatDurationLabel(studySeconds) : '0분';
       cell.appendChild(dayLabel);
       cell.appendChild(pctLabel);
+      cell.appendChild(studyLabel);
       heatmap.appendChild(cell);
     });
 
