@@ -25,15 +25,36 @@
   };
   const save = (key, value) => localStorage.setItem(key, JSON.stringify(value));
 
-  let schedules = load(STORE_KEYS.schedules, []);
-  let todosByDate = load(STORE_KEYS.todos, {});
-  let gold = load(STORE_KEYS.gold, 1000);
-  let subjects = load(STORE_KEYS.subjects, []);
-  let studyByDate = load(STORE_KEYS.study, {});
-  let activeSession = load(STORE_KEYS.activeSession, null);
-  let realmLevel = load(STORE_KEYS.realmLevel, 0);
-  let swordLevel = load(STORE_KEYS.swordLevel, 0);
-  let todoGoldClaimed = load(STORE_KEYS.todoGold, {});
+  /* ---------------- Accounts (local-only login) ---------------- */
+  const ACCOUNTS_KEY = 'momentum_accounts';
+  const CURRENT_USER_KEY = 'momentum_current_user';
+
+  let currentUser = null;
+  const userKey = (key) => `u_${currentUser}__${key}`;
+  const loadData = (key, fallback) => load(userKey(key), fallback);
+  const saveData = (key, value) => save(userKey(key), value);
+
+  let schedules = [];
+  let todosByDate = {};
+  let gold = 1000;
+  let subjects = [];
+  let studyByDate = {};
+  let activeSession = null;
+  let realmLevel = 0;
+  let swordLevel = 0;
+  let todoGoldClaimed = {};
+
+  function loadUserState() {
+    schedules = loadData(STORE_KEYS.schedules, []);
+    todosByDate = loadData(STORE_KEYS.todos, {});
+    gold = loadData(STORE_KEYS.gold, 1000);
+    subjects = loadData(STORE_KEYS.subjects, []);
+    studyByDate = loadData(STORE_KEYS.study, {});
+    activeSession = loadData(STORE_KEYS.activeSession, null);
+    realmLevel = loadData(STORE_KEYS.realmLevel, 0);
+    swordLevel = loadData(STORE_KEYS.swordLevel, 0);
+    todoGoldClaimed = loadData(STORE_KEYS.todoGold, {});
+  }
 
   /* ---------------- Date helpers ---------------- */
   const toKey = (d) => {
@@ -109,7 +130,7 @@
   const heatmap = el('heatmap');
   const historyEmpty = el('historyEmpty');
 
-  const themeToggle = el('themeToggle');
+  const themeSwitch = el('themeSwitch');
 
   const goldAmountEl = el('goldAmount');
   const tabButtons = Array.from(document.querySelectorAll('.tab-btn'));
@@ -118,7 +139,18 @@
     study: el('panel-study'),
     realm: el('panel-realm'),
     sword: el('panel-sword'),
+    settings: el('panel-settings'),
   };
+
+  const authGate = el('authGate');
+  const authTabs = Array.from(document.querySelectorAll('.auth-tab'));
+  const authForm = el('authForm');
+  const authUsernameInput = el('authUsername');
+  const authPasswordInput = el('authPassword');
+  const authSubmitBtn = el('authSubmitBtn');
+  const authError = el('authError');
+  const settingsUsernameEl = el('settingsUsername');
+  const logoutBtn = el('logoutBtn');
 
   const timerSubjectLabel = el('timerSubjectLabel');
   const timerDisplay = el('timerDisplay');
@@ -175,6 +207,18 @@
       desc: '육신을 벗고 날개를 얻어 하늘로 오른다. 그 이름 자체가 곧 신화가 된다.' },
     { name: '자연경', hanja: '自然境', price: 68000000, studyBonus: 14000, dailyBonus: 175000,
       desc: '자연과 하나가 되어, 더 이상 「경지」라는 말로도 설명할 수 없는 무학의 종착점.' },
+    { name: '지선', hanja: '地仙', price: 100000000, studyBonus: 17000, dailyBonus: 205000,
+      desc: '속세를 떠나지 않고도 신선의 경지에 이른 자. 인간과 신선의 경계에 선 존재.' },
+    { name: '천선', hanja: '天仙', price: 145000000, studyBonus: 20500, dailyBonus: 240000,
+      desc: '하늘의 반열에 오른 신선. 더 이상 인간의 잣대로는 가늠할 수 없는 존재가 되었다.' },
+    { name: '금선', hanja: '金仙', price: 210000000, studyBonus: 24500, dailyBonus: 280000,
+      desc: '황금빛 법신을 이룬 대신선. 하늘의 도(道) 그 자체를 다루기 시작한다.' },
+    { name: '대라금선', hanja: '大羅金仙', price: 300000000, studyBonus: 29500, dailyBonus: 325000,
+      desc: '삼계를 통틀어 손꼽히는 지고의 신선. 그 존재만으로 하나의 하늘이 열린다.' },
+    { name: '조화경', hanja: '造化境', price: 430000000, studyBonus: 35500, dailyBonus: 380000,
+      desc: '이치를 넘어 조화(造化) 그 자체를 손에 쥔, 언어로는 형용할 수 없는 미지의 영역.' },
+    { name: '천인합일', hanja: '天人合一', price: 620000000, studyBonus: 43000, dailyBonus: 445000,
+      desc: '하늘과 사람이 마침내 하나가 되었다. 더는 오를 곳이 없는, 구도(求道)의 완성.' },
   ];
 
   /* ---------------- Sword ladder (검) ---------------- */
@@ -207,6 +251,20 @@
       desc: '선인마저 베어낸다는 태고의 흉기. 그 이름만으로 강호를 떨게 한다.' },
     { name: '반고신검', hanja: '盤古神劍', price: 15000000, studyBonus: 9500, dailyBonus: 140000,
       desc: '천지를 개벽한 반고가 남겼다는 전설의 신검. 이 검을 쥔 자, 곧 하늘이 된다.' },
+    { name: '개천검', hanja: '開天劍', price: 22000000, studyBonus: 11500, dailyBonus: 165000,
+      desc: '닫힌 하늘을 강제로 열어젖힌다는 창세의 신검. 반고 이후 두 번째로 하늘을 가른 자만이 얻는다.' },
+    { name: '창세검', hanja: '創世劍', price: 32000000, studyBonus: 14000, dailyBonus: 195000,
+      desc: '무(無)에서 유(有)를 빚어낸다는 태초의 권능이 깃든 검.' },
+    { name: '삼라만상검', hanja: '森羅萬象劍', price: 47000000, studyBonus: 17000, dailyBonus: 230000,
+      desc: '세상 만물의 이치가 검신에 아로새겨진, 존재 자체가 하나의 우주인 신검.' },
+    { name: '육도윤회검', hanja: '六道輪廻劍', price: 68000000, studyBonus: 20500, dailyBonus: 270000,
+      desc: '생과 사, 윤회의 여섯 갈래 길을 넘나든다는 금단의 신검.' },
+    { name: '태극혼돈검', hanja: '太極混沌劍', price: 98000000, studyBonus: 25000, dailyBonus: 320000,
+      desc: '혼돈에서 태극이, 태극에서 삼라만상이 태어났다는 만물의 근원을 담은 검.' },
+    { name: '심검', hanja: '心劍', price: 142000000, studyBonus: 30500, dailyBonus: 380000,
+      desc: '검은 손이 아닌 마음에 있다. 실체 없는 검으로도 천하를 벤다는 절대의 깨달음.' },
+    { name: '무형검', hanja: '無形劍', price: 205000000, studyBonus: 37500, dailyBonus: 450000,
+      desc: '형(形)조차 초월한 검의 종착점. 검을 쥐지 않아도, 그 앞에 설 자가 없다.' },
   ];
 
   const BASE_STUDY_MIN = 2000;
@@ -261,7 +319,7 @@
 
       delBtn.addEventListener('click', () => {
         schedules = schedules.filter((x) => x.id !== s.id);
-        save(STORE_KEYS.schedules, schedules);
+        saveData(STORE_KEYS.schedules, schedules);
         renderSchedules();
       });
 
@@ -276,7 +334,7 @@
     const date = scheduleDateInput.value;
     if (!title || !date) return;
     schedules.push({ id: crypto.randomUUID(), title, date });
-    save(STORE_KEYS.schedules, schedules);
+    saveData(STORE_KEYS.schedules, schedules);
     scheduleForm.reset();
     renderSchedules();
   });
@@ -361,7 +419,7 @@
   }
 
   function persistTodos() {
-    save(STORE_KEYS.todos, todosByDate);
+    saveData(STORE_KEYS.todos, todosByDate);
   }
 
   function renderSummary() {
@@ -492,7 +550,7 @@
 
   function addGold(amount) {
     gold += amount;
-    save(STORE_KEYS.gold, gold);
+    saveData(STORE_KEYS.gold, gold);
     renderGold();
   }
 
@@ -529,7 +587,7 @@
   function addStudySeconds(dateKey, subjectId, seconds) {
     if (!studyByDate[dateKey]) studyByDate[dateKey] = {};
     studyByDate[dateKey][subjectId] = (studyByDate[dateKey][subjectId] || 0) + seconds;
-    save(STORE_KEYS.study, studyByDate);
+    saveData(STORE_KEYS.study, studyByDate);
   }
 
   function renderSubjects() {
@@ -567,7 +625,7 @@
           return;
         }
         subjects = subjects.filter((x) => x.id !== s.id);
-        save(STORE_KEYS.subjects, subjects);
+        saveData(STORE_KEYS.subjects, subjects);
         if (selectedSubjectId === s.id) selectedSubjectId = null;
         renderSubjects();
         renderTimerUI();
@@ -626,7 +684,7 @@
 
   function startTimer(subjectId) {
     activeSession = { subjectId, startTs: Date.now() };
-    save(STORE_KEYS.activeSession, activeSession);
+    saveData(STORE_KEYS.activeSession, activeSession);
     renderSubjects();
     renderTimerUI();
     startTicking();
@@ -648,7 +706,7 @@
     for (let i = 0; i < blocks; i++) reward += randomInt(rangeMin, rangeMax);
 
     activeSession = null;
-    save(STORE_KEYS.activeSession, null);
+    saveData(STORE_KEYS.activeSession, null);
 
     if (reward > 0) {
       addGold(reward);
@@ -672,7 +730,7 @@
     const name = subjectTextInput.value.trim();
     if (!name) return;
     subjects.push({ id: crypto.randomUUID(), name });
-    save(STORE_KEYS.subjects, subjects);
+    saveData(STORE_KEYS.subjects, subjects);
     subjectForm.reset();
     renderSubjects();
   });
@@ -710,7 +768,7 @@
     if (target <= claimed) return;
     const diff = target - claimed;
     todoGoldClaimed[todayK] = target;
-    save(STORE_KEYS.todoGold, todoGoldClaimed);
+    saveData(STORE_KEYS.todoGold, todoGoldClaimed);
     addGold(diff);
     if (pctToday >= 100) {
       showToast(`🎉 오늘 할 일 100% 달성! +${diff.toLocaleString('ko-KR')} 골드 획득!`);
@@ -723,28 +781,28 @@
       axis: 'realm',
       list: REALMS,
       getLevel: () => realmLevel,
-      setLevel: (v) => { realmLevel = v; save(STORE_KEYS.realmLevel, realmLevel); },
+      setLevel: (v) => { realmLevel = v; saveData(STORE_KEYS.realmLevel, realmLevel); },
       getOtherLevel: () => swordLevel,
       els: {
         name: el('realmName'), hanja: el('realmHanja'), desc: el('realmDesc'),
         studyRange: el('realmStudyRange'), dailyMax: el('realmDailyMax'), badge: el('realmBadge'),
         nextName: el('realmNextName'), upgradeBtn: el('realmUpgradeBtn'), ladderList: el('realmLadderList'),
       },
-      maxedNextText: '이미 무학의 정점, 자연경(自然境)에 이르렀습니다',
+      maxedNextText: '이미 구도의 완성, 천인합일(天人合一)에 이르렀습니다',
       verb: '경지에 올랐습니다',
     },
     sword: {
       axis: 'sword',
       list: SWORDS,
       getLevel: () => swordLevel,
-      setLevel: (v) => { swordLevel = v; save(STORE_KEYS.swordLevel, swordLevel); },
+      setLevel: (v) => { swordLevel = v; saveData(STORE_KEYS.swordLevel, swordLevel); },
       getOtherLevel: () => realmLevel,
       els: {
         name: el('swordName'), hanja: el('swordHanja'), desc: el('swordDesc'),
         studyRange: el('swordStudyRange'), dailyMax: el('swordDailyMax'), badge: el('swordBadge'),
         nextName: el('swordNextName'), upgradeBtn: el('swordUpgradeBtn'), ladderList: el('swordLadderList'),
       },
-      maxedNextText: '이미 천하제일검, 반고신검(盤古神劍)을 손에 넣었습니다',
+      maxedNextText: '이미 검의 종착점, 무형검(無形劍)의 경지에 이르렀습니다',
       verb: '을(를) 손에 넣었습니다',
     },
   };
@@ -808,7 +866,7 @@
     const next = track.list[level + 1];
     if (!next || gold < next.price) return;
     gold -= next.price;
-    save(STORE_KEYS.gold, gold);
+    saveData(STORE_KEYS.gold, gold);
     track.setLevel(level + 1);
     renderGold();
     renderCultivationTrack(CULT_TRACKS.realm);
@@ -819,25 +877,97 @@
 
   /* ---------------- Theme ---------------- */
   function applyTheme(theme) {
-    if (theme === 'dark') {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      themeToggle.textContent = '☀️';
-    } else {
-      document.documentElement.removeAttribute('data-theme');
-      themeToggle.textContent = '🌙';
-    }
+    const isDark = theme === 'dark';
+    if (isDark) document.documentElement.setAttribute('data-theme', 'dark');
+    else document.documentElement.removeAttribute('data-theme');
+    themeSwitch.setAttribute('aria-checked', String(isDark));
   }
 
-  themeToggle.addEventListener('click', () => {
+  themeSwitch.addEventListener('click', () => {
     const current = load(STORE_KEYS.theme, 'dark');
     const next = current === 'dark' ? 'light' : 'dark';
     save(STORE_KEYS.theme, next);
     applyTheme(next);
   });
 
+  applyTheme(load(STORE_KEYS.theme, 'dark'));
+
+  /* ---------------- Accounts: hashing ---------------- */
+  async function hashPassword(password, salt) {
+    const bytes = new TextEncoder().encode(`${salt}:${password}`);
+    const digest = await crypto.subtle.digest('SHA-256', bytes);
+    return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  const getAccounts = () => load(ACCOUNTS_KEY, {});
+  const saveAccounts = (accounts) => save(ACCOUNTS_KEY, accounts);
+
+  async function trySignup(username, password) {
+    if (!username || !password) return '아이디와 비밀번호를 입력해주세요.';
+    if (password.length < 4) return '비밀번호는 4자 이상이어야 해요.';
+    const accounts = getAccounts();
+    if (accounts[username]) return '이미 존재하는 아이디예요.';
+    const salt = crypto.randomUUID();
+    accounts[username] = { salt, hash: await hashPassword(password, salt) };
+    saveAccounts(accounts);
+    return null;
+  }
+
+  async function tryLogin(username, password) {
+    const account = getAccounts()[username];
+    if (!account) return '존재하지 않는 아이디예요.';
+    const hash = await hashPassword(password, account.salt);
+    if (hash !== account.hash) return '비밀번호가 올바르지 않아요.';
+    return null;
+  }
+
+  function enterApp(username) {
+    currentUser = username;
+    save(CURRENT_USER_KEY, username);
+    loadUserState();
+    authGate.classList.add('hidden');
+    settingsUsernameEl.textContent = username;
+    init();
+  }
+
+  logoutBtn.addEventListener('click', () => {
+    save(CURRENT_USER_KEY, null);
+    location.reload();
+  });
+
+  let authMode = 'login';
+  authTabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      authMode = tab.dataset.mode;
+      authTabs.forEach((t) => t.classList.toggle('active', t === tab));
+      authSubmitBtn.textContent = authMode === 'login' ? '로그인' : '회원가입';
+      authPasswordInput.autocomplete = authMode === 'login' ? 'current-password' : 'new-password';
+      authError.textContent = '';
+    });
+  });
+
+  authForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = authUsernameInput.value.trim();
+    const password = authPasswordInput.value;
+    authSubmitBtn.disabled = true;
+    authError.textContent = '';
+    try {
+      const errorMsg = authMode === 'login'
+        ? await tryLogin(username, password)
+        : await trySignup(username, password);
+      if (errorMsg) {
+        authError.textContent = errorMsg;
+        return;
+      }
+      enterApp(username);
+    } finally {
+      authSubmitBtn.disabled = false;
+    }
+  });
+
   /* ---------------- Init ---------------- */
   function init() {
-    applyTheme(load(STORE_KEYS.theme, 'dark'));
     scheduleDateInput.min = todayKey();
     renderSchedules();
     renderTodos();
@@ -854,5 +984,11 @@
     renderCultivationTrack(CULT_TRACKS.sword);
   }
 
-  init();
+  /* ---------------- Auto-login ---------------- */
+  const savedUser = load(CURRENT_USER_KEY, null);
+  if (savedUser && getAccounts()[savedUser]) {
+    enterApp(savedUser);
+  } else {
+    authGate.classList.remove('hidden');
+  }
 })();
