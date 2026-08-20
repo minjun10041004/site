@@ -373,7 +373,7 @@
   }
 
   themeToggle.addEventListener('click', () => {
-    const current = load(STORE_KEYS.theme, 'light');
+    const current = load(STORE_KEYS.theme, 'dark');
     const next = current === 'dark' ? 'light' : 'dark';
     save(STORE_KEYS.theme, next);
     applyTheme(next);
@@ -381,7 +381,7 @@
 
   /* ---------------- Init ---------------- */
   function init() {
-    applyTheme(load(STORE_KEYS.theme, 'light'));
+    applyTheme(load(STORE_KEYS.theme, 'dark'));
     scheduleDateInput.min = todayKey();
     renderSchedules();
     renderTodos();
