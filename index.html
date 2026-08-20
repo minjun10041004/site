@@ -7,7 +7,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔥</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&family=Noto+Serif+KR:wght@500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -28,8 +28,8 @@
     <nav class="tab-nav" id="tabNav">
       <button class="tab-btn active" data-tab="main">🏠 메인</button>
       <button class="tab-btn" data-tab="study">⏱️ 공부 시간</button>
-      <button class="tab-btn" data-tab="shop">🛒 상점</button>
-      <button class="tab-btn" data-tab="inventory">🎒 인벤토리</button>
+      <button class="tab-btn" data-tab="realm">🧘 경지</button>
+      <button class="tab-btn" data-tab="sword">⚔️ 검</button>
     </nav>
   </div>
 
@@ -169,46 +169,73 @@
     </div>
   </section>
 
-  <!-- Shop Tab -->
-  <section class="tab-panel" id="panel-shop">
-    <div class="shop-grid">
-      <div class="card shop-list-card">
-        <div class="card-head">
-          <h2><span class="card-icon">🛒</span> 상점</h2>
-          <span class="badge" id="shopBadge">0개</span>
+  <!-- Realm (경지) Tab -->
+  <section class="tab-panel" id="panel-realm">
+    <div class="cultivation-grid realm-theme">
+      <div class="card cultivation-hero-card">
+        <p class="cultivation-label">현재 경지</p>
+        <h2 class="cultivation-name" id="realmName">삼류무사</h2>
+        <p class="cultivation-hanja" id="realmHanja">(三流武士)</p>
+        <p class="cultivation-desc" id="realmDesc"></p>
+        <div class="cultivation-stats">
+          <div class="cultivation-stat">
+            <span>공부 10분당 획득</span>
+            <strong id="realmStudyRange">0~0C</strong>
+          </div>
+          <div class="cultivation-stat">
+            <span>하루 할 일 100% 달성 시</span>
+            <strong id="realmDailyMax">0C</strong>
+          </div>
         </div>
-        <div class="shop-grid-items" id="shopItemGrid"></div>
+        <div class="cultivation-next" id="realmNextBox">
+          <p class="next-label">다음 경지</p>
+          <p class="next-name" id="realmNextName"></p>
+          <button class="btn-upgrade" id="realmUpgradeBtn"></button>
+        </div>
       </div>
 
-      <div class="card shop-detail-card">
-        <div id="shopDetailEmpty" class="shop-detail-empty">
-          <p>아이템을 선택하면<br>설명이 여기에 표시돼요 ✨</p>
+      <div class="card ladder-card">
+        <div class="card-head">
+          <h2><span class="card-icon">🧘</span> 경지 계보</h2>
+          <span class="badge" id="realmBadge">1 / 1</span>
         </div>
-        <div id="shopDetailContent" class="shop-detail-content" style="display:none;">
-          <div class="shop-detail-icon icon-frame" id="shopDetailIcon"><span class="icon-frame-glyph" id="shopDetailIconGlyph"></span></div>
-          <h3 id="shopDetailName"></h3>
-          <p class="shop-detail-tier" id="shopDetailTier"></p>
-          <p class="shop-detail-desc" id="shopDetailDesc"></p>
-          <div class="shop-detail-price">
-            <span class="gold-icon">🪙</span>
-            <strong id="shopDetailPrice">0</strong>C
-          </div>
-          <button class="btn-primary buy-btn" id="shopBuyBtn">구매하기</button>
-          <p class="shop-buy-msg" id="shopBuyMsg"></p>
-        </div>
+        <ul class="ladder-list" id="realmLadderList"></ul>
       </div>
     </div>
   </section>
 
-  <!-- Inventory Tab -->
-  <section class="tab-panel" id="panel-inventory">
-    <div class="card inventory-card">
-      <div class="card-head">
-        <h2><span class="card-icon">🎒</span> 인벤토리</h2>
-        <span class="badge" id="inventoryBadge">0개</span>
+  <!-- Sword (검) Tab -->
+  <section class="tab-panel" id="panel-sword">
+    <div class="cultivation-grid sword-theme">
+      <div class="card cultivation-hero-card">
+        <p class="cultivation-label">현재 애병(愛兵)</p>
+        <h2 class="cultivation-name" id="swordName">목검</h2>
+        <p class="cultivation-hanja" id="swordHanja">(木劍)</p>
+        <p class="cultivation-desc" id="swordDesc"></p>
+        <div class="cultivation-stats">
+          <div class="cultivation-stat">
+            <span>공부 10분당 획득</span>
+            <strong id="swordStudyRange">0~0C</strong>
+          </div>
+          <div class="cultivation-stat">
+            <span>하루 할 일 100% 달성 시</span>
+            <strong id="swordDailyMax">0C</strong>
+          </div>
+        </div>
+        <div class="cultivation-next" id="swordNextBox">
+          <p class="next-label">다음 애병</p>
+          <p class="next-name" id="swordNextName"></p>
+          <button class="btn-upgrade" id="swordUpgradeBtn"></button>
+        </div>
       </div>
-      <div class="inventory-grid" id="inventoryGrid"></div>
-      <p class="empty-state" id="inventoryEmpty">아직 구매한 아이템이 없어요. 상점에서 득템해보세요 🗡️</p>
+
+      <div class="card ladder-card">
+        <div class="card-head">
+          <h2><span class="card-icon">⚔️</span> 병기 계보</h2>
+          <span class="badge" id="swordBadge">1 / 1</span>
+        </div>
+        <ul class="ladder-list" id="swordLadderList"></ul>
+      </div>
     </div>
   </section>
 
@@ -251,20 +278,16 @@
   </li>
 </template>
 
-<template id="shopItemTemplate">
-  <button class="shop-item">
-    <div class="shop-item-icon icon-frame"><span class="icon-frame-glyph"></span></div>
-    <span class="shop-item-name"></span>
-    <span class="shop-item-price"><span class="gold-icon">🪙</span><span class="shop-item-price-value"></span>C</span>
-  </button>
-</template>
-
-<template id="inventoryItemTemplate">
-  <div class="inventory-item">
-    <div class="inventory-item-icon icon-frame"><span class="icon-frame-glyph"></span></div>
-    <span class="inventory-item-name"></span>
-    <span class="inventory-item-qty"></span>
-  </div>
+<template id="ladderRowTemplate">
+  <li class="ladder-row">
+    <span class="ladder-rank"></span>
+    <div class="ladder-info">
+      <span class="ladder-name"></span>
+      <span class="ladder-hanja"></span>
+    </div>
+    <span class="ladder-range"></span>
+    <span class="ladder-status"></span>
+  </li>
 </template>
 
 <script src="js/app.js"></script>

@@ -761,179 +761,205 @@ body {
   flex-shrink: 0;
 }
 
-/* ============ Shop Tab ============ */
-.shop-grid {
+/* ============ Cultivation (경지 / 검) Tabs ============ */
+.cultivation-grid {
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
+  grid-template-columns: 1.3fr 1fr;
   gap: 22px;
   align-items: start;
 }
 @media (max-width: 760px) {
-  .shop-grid { grid-template-columns: 1fr; }
+  .cultivation-grid { grid-template-columns: 1fr; }
 }
 
-.shop-grid-items {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  gap: 18px;
-  max-height: 680px;
+.cultivation-grid.realm-theme {
+  --cult-a: #a684ff;
+  --cult-b: #ffd767;
+}
+.cultivation-grid.sword-theme {
+  --cult-a: #6fd9ff;
+  --cult-b: #c7cdda;
+}
+
+.cultivation-hero-card {
+  position: relative;
+  align-items: center;
+  text-align: center;
+  padding: 46px 30px 34px;
+  min-height: 480px;
+  justify-content: center;
+  overflow: hidden;
+}
+.cultivation-hero-card::before {
+  content: '';
+  position: absolute;
+  inset: -40%;
+  background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--cult-a) 22%, transparent), transparent 60%);
+  animation: auraSpin 12s linear infinite;
+  pointer-events: none;
+}
+@keyframes auraSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.cultivation-label {
+  position: relative;
+  margin: 0 0 6px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--text-faint);
+  text-transform: uppercase;
+}
+
+.cultivation-name {
+  position: relative;
+  margin: 0;
+  font-family: 'Noto Serif KR', 'Noto Sans KR', serif;
+  font-weight: 900;
+  font-size: clamp(2.6rem, 7vw, 4.6rem);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  background: linear-gradient(100deg, var(--cult-a), var(--cult-b), var(--cult-a));
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 5s ease-in-out infinite;
+  word-break: keep-all;
+}
+@keyframes shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.cultivation-hanja {
+  position: relative;
+  margin: 6px 0 16px;
+  font-family: 'Noto Serif KR', serif;
+  font-weight: 500;
+  font-size: 1.15rem;
+  letter-spacing: 0.12em;
+  color: var(--text-soft);
+}
+
+.cultivation-desc {
+  position: relative;
+  margin: 0 0 24px;
+  max-width: 440px;
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: var(--text-soft);
+}
+
+.cultivation-stats {
+  position: relative;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 26px;
+}
+.cultivation-stat {
+  background: var(--surface-solid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 150px;
+}
+.cultivation-stat span { font-size: 0.72rem; font-weight: 700; color: var(--text-faint); }
+.cultivation-stat strong { font-size: 1.05rem; font-weight: 800; color: var(--gold); }
+
+.cultivation-next {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--cult-a) 14%, var(--surface-solid)), var(--surface-solid));
+  border: 1px solid color-mix(in srgb, var(--cult-a) 40%, var(--border));
+  border-radius: var(--radius-lg);
+  padding: 18px 20px 20px;
+}
+.next-label {
+  margin: 0 0 4px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-faint);
+  letter-spacing: 0.06em;
+}
+.next-name {
+  margin: 0 0 14px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text);
+}
+.btn-upgrade {
+  width: 100%;
+  border: none;
+  background: linear-gradient(135deg, var(--cult-a), var(--cult-b));
+  color: #16121f;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 800;
+  padding: 13px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.btn-upgrade:hover:not(:disabled) { transform: translateY(-2px); }
+.btn-upgrade:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-upgrade.maxed { background: linear-gradient(135deg, var(--accent-3), #10b981); color: #06251a; }
+
+.ladder-card { min-height: 480px; }
+.ladder-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 620px;
   overflow-y: auto;
   padding-right: 4px;
 }
-
-.shop-item {
+.ladder-row {
   display: flex;
-  flex-direction: column;
   align-items: center;
   gap: 12px;
   background: var(--surface-solid);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 26px 16px;
-  min-height: 210px;
-  justify-content: center;
-  cursor: pointer;
-  font-family: inherit;
-  text-align: center;
-  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  border-radius: var(--radius-md);
+  padding: 11px 14px;
+  transition: border-color 0.2s ease;
 }
-.shop-item:hover { transform: translateY(-4px); box-shadow: var(--shadow-sm); }
-.shop-item.selected { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.15); }
-.shop-item.owned { border-color: var(--accent-3); }
-
-.shop-item-name { font-size: 0.92rem; font-weight: 700; color: var(--text); }
-.shop-item-price {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 0.8rem;
-  font-weight: 800;
-  color: var(--gold);
-}
-
-.shop-detail-card {
-  min-height: 460px;
-  align-items: center;
-  text-align: center;
-  justify-content: center;
-}
-.shop-detail-empty { color: var(--text-faint); font-size: 0.88rem; line-height: 1.6; }
-
-.shop-detail-content { display: flex; flex-direction: column; align-items: center; width: 100%; }
-.shop-detail-icon.icon-frame { width: 128px; height: 128px; border-radius: 30px; margin-bottom: 14px; }
-.shop-detail-icon .icon-frame-glyph { font-size: 4.4rem; }
-.shop-detail-content h3 { margin: 0 0 4px; font-size: 1.15rem; font-weight: 800; }
-.shop-detail-tier {
-  margin: 0 0 14px;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  color: var(--accent-2);
-  text-transform: uppercase;
-}
-.shop-detail-desc {
-  margin: 0 0 18px;
-  font-size: 0.85rem;
-  line-height: 1.6;
-  color: var(--text-soft);
-}
-.shop-detail-price {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: var(--gold);
-  margin-bottom: 16px;
-}
-.buy-btn { width: 100%; padding: 12px; font-size: 0.95rem; }
-.buy-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.shop-buy-msg {
-  margin: 10px 0 0;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--accent-3);
-  min-height: 1.2em;
-}
-
-/* ============ Inventory Tab ============ */
-.inventory-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: 18px;
-}
-.inventory-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  background: var(--surface-solid);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 26px 14px;
-  min-height: 190px;
-  justify-content: center;
-  text-align: center;
-  animation: slideIn 0.3s ease;
-}
-.inventory-item-name { font-size: 0.88rem; font-weight: 700; }
-.inventory-item-qty { font-size: 0.76rem; font-weight: 700; color: var(--accent); }
-
-/* ============ Rarity icon frames ============ */
-.icon-frame {
-  --frame-bg: linear-gradient(155deg, #3a3f4d, #20232b);
-  --frame-border: #8a92a3;
-  --frame-glow: rgba(138, 146, 163, 0.35);
-  width: 74px;
-  height: 74px;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--frame-bg);
-  border: 2px solid var(--frame-border);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
-    0 10px 22px -10px var(--frame-glow),
-    0 0 22px -6px var(--frame-glow);
-  position: relative;
-  overflow: hidden;
+.ladder-rank {
+  width: 26px;
   flex-shrink: 0;
+  text-align: center;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--text-faint);
 }
-.icon-frame::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.16), transparent 55%);
-  pointer-events: none;
-}
-.icon-frame-glyph {
-  font-size: 2.3rem;
-  line-height: 1;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
-  position: relative;
-  z-index: 1;
-}
+.ladder-info { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.ladder-name { font-size: 0.9rem; font-weight: 700; }
+.ladder-hanja { font-family: 'Noto Serif KR', serif; font-size: 0.76rem; color: var(--text-faint); }
+.ladder-range { flex-shrink: 0; font-size: 0.72rem; font-weight: 700; color: var(--gold); white-space: nowrap; }
+.ladder-status { flex-shrink: 0; font-size: 0.76rem; font-weight: 800; white-space: nowrap; min-width: 64px; text-align: right; }
 
-.icon-frame.rarity-common { --frame-bg: linear-gradient(155deg, #3d4250, #23262f); --frame-border: #9aa2b5; --frame-glow: rgba(154, 162, 181, 0.35); }
-.icon-frame.rarity-rare { --frame-bg: linear-gradient(155deg, #1c3f66, #0f2138); --frame-border: #4da3ff; --frame-glow: rgba(77, 163, 255, 0.5); }
-.icon-frame.rarity-epic { --frame-bg: linear-gradient(155deg, #3b1f66, #200e39); --frame-border: #b477ff; --frame-glow: rgba(180, 119, 255, 0.55); }
-.icon-frame.rarity-legendary { --frame-bg: linear-gradient(155deg, #6b4416, #3a2408); --frame-border: #ffb84d; --frame-glow: rgba(255, 184, 77, 0.6); }
-.icon-frame.rarity-mythic {
-  --frame-bg: linear-gradient(155deg, #6b1a45, #260a35);
-  --frame-border: #ff5ec4;
-  --frame-glow: rgba(255, 94, 196, 0.6);
-  animation: mythicGlow 2.4s ease-in-out infinite;
+.ladder-row.done { border-color: var(--accent-3); }
+.ladder-row.done .ladder-status { color: var(--accent-3); }
+.ladder-row.current {
+  border-color: var(--cult-a);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--cult-a) 18%, transparent);
+  background: linear-gradient(120deg, color-mix(in srgb, var(--cult-a) 12%, var(--surface-solid)), var(--surface-solid));
 }
-@keyframes mythicGlow {
-  0%, 100% { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06), 0 10px 22px -10px var(--frame-glow), 0 0 18px -4px var(--frame-glow); }
-  50% { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1), 0 10px 26px -8px var(--frame-glow), 0 0 32px -2px var(--frame-glow); }
-}
-
-.shop-item .icon-frame { width: 84px; height: 84px; border-radius: 22px; }
-.shop-item .icon-frame-glyph { font-size: 2.6rem; }
-.inventory-item .icon-frame { width: 78px; height: 78px; border-radius: 20px; }
-.inventory-item .icon-frame-glyph { font-size: 2.4rem; }
+.ladder-row.current .ladder-status { color: var(--cult-a); }
+.ladder-row.locked { opacity: 0.6; }
+.ladder-row.locked .ladder-status { color: var(--text-faint); }
 
 /* ============ Toast ============ */
 .toast {
