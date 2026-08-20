@@ -1131,3 +1131,108 @@ body {
 
 .chip-btn.danger { color: var(--danger); border-color: var(--danger); }
 .chip-btn.danger:hover { background: var(--danger); color: #fff; }
+
+/* ============ Ranking Tab ============ */
+.my-rank {
+  background: linear-gradient(135deg, var(--gold), var(--gold-2));
+  color: #2b1c02;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 5px 14px;
+  border-radius: 999px;
+}
+
+.rank-category-nav {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.rank-cat-btn {
+  border: 1px solid var(--border);
+  background: var(--surface-solid);
+  color: var(--text-soft);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  white-space: nowrap;
+}
+.rank-cat-btn:hover { border-color: var(--accent); }
+.rank-cat-btn.active {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  border-color: transparent;
+  color: #fff;
+}
+
+.rank-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 640px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.rank-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--surface-solid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  animation: slideIn 0.3s ease;
+}
+.rank-row.me {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.15);
+  background: linear-gradient(120deg, rgba(124, 92, 255, 0.1), var(--surface-solid));
+}
+
+.rank-medal {
+  width: 32px;
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--text-faint);
+}
+.rank-row.top1 .rank-medal { font-size: 1.3rem; }
+.rank-row.top2 .rank-medal { font-size: 1.3rem; }
+.rank-row.top3 .rank-medal { font-size: 1.3rem; }
+
+.rank-username {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rank-row.me .rank-username::after {
+  content: '나';
+  margin-left: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.66rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
+.rank-value {
+  flex-shrink: 0;
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: var(--gold);
+  white-space: nowrap;
+}

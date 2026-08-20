@@ -20,6 +20,7 @@
   const usernameToEmail = (username) => `${username.trim().toLowerCase()}@momentum.local`;
 
   let currentUserId = null;
+  let currentUsername = null;
 
   let schedules = [];
   let todosByDate = {};
@@ -47,13 +48,39 @@
     todoGoldClaimed = data.todoGoldClaimed ?? {};
   }
 
+  function sumStudySecondsForDate(dateKey) {
+    const day = studyByDate[dateKey];
+    if (!day) return 0;
+    return Object.values(day).reduce((a, b) => a + b, 0);
+  }
+
+  function sumStudySecondsRolling(days) {
+    let total = 0;
+    const todayK = todayKey();
+    for (let i = 0; i < days; i++) total += sumStudySecondsForDate(addDays(todayK, -i));
+    return total;
+  }
+
   async function flushSave() {
     if (!currentUserId) return;
-    await sb.from('app_data').upsert({
-      user_id: currentUserId,
-      data: collectState(),
-      updated_at: new Date().toISOString(),
-    });
+    await Promise.all([
+      sb.from('app_data').upsert({
+        user_id: currentUserId,
+        data: collectState(),
+        updated_at: new Date().toISOString(),
+      }),
+      sb.from('leaderboard').upsert({
+        user_id: currentUserId,
+        username: currentUsername,
+        realm_level: realmLevel,
+        sword_level: swordLevel,
+        gold,
+        study_today: sumStudySecondsForDate(todayKey()),
+        study_week: sumStudySecondsRolling(7),
+        study_month: sumStudySecondsRolling(30),
+        updated_at: new Date().toISOString(),
+      }),
+    ]);
   }
 
   let saveTimer = null;
@@ -158,6 +185,7 @@
     study: el('panel-study'),
     realm: el('panel-realm'),
     sword: el('panel-sword'),
+    ranking: el('panel-ranking'),
     settings: el('panel-settings'),
   };
 
@@ -183,6 +211,12 @@
   const subjectItemTpl = el('subjectItemTemplate');
 
   const ladderRowTpl = el('ladderRowTemplate');
+
+  const myRankEl = el('myRank');
+  const rankCategoryButtons = Array.from(document.querySelectorAll('.rank-cat-btn'));
+  const rankList = el('rankList');
+  const rankEmpty = el('rankEmpty');
+  const rankRowTpl = el('rankRowTemplate');
 
   const toastEl = el('toast');
 
@@ -578,8 +612,54 @@
   function switchTab(name) {
     tabButtons.forEach((btn) => btn.classList.toggle('active', btn.dataset.tab === name));
     Object.entries(tabPanels).forEach(([key, panel]) => panel.classList.toggle('active', key === name));
+    if (name === 'ranking') renderRanking(currentRankCategory);
   }
   tabButtons.forEach((btn) => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+
+  /* ---------------- Ranking ---------------- */
+  const RANK_CATEGORIES = {
+    realm: { column: 'realm_level', label: (v) => (REALMS[v] ? `${REALMS[v].name} (${REALMS[v].hanja})` : '-') },
+    sword: { column: 'sword_level', label: (v) => (SWORDS[v] ? `${SWORDS[v].name} (${SWORDS[v].hanja})` : '-') },
+    gold: { column: 'gold', label: (v) => `${(v || 0).toLocaleString('ko-KR')}C` },
+    study_today: { column: 'study_today', label: (v) => formatDurationLabel(v || 0) },
+    study_week: { column: 'study_week', label: (v) => formatDurationLabel(v || 0) },
+    study_month: { column: 'study_month', label: (v) => formatDurationLabel(v || 0) },
+  };
+  let currentRankCategory = 'realm';
+
+  async function renderRanking(category) {
+    currentRankCategory = category;
+    rankCategoryButtons.forEach((b) => b.classList.toggle('active', b.dataset.cat === category));
+    const cfg = RANK_CATEGORIES[category];
+
+    const { data, error } = await sb
+      .from('leaderboard')
+      .select('*')
+      .order(cfg.column, { ascending: false })
+      .limit(200);
+
+    const rows = error ? [] : (data || []);
+    rankList.innerHTML = '';
+    rankEmpty.style.display = rows.length ? 'none' : 'block';
+
+    const myIndex = rows.findIndex((r) => r.user_id === currentUserId);
+    myRankEl.textContent = myIndex >= 0 ? `내 순위 ${myIndex + 1}위` : '순위 없음';
+
+    rows.forEach((row, i) => {
+      const rank = i + 1;
+      const node = rankRowTpl.content.cloneNode(true);
+      const li = node.querySelector('.rank-row');
+      node.querySelector('.rank-medal').textContent =
+        rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : String(rank);
+      if (rank <= 3) li.classList.add(`top${rank}`);
+      if (row.user_id === currentUserId) li.classList.add('me');
+      node.querySelector('.rank-username').textContent = row.username || '익명';
+      node.querySelector('.rank-value').textContent = cfg.label(row[cfg.column]);
+      rankList.appendChild(node);
+    });
+  }
+
+  rankCategoryButtons.forEach((btn) => btn.addEventListener('click', () => renderRanking(btn.dataset.cat)));
 
   /* ---------------- Study Timer ---------------- */
   let selectedSubjectId = activeSession ? activeSession.subjectId : null;
@@ -592,11 +672,14 @@
     return [h, m, s].map((n) => String(n).padStart(2, '0')).join(':');
   };
 
-  const formatStudyLabel = (totalSeconds) => {
+  const formatDurationLabel = (totalSeconds) => {
     const mins = Math.floor(totalSeconds / 60);
-    if (mins < 60) return `오늘 ${mins}분`;
-    return `오늘 ${Math.floor(mins / 60)}시간 ${mins % 60}분`;
+    if (mins < 60) return `${mins}분`;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return m ? `${h}시간 ${m}분` : `${h}시간`;
   };
+  const formatStudyLabel = (totalSeconds) => `오늘 ${formatDurationLabel(totalSeconds)}`;
 
   function getStudySeconds(dateKey, subjectId) {
     return (studyByDate[dateKey] && studyByDate[dateKey][subjectId]) || 0;
@@ -999,8 +1082,10 @@
   /* ---------------- Session lifecycle ---------------- */
   async function enterApp(user) {
     currentUserId = user.id;
-    settingsUsernameEl.textContent = user.user_metadata?.username || user.email.split('@')[0];
+    currentUsername = user.user_metadata?.username || user.email.split('@')[0];
+    settingsUsernameEl.textContent = currentUsername;
     await loadUserState();
+    await flushSave(); // keep the leaderboard row fresh even if nothing changes this session
     authGate.classList.add('hidden');
     init();
   }

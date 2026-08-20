@@ -47,6 +47,7 @@
       <button class="tab-btn" data-tab="study">⏱️ 공부 시간</button>
       <button class="tab-btn" data-tab="realm">🧘 경지</button>
       <button class="tab-btn" data-tab="sword">⚔️ 검</button>
+      <button class="tab-btn" data-tab="ranking">🏆 랭킹</button>
       <button class="tab-btn" data-tab="settings">⚙️ 설정</button>
     </nav>
   </div>
@@ -256,6 +257,28 @@
     </div>
   </section>
 
+  <!-- Ranking Tab -->
+  <section class="tab-panel" id="panel-ranking">
+    <div class="card ranking-card">
+      <div class="card-head">
+        <h2><span class="card-icon">🏆</span> 전체 랭킹</h2>
+        <span class="my-rank" id="myRank">-</span>
+      </div>
+
+      <div class="rank-category-nav" id="rankCategoryNav">
+        <button class="rank-cat-btn active" data-cat="realm">🧘 경지</button>
+        <button class="rank-cat-btn" data-cat="sword">⚔️ 검</button>
+        <button class="rank-cat-btn" data-cat="gold">🪙 골드</button>
+        <button class="rank-cat-btn" data-cat="study_today">☀️ 오늘 공부</button>
+        <button class="rank-cat-btn" data-cat="study_week">📅 최근 7일</button>
+        <button class="rank-cat-btn" data-cat="study_month">🗓️ 최근 30일</button>
+      </div>
+
+      <ul class="rank-list" id="rankList"></ul>
+      <p class="empty-state" id="rankEmpty">아직 랭킹 데이터가 없어요.</p>
+    </div>
+  </section>
+
   <!-- Settings Tab -->
   <section class="tab-panel" id="panel-settings">
     <div class="card settings-card">
@@ -331,6 +354,14 @@
     </div>
     <span class="ladder-range"></span>
     <span class="ladder-status"></span>
+  </li>
+</template>
+
+<template id="rankRowTemplate">
+  <li class="rank-row">
+    <span class="rank-medal"></span>
+    <span class="rank-username"></span>
+    <span class="rank-value"></span>
   </li>
 </template>
 
