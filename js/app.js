@@ -201,6 +201,7 @@
   const timerDisplay = el('timerDisplay');
   const measureBtn = el('measureBtn');
   const timerHint = el('timerHint');
+  const todayTotalDisplay = el('todayTotalDisplay');
   const subjectBadge = el('subjectBadge');
   const subjectList = el('subjectList');
   const subjectEmpty = el('subjectEmpty');
@@ -765,6 +766,13 @@
     if (!activeSession) return;
     const elapsed = Math.floor((Date.now() - activeSession.startTs) / 1000);
     timerDisplay.textContent = formatDuration(elapsed);
+    renderTodayTotal();
+  }
+
+  function renderTodayTotal() {
+    let total = sumStudySecondsForDate(todayKey());
+    if (activeSession) total += Math.floor((Date.now() - activeSession.startTs) / 1000);
+    todayTotalDisplay.textContent = formatDuration(total);
   }
 
   function startTicking() {
@@ -808,6 +816,7 @@
 
     renderSubjects();
     renderTimerUI();
+    renderTodayTotal();
     renderHeader();
   }
 
@@ -1070,6 +1079,7 @@
     renderSubjects();
     renderTimerUI();
     renderStudyHint();
+    renderTodayTotal();
     if (activeSession) startTicking();
     renderCultivationTrack(CULT_TRACKS.realm);
     renderCultivationTrack(CULT_TRACKS.sword);

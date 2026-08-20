@@ -640,6 +640,31 @@ body {
   .study-grid { grid-template-columns: 1fr; }
 }
 
+.today-total-card {
+  align-items: center;
+  text-align: center;
+  padding: 36px 28px;
+  margin-top: 22px;
+}
+
+.today-total-label {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+.today-total-display {
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(2.8rem, 8vw, 4.6rem);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
 .timer-card {
   align-items: center;
   text-align: center;
