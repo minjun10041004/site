@@ -577,7 +577,16 @@ body {
   font-size: 0.86rem;
   font-weight: 800;
 }
-.gold-icon { font-size: 0.95rem; }
+.gold-icon {
+  display: inline-block;
+  font-size: 0.95rem;
+  filter: drop-shadow(0 0 3px rgba(255, 215, 90, 0.7)) drop-shadow(0 0 7px rgba(255, 215, 90, 0.4));
+  animation: coinSparkle 2.6s ease-in-out infinite;
+}
+@keyframes coinSparkle {
+  0%, 100% { transform: rotate(-6deg) scale(1); filter: drop-shadow(0 0 3px rgba(255, 215, 90, 0.7)) drop-shadow(0 0 7px rgba(255, 215, 90, 0.4)); }
+  50% { transform: rotate(6deg) scale(1.12); filter: drop-shadow(0 0 5px rgba(255, 236, 150, 0.95)) drop-shadow(0 0 12px rgba(255, 215, 90, 0.7)); }
+}
 
 .tab-nav {
   display: inline-flex;
@@ -1020,6 +1029,24 @@ body {
 .btn-upgrade:hover:not(:disabled) { transform: translateY(-2px); }
 .btn-upgrade:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-upgrade.maxed { background: linear-gradient(135deg, var(--accent-3), #10b981); color: #06251a; }
+
+.enhance-odds {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: 12px;
+}
+.enhance-odds.show { display: flex; }
+.odds-row {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-faint);
+}
+.odds-row strong { font-size: 0.94rem; font-weight: 900; }
+.odds-success strong { color: var(--accent-3); }
+.odds-fail strong { color: var(--danger); }
 
 .ladder-card { min-height: 480px; }
 .ladder-list {

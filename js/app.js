@@ -873,6 +873,7 @@
         name: el('swordName'), hanja: el('swordHanja'), desc: el('swordDesc'),
         studyRange: el('swordStudyRange'), badge: el('swordBadge'),
         nextName: el('swordNextName'), upgradeBtn: el('swordUpgradeBtn'), ladderList: el('swordLadderList'),
+        enhanceOdds: el('swordEnhanceOdds'), successRateEl: el('swordSuccessRate'), failRateEl: el('swordFailRate'),
       },
       maxedNextText: '이미 검의 종착점, 무형검(無形劍)의 경지에 이르렀습니다',
       verb: '을(를) 손에 넣었습니다',
@@ -902,17 +903,23 @@
     if (next) {
       e.nextName.textContent = `${next.name} (${next.hanja})`;
       e.upgradeBtn.textContent = track.enhance
-        ? `${next.price.toLocaleString('ko-KR')}C로 강화 시도 (성공률 ${next.successRate}%)`
+        ? `${next.price.toLocaleString('ko-KR')}C로 강화 시도`
         : `${next.price.toLocaleString('ko-KR')}C로 승급하기`;
       e.upgradeBtn.disabled = gold < next.price;
       e.upgradeBtn.classList.remove('maxed');
       e.upgradeBtn.onclick = () => upgradeTrack(track);
+      if (e.enhanceOdds) {
+        e.enhanceOdds.classList.toggle('show', !!track.enhance);
+        e.successRateEl.textContent = `${next.successRate}%`;
+        e.failRateEl.textContent = `${100 - next.successRate}%`;
+      }
     } else {
       e.nextName.textContent = track.maxedNextText;
       e.upgradeBtn.textContent = '달성 완료';
       e.upgradeBtn.disabled = true;
       e.upgradeBtn.classList.add('maxed');
       e.upgradeBtn.onclick = null;
+      if (e.enhanceOdds) e.enhanceOdds.classList.remove('show');
     }
 
     e.ladderList.innerHTML = '';
