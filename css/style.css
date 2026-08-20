@@ -592,7 +592,6 @@ body {
     inset 0 1.5px 2px rgba(255, 255, 255, 0.65),
     0 0 4px rgba(255, 199, 44, 0.6);
   filter: drop-shadow(0 0 3px rgba(255, 215, 90, 0.7)) drop-shadow(0 0 7px rgba(255, 215, 90, 0.4));
-  animation: coinSparkle 2.6s ease-in-out infinite;
 }
 .gold-icon::after {
   content: '';
@@ -600,10 +599,6 @@ body {
   inset: 18%;
   border-radius: 50%;
   border: 1px solid rgba(150, 96, 8, 0.55);
-}
-@keyframes coinSparkle {
-  0%, 100% { transform: rotate(-6deg) scale(1); filter: drop-shadow(0 0 3px rgba(255, 215, 90, 0.7)) drop-shadow(0 0 7px rgba(255, 215, 90, 0.4)); }
-  50% { transform: rotate(6deg) scale(1.12); filter: drop-shadow(0 0 5px rgba(255, 236, 150, 0.95)) drop-shadow(0 0 12px rgba(255, 215, 90, 0.7)); }
 }
 
 .tab-nav {
