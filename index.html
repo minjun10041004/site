@@ -185,7 +185,7 @@
           <p>아이템을 선택하면<br>설명이 여기에 표시돼요 ✨</p>
         </div>
         <div id="shopDetailContent" class="shop-detail-content" style="display:none;">
-          <div class="shop-detail-icon" id="shopDetailIcon"></div>
+          <div class="shop-detail-icon icon-frame" id="shopDetailIcon"><span class="icon-frame-glyph" id="shopDetailIconGlyph"></span></div>
           <h3 id="shopDetailName"></h3>
           <p class="shop-detail-tier" id="shopDetailTier"></p>
           <p class="shop-detail-desc" id="shopDetailDesc"></p>
@@ -253,7 +253,7 @@
 
 <template id="shopItemTemplate">
   <button class="shop-item">
-    <span class="shop-item-icon"></span>
+    <div class="shop-item-icon icon-frame"><span class="icon-frame-glyph"></span></div>
     <span class="shop-item-name"></span>
     <span class="shop-item-price"><span class="gold-icon">🪙</span><span class="shop-item-price-value"></span>C</span>
   </button>
@@ -261,7 +261,7 @@
 
 <template id="inventoryItemTemplate">
   <div class="inventory-item">
-    <span class="inventory-item-icon"></span>
+    <div class="inventory-item-icon icon-frame"><span class="icon-frame-glyph"></span></div>
     <span class="inventory-item-name"></span>
     <span class="inventory-item-qty"></span>
   </div>

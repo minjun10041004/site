@@ -634,14 +634,14 @@ body {
 .timer-card {
   align-items: center;
   text-align: center;
-  padding: 48px 24px;
-  min-height: 360px;
+  padding: 64px 28px;
+  min-height: 460px;
   justify-content: center;
 }
 
 .timer-subject {
-  margin: 0 0 8px;
-  font-size: 1rem;
+  margin: 0 0 10px;
+  font-size: 1.2rem;
   font-weight: 700;
   color: var(--text-soft);
   min-height: 1.4em;
@@ -649,14 +649,14 @@ body {
 
 .timer-display {
   font-variant-numeric: tabular-nums;
-  font-size: clamp(2.6rem, 7vw, 4.2rem);
+  font-size: clamp(3.6rem, 10vw, 6.4rem);
   font-weight: 800;
   letter-spacing: 0.02em;
   background: linear-gradient(90deg, var(--accent), var(--accent-2));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  margin-bottom: 22px;
+  margin-bottom: 32px;
 }
 
 .btn-measure {
@@ -664,9 +664,9 @@ body {
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   color: #fff;
   font-family: inherit;
-  font-size: 1rem;
+  font-size: 1.15rem;
   font-weight: 800;
-  padding: 14px 36px;
+  padding: 18px 44px;
   border-radius: 999px;
   cursor: pointer;
   box-shadow: var(--shadow-sm);
@@ -774,9 +774,9 @@ body {
 
 .shop-grid-items {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 12px;
-  max-height: 560px;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 18px;
+  max-height: 680px;
   overflow-y: auto;
   padding-right: 4px;
 }
@@ -785,33 +785,34 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   background: var(--surface-solid);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 18px 12px;
+  border-radius: var(--radius-lg);
+  padding: 26px 16px;
+  min-height: 210px;
+  justify-content: center;
   cursor: pointer;
   font-family: inherit;
   text-align: center;
   transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
-.shop-item:hover { transform: translateY(-3px); box-shadow: var(--shadow-sm); }
+.shop-item:hover { transform: translateY(-4px); box-shadow: var(--shadow-sm); }
 .shop-item.selected { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.15); }
 .shop-item.owned { border-color: var(--accent-3); }
 
-.shop-item-icon { font-size: 2.1rem; line-height: 1; }
-.shop-item-name { font-size: 0.82rem; font-weight: 700; color: var(--text); }
+.shop-item-name { font-size: 0.92rem; font-weight: 700; color: var(--text); }
 .shop-item-price {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size: 0.74rem;
+  font-size: 0.8rem;
   font-weight: 800;
   color: var(--gold);
 }
 
 .shop-detail-card {
-  min-height: 340px;
+  min-height: 460px;
   align-items: center;
   text-align: center;
   justify-content: center;
@@ -819,7 +820,8 @@ body {
 .shop-detail-empty { color: var(--text-faint); font-size: 0.88rem; line-height: 1.6; }
 
 .shop-detail-content { display: flex; flex-direction: column; align-items: center; width: 100%; }
-.shop-detail-icon { font-size: 3.4rem; margin-bottom: 8px; }
+.shop-detail-icon.icon-frame { width: 128px; height: 128px; border-radius: 30px; margin-bottom: 14px; }
+.shop-detail-icon .icon-frame-glyph { font-size: 4.4rem; }
 .shop-detail-content h3 { margin: 0 0 4px; font-size: 1.15rem; font-weight: 800; }
 .shop-detail-tier {
   margin: 0 0 14px;
@@ -857,24 +859,81 @@ body {
 /* ============ Inventory Tab ============ */
 .inventory-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 18px;
 }
 .inventory-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   background: var(--surface-solid);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 20px 12px;
+  border-radius: var(--radius-lg);
+  padding: 26px 14px;
+  min-height: 190px;
+  justify-content: center;
   text-align: center;
   animation: slideIn 0.3s ease;
 }
-.inventory-item-icon { font-size: 2.2rem; }
-.inventory-item-name { font-size: 0.82rem; font-weight: 700; }
-.inventory-item-qty { font-size: 0.72rem; font-weight: 700; color: var(--accent); }
+.inventory-item-name { font-size: 0.88rem; font-weight: 700; }
+.inventory-item-qty { font-size: 0.76rem; font-weight: 700; color: var(--accent); }
+
+/* ============ Rarity icon frames ============ */
+.icon-frame {
+  --frame-bg: linear-gradient(155deg, #3a3f4d, #20232b);
+  --frame-border: #8a92a3;
+  --frame-glow: rgba(138, 146, 163, 0.35);
+  width: 74px;
+  height: 74px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--frame-bg);
+  border: 2px solid var(--frame-border);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 10px 22px -10px var(--frame-glow),
+    0 0 22px -6px var(--frame-glow);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.icon-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.16), transparent 55%);
+  pointer-events: none;
+}
+.icon-frame-glyph {
+  font-size: 2.3rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+  position: relative;
+  z-index: 1;
+}
+
+.icon-frame.rarity-common { --frame-bg: linear-gradient(155deg, #3d4250, #23262f); --frame-border: #9aa2b5; --frame-glow: rgba(154, 162, 181, 0.35); }
+.icon-frame.rarity-rare { --frame-bg: linear-gradient(155deg, #1c3f66, #0f2138); --frame-border: #4da3ff; --frame-glow: rgba(77, 163, 255, 0.5); }
+.icon-frame.rarity-epic { --frame-bg: linear-gradient(155deg, #3b1f66, #200e39); --frame-border: #b477ff; --frame-glow: rgba(180, 119, 255, 0.55); }
+.icon-frame.rarity-legendary { --frame-bg: linear-gradient(155deg, #6b4416, #3a2408); --frame-border: #ffb84d; --frame-glow: rgba(255, 184, 77, 0.6); }
+.icon-frame.rarity-mythic {
+  --frame-bg: linear-gradient(155deg, #6b1a45, #260a35);
+  --frame-border: #ff5ec4;
+  --frame-glow: rgba(255, 94, 196, 0.6);
+  animation: mythicGlow 2.4s ease-in-out infinite;
+}
+@keyframes mythicGlow {
+  0%, 100% { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06), 0 10px 22px -10px var(--frame-glow), 0 0 18px -4px var(--frame-glow); }
+  50% { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1), 0 10px 26px -8px var(--frame-glow), 0 0 32px -2px var(--frame-glow); }
+}
+
+.shop-item .icon-frame { width: 84px; height: 84px; border-radius: 22px; }
+.shop-item .icon-frame-glyph { font-size: 2.6rem; }
+.inventory-item .icon-frame { width: 78px; height: 78px; border-radius: 20px; }
+.inventory-item .icon-frame-glyph { font-size: 2.4rem; }
 
 /* ============ Toast ============ */
 .toast {
