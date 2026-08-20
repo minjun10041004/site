@@ -306,18 +306,19 @@
      middle, back down to 2 for the historical 신병이기, and only 선검 is
      allowed a long name — the length itself signals the tier. */
   const RARITIES = [
-    { key: 'beompum',  name: '범품', hanja: '凡品', chance: 50 },
-    { key: 'jeongpum', name: '정품', hanja: '精品', chance: 28 },
-    { key: 'bogeom',   name: '보검', hanja: '寶劍', chance: 14 },
-    { key: 'yeonggeom',name: '영검', hanja: '靈劍', chance: 6 },
-    { key: 'sinbyeong',name: '신병이기', hanja: '神兵利器', chance: 1.8 },
-    { key: 'seongeom', name: '선검', hanja: '仙劍', chance: 0.2 },
+    { key: 'beompum',  name: '범품', hanja: '凡品', chance: 65 },
+    { key: 'jeongpum', name: '정품', hanja: '精品', chance: 20 },
+    { key: 'bogeom',   name: '보검', hanja: '寶劍', chance: 10 },
+    { key: 'yeonggeom',name: '영검', hanja: '靈劍', chance: 4.8 },
+    { key: 'sinbyeong',name: '신병이기', hanja: '神兵利器', chance: 0.18 },
+    { key: 'seongeom', name: '선검', hanja: '仙劍', chance: 0.02 },
   ];
 
   /* ---------------- Sword pool (검 도감) ----------------
      Ordered weakest -> strongest, so a higher index is always the better
      blade. Within one grade the spread is kept inside 20%; between grades
-     it is roughly 4x, so a grade-up dwarfs anything within a grade. */
+     it is ~4.2x through 보검/영검, then jumps hard — ~15x into 신병이기 and
+     ~26x into 선검 — so the top two grades are a different league entirely. */
   const SWORDS = [
     /* ---- 범품(凡品) — 2자 ---- */
     { name: '목검', hanja: '木劍', rarity: 0, studyBonus: 200,
@@ -326,7 +327,7 @@
     { name: '단도', hanja: '短刀', rarity: 0, studyBonus: 210,
       lore: '품에 넣고 다니기 좋게 한 뼘 남짓으로 벼려낸 짧은 칼. 무인보다 장사꾼과 뱃사람이 더 많이 찼다.',
       desc: '간격을 내줘야만 쓸 수 있다. 그래서 이 칼을 든 자는 늘 상대보다 한 걸음 더 들어가야 한다.' },
-    { name: '환도', hanja: '環刀', rarity: 0, studyBonus: 225,
+    { name: '환도', hanja: '環刀', rarity: 0, studyBonus: 230,
       lore: '자루 끝에 고리를 달아 손목에 걸도록 만든 관병(官兵)의 제식 도. 병졸 하나하나에게 지급되던 물건이다.',
       desc: '개인의 병기가 아니라 대오(隊伍)의 병기. 혼자 휘두르면 평범하나, 열이 함께 휘두르면 벽이 된다.' },
     { name: '철검', hanja: '鐵劍', rarity: 0, studyBonus: 240,
@@ -334,30 +335,30 @@
       desc: '투박하고 무겁고 잘 부러진다. 그럼에도 첫 애병으로 이 검을 기억하는 무사는 수없이 많다.' },
 
     /* ---- 정품(精品) — 3자 ---- */
-    { name: '유엽검', hanja: '柳葉劍', rarity: 1, studyBonus: 850,
+    { name: '유엽검', hanja: '柳葉劍', rarity: 1, studyBonus: 840,
       lore: '버들잎을 본떠 검신을 얇고 길게 뽑아낸 검. 힘보다 결을 중히 여기는 남방 검파에서 즐겨 썼다.',
       desc: '무겁게 내리치는 검이 아니라 스치듯 흘려 베는 검. 상처는 얕지만, 그 얕은 것이 열 번 겹친다.' },
-    { name: '청류검', hanja: '靑流劍', rarity: 1, studyBonus: 890,
+    { name: '청류검', hanja: '靑流劍', rarity: 1, studyBonus: 900,
       lore: '푸른 강철을 아홉 번 접어 두드려, 검신에 흐르는 물결 무늬가 그대로 남은 검.',
       desc: '드디어 「부러지지 않는」 검을 손에 넣었다. 휘두르면 검로가 물길처럼 끊기지 않고 이어진다.' },
     { name: '한상검', hanja: '寒霜劍', rarity: 1, studyBonus: 950,
       lore: '북방의 찬 우물물로만 담금질을 마친 검. 칼집에 넣어두어도 검신에 서리가 옅게 맺힌다.',
       desc: '뽑는 순간 손끝이 아릿하게 시리다. 베인 자리가 늦게 아프고, 늦게 피가 난다.' },
-    { name: '부월검', hanja: '斧鉞劍', rarity: 1, studyBonus: 1020,
+    { name: '부월검', hanja: '斧鉞劍', rarity: 1, studyBonus: 1000,
       lore: '도끼(斧)와 큰도끼(鉞)의 무게를 검의 형태에 옮겨 담은 중병(重兵). 팔 힘이 받쳐주지 않으면 오히려 짐이 된다.',
       desc: '기교를 버리고 무게로 찍어 누르는 검. 막아낸 자의 병기가 먼저 부러지는 일이 잦다.' },
 
     /* ---- 보검(寶劍) — 3자 ---- */
-    { name: '매화검', hanja: '梅花劍', rarity: 2, studyBonus: 3600,
+    { name: '매화검', hanja: '梅花劍', rarity: 2, studyBonus: 3500,
       lore: '눈 속에서 홀로 피는 매화를 검리(劍理)로 삼은 명문의 보검. 검신에 다섯 꽃잎이 음각되어 있다.',
       desc: '한 초식이 다섯 갈래로 흩어져 피어난다. 어느 꽃잎이 진짜 검끝인지 아무도 세어내지 못한다.' },
-    { name: '빙혼검', hanja: '氷魂劍', rarity: 2, studyBonus: 3780,
+    { name: '빙혼검', hanja: '氷魂劍', rarity: 2, studyBonus: 3700,
       lore: '만년한옥(萬年寒玉)의 심(心)을 깎아 검신에 심었다는 극음(極陰)의 보검.',
       desc: '스치기만 해도 상처가 얼어붙는다. 피 한 방울 흘리지 않고 상대를 쓰러뜨리는 서늘한 검.' },
-    { name: '복마검', hanja: '伏魔劍', rarity: 2, studyBonus: 4030,
+    { name: '복마검', hanja: '伏魔劍', rarity: 2, studyBonus: 4000,
       lore: '마(魔)를 엎드리게 한다는 뜻을 새겨, 정도(正道) 문파가 사악한 것을 벨 때만 뽑도록 봉인해 둔 보검.',
       desc: '요사한 기운 앞에서 스스로 검명(劍鳴)을 낸다. 마물에게는 닿기도 전에 이미 두려운 검.' },
-    { name: '뇌정검', hanja: '雷霆劍', rarity: 2, studyBonus: 4320,
+    { name: '뇌정검', hanja: '雷霆劍', rarity: 2, studyBonus: 4200,
       lore: '벼락 맞은 벽조목과 운철(隕鐵)을 함께 벼려낸 검. 뇌우가 몰아치는 날이면 스스로 울린다.',
       desc: '휘두를 때마다 천둥소리가 터진다. 소리가 곧 기세가 되어, 마주 선 자의 담을 먼저 부순다.' },
 
@@ -365,10 +366,10 @@
     { name: '호아검', hanja: '虎牙劍', rarity: 3, studyBonus: 15000,
       lore: '사람을 맛본 범의 어금니를 본떠 벼렸다는 요검. 쥔 자에게 짐승의 식욕(食慾)을 옮긴다.',
       desc: '한 번 베면 두 번 베고 싶어진다. 검이 배고픈 것인지 주인이 배고픈 것인지, 곧 구분할 수 없게 된다.' },
-    { name: '악형검', hanja: '惡刑劍', rarity: 3, studyBonus: 15750,
+    { name: '악형검', hanja: '惡刑劍', rarity: 3, studyBonus: 16000,
       lore: '죄인을 다스리던 형장(刑場)의 피를 천 번 먹은 검. 벌하는 쾌감(快感)이 그대로 검신에 배었다.',
       desc: '이 검은 이기기 위해서가 아니라 벌하기 위해 움직인다. 쥔 자는 스스로를 늘 옳다고 믿게 된다.' },
-    { name: '겁멸검', hanja: '劫滅劍', rarity: 3, studyBonus: 16800,
+    { name: '겁멸검', hanja: '劫滅劍', rarity: 3, studyBonus: 17000,
       lore: '겁(劫)이 다하면 만물이 스러진다는 이치를 억지로 검에 가둔 요검. 주인의 수명을 땔감으로 삼는다.',
       desc: '휘두른 만큼 주인의 날이 줄어든다. 그것을 알고도 놓지 못하는 것이, 이 검의 진짜 무서움이다.' },
     { name: '사흉검', hanja: '四凶劍', rarity: 3, studyBonus: 18000,
@@ -376,39 +377,39 @@
       desc: '탐욕과 오만, 잔혹과 어리석음이 번갈아 주인을 부른다. 검을 이긴 자만이 검을 쓸 수 있다.' },
 
     /* ---- 신병이기(神兵利器) — 2자, 구야자·간장의 신화 ---- */
-    { name: '순구', hanja: '純鈞', rarity: 4, studyBonus: 62000,
+    { name: '순구', hanja: '純鈞', rarity: 4, studyBonus: 222000,
       lore: '구야자(歐冶子)가 벼린 명검. 상감(相劍)의 명인 설촉은 이 검을 보고 「값을 매길 수 없다(無價之寶)」 하였다.',
       desc: '티 하나 없이 순수한 검. 화려한 기예가 없어도, 검 그 자체로 이미 완성되어 있다.' },
-    { name: '승사', hanja: '勝邪', rarity: 4, studyBonus: 63400,
+    { name: '승사', hanja: '勝邪', rarity: 4, studyBonus: 228000,
       lore: '이름 그대로 사악함을 이긴다(勝邪)는 뜻을 얻은 구야자의 검.',
       desc: '요사한 기운을 정면으로 눌러 없앤다. 베는 것이 아니라 굴복시키는 종류의 검.' },
-    { name: '어장', hanja: '魚腸', rarity: 4, studyBonus: 64900,
+    { name: '어장', hanja: '魚腸', rarity: 4, studyBonus: 233000,
       lore: '물고기 뱃속에 감출 만큼 짧게 벼려진 비수. 전제(專諸)가 구운 생선 속에 숨겨 오왕 요(僚)를 시해한 그 검이다.',
       desc: '천하를 뒤집는 데 필요한 길이는 한 뼘이면 족했다. 짧기에 아무도 오는 것을 보지 못한다.' },
-    { name: '거궐', hanja: '巨闕', rarity: 4, studyBonus: 66400,
+    { name: '거궐', hanja: '巨闕', rarity: 4, studyBonus: 239000,
       lore: '월왕 구천이 지녔다는 구야자의 검. 큰 궁궐(巨闕)의 문마저 갈라낸다 하여 그 이름을 얻었다.',
       desc: '섬세함을 논하지 않는다. 가로막은 것이 무엇이든, 그저 잘려 있을 뿐이다.' },
-    { name: '담로', hanja: '湛盧', rarity: 4, studyBonus: 67900,
+    { name: '담로', hanja: '湛盧', rarity: 4, studyBonus: 244000,
       lore: '무도한 주인을 스스로 떠나 다른 나라의 어진 임금에게 갔다는 인의(仁義)의 검.',
       desc: '이 검은 쥐는 자를 고른다. 자격이 없다고 판단되면, 어느 날 칼집만 남아 있다.' },
-    { name: '태아', hanja: '太阿', rarity: 4, studyBonus: 69500,
+    { name: '태아', hanja: '太阿', rarity: 4, studyBonus: 250000,
       lore: '구야자와 간장이 함께 벼린 위도(威道)의 검. 초나라가 포위되던 날, 성루에서 뽑아 든 것만으로 진나라 대군이 무너졌다 한다.',
       desc: '휘두르지 않아도 이긴다. 검을 뽑는 소리 하나가 이미 만 명의 전의를 꺾는다.' },
-    { name: '용천', hanja: '龍泉', rarity: 4, studyBonus: 71100,
+    { name: '용천', hanja: '龍泉', rarity: 4, studyBonus: 255000,
       lore: '본래 이름은 용연(龍淵). 훗날 임금의 휘(諱)를 피해 용천으로 고쳐 부르게 되었다. 일곱 별의 형상이 검신에 어렸다 한다.',
       desc: '들여다보면 깊은 못 속에 엎드린 용이 비친다. 물처럼 고요하다가, 한순간 승천한다.' },
-    { name: '막야', hanja: '莫邪', rarity: 4, studyBonus: 72700,
+    { name: '막야', hanja: '莫邪', rarity: 4, studyBonus: 261000,
       lore: '쇠가 끝내 녹지 않자, 간장의 아내 막야가 스스로 화로에 몸을 던져 완성했다는 자검(雌劍).',
       desc: '사람의 목숨 하나가 검이 되었다. 이 검이 우는 날은, 짝인 웅검이 가까이 있다는 뜻이다.' },
-    { name: '간장', hanja: '干將', rarity: 4, studyBonus: 74400,
+    { name: '간장', hanja: '干將', rarity: 4, studyBonus: 266000,
       lore: '명장 간장이 삼 년에 걸쳐 벼려낸 웅검(雄劍). 그는 이 검을 감추고 자검만을 왕에게 바쳤다가 목숨을 잃었다.',
       desc: '주인의 원한을 대신 기억하는 검. 짝을 잃은 뒤로 늘 한쪽으로 조금 기울어 운다.' },
 
     /* ---- 선검(仙劍) ---- */
-    { name: '천주멸신검', hanja: '天誅滅神劍', rarity: 5, studyBonus: 260000,
+    { name: '천주멸신검', hanja: '天誅滅神劍', rarity: 5, studyBonus: 5780000,
       lore: '하늘이 직접 내리는 벌(天誅)을 형체로 굳힌 검. 사람을 베기 위한 물건이 아니라, 신을 멸(滅神)하기 위해 벼려졌다.',
       desc: '이 검 앞에서는 신위(神位)조차 필멸의 살덩이가 된다. 하늘의 이치로도 이 검날은 막지 못한다.' },
-    { name: '개벽조화검', hanja: '開闢造化劍', rarity: 5, studyBonus: 312000,
+    { name: '개벽조화검', hanja: '開闢造化劍', rarity: 5, studyBonus: 6940000,
       lore: '혼돈을 갈라 천지를 연(開闢) 그 최초의 일격이, 식지 않고 검의 형상으로 남은 것이라 전해진다.',
       desc: '베는 것이 아니라 짓는다(造化). 이 검이 그은 자리에는 없던 하늘과 없던 땅이 생겨난다.' },
   ];
@@ -1045,25 +1046,13 @@
   }
 
   /* ---------------- 검 뽑기 (가챠) ----------------
-     One draw costs roughly five minutes of study at your current realm, so
-     the pull stays meaningful from 삼류무사 all the way to 여의경. The sword
-     you have equipped deliberately does NOT feed into the price — otherwise
-     a lucky pull would immediately tax every pull after it. */
-  const DRAW_COST_MINUTES = 5;
+     Flat price per draw — it does not scale with realm or the sword you
+     have equipped, so the odds table is the only thing that determines
+     value here. */
+  const DRAW_COST = 50000;
   const MAX_DRAWS_PER_BATCH = 100;
 
-  function niceCost(n) {
-    if (n < 1000) return Math.round(n / 10) * 10;
-    if (n < 10000) return Math.round(n / 100) * 100;
-    if (n < 1000000) return Math.round(n / 1000) * 1000;
-    if (n < 100000000) return Math.round(n / 100000) * 100000;
-    return Math.round(n / 1000000) * 1000000;
-  }
-
-  function drawCost() {
-    const perMinuteAvg = (BASE_STUDY_MIN + cumulativeBonus(REALMS, realmLevel, 'studyBonus')) * 1.5;
-    return niceCost(perMinuteAvg * DRAW_COST_MINUTES);
-  }
+  function drawCost() { return DRAW_COST; }
 
   /* Pick a grade by its fixed odds, then any sword inside it uniformly —
      that is what makes every sword of one grade equally likely. */
