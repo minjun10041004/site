@@ -1756,19 +1756,29 @@ body {
   color: #3b1d00;
 }
 
-/* Rarity odds table */
+/* Rarity odds table — each grade is a button that unfurls its sword list */
 .rarity-table { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.rarity-group { display: flex; flex-direction: column; }
 .rarity-row {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 1fr auto auto auto;
   align-items: center;
   gap: 12px;
+  width: 100%;
   padding: 12px 15px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--rar-solid);
   background: linear-gradient(100deg,
     color-mix(in srgb, var(--rar-a) 18%, transparent), transparent 70%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  font-family: inherit;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+.rarity-row:hover { filter: brightness(1.08); }
+.rarity-row.open {
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  filter: brightness(1.1);
 }
 .rarity-name {
   font-family: 'Noto Serif KR', serif;
@@ -1776,10 +1786,57 @@ body {
   font-size: 1rem;
   color: var(--rar-solid);
   text-shadow: 0 0 12px var(--rar-glow);
+  text-align: left;
 }
 .rarity-name small { margin-left: 6px; font-size: 0.68rem; opacity: 0.7; font-weight: 600; }
 .rarity-chance { font-weight: 900; font-size: 1rem; font-variant-numeric: tabular-nums; }
 .rarity-count { font-size: 0.72rem; color: var(--text-faint); font-weight: 700; }
+.rarity-caret {
+  font-size: 0.8rem;
+  color: var(--rar-solid);
+  transition: transform 0.25s ease;
+}
+.rarity-row.open .rarity-caret { transform: rotate(180deg); }
+
+.rarity-sword-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--rar-solid);
+  border-top: none;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  background: color-mix(in srgb, var(--rar-a) 8%, var(--surface-solid));
+  transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.rarity-sword-list.show { max-height: 900px; }
+.rarity-sword-item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 9px 16px;
+  border-top: 1px dashed var(--border);
+  font-size: 0.86rem;
+  animation: swordItemUnfurl 0.3s cubic-bezier(0.34, 1.4, 0.64, 1) backwards;
+}
+.rarity-sword-item:first-child { border-top: none; }
+@keyframes swordItemUnfurl {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.rarity-sword-name { font-family: 'Noto Serif KR', serif; font-weight: 800; color: var(--rar-solid); }
+.rarity-sword-hanja { font-size: 0.72rem; color: var(--text-faint); }
+.rarity-sword-item.undiscovered .rarity-sword-name,
+.rarity-sword-item.undiscovered .rarity-sword-hanja { color: var(--text-faint); }
+.rarity-sword-item.undiscovered::after {
+  content: '미발견';
+  margin-left: auto;
+  font-size: 0.64rem;
+  font-weight: 800;
+  color: var(--text-faint);
+  letter-spacing: 0.04em;
+}
 .rarity-note {
   margin: 14px 0 0;
   font-size: 0.76rem;
