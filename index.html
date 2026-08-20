@@ -46,7 +46,8 @@
       <button class="tab-btn active" data-tab="main">🏠 메인</button>
       <button class="tab-btn" data-tab="study">⏱️ 공부 시간</button>
       <button class="tab-btn" data-tab="realm">🧘 경지</button>
-      <button class="tab-btn" data-tab="sword">⚔️ 검</button>
+      <button class="tab-btn" data-tab="sword">⚔️ 검 뽑기</button>
+      <button class="tab-btn" data-tab="codex">📖 도감</button>
       <button class="tab-btn" data-tab="ranking">🏆 랭킹</button>
       <button class="tab-btn" data-tab="settings">⚙️ 설정</button>
     </nav>
@@ -223,38 +224,57 @@
     </div>
   </section>
 
-  <!-- Sword (검) Tab -->
+  <!-- Sword gacha (검 뽑기) Tab -->
   <section class="tab-panel" id="panel-sword">
-    <div class="cultivation-grid sword-theme">
-      <div class="card cultivation-hero-card">
-        <p class="cultivation-label">현재 애병(愛兵)</p>
-        <h2 class="cultivation-name" id="swordName">목검</h2>
-        <p class="cultivation-hanja" id="swordHanja">(木劍)</p>
-        <p class="cultivation-desc" id="swordDesc"></p>
-        <div class="cultivation-stats">
-          <div class="cultivation-stat">
-            <span>공부 1분당 획득</span>
-            <strong id="swordStudyRange">0~0C</strong>
+    <div class="gacha-grid sword-theme">
+
+      <div class="card gacha-main-card">
+        <div class="equipped-block">
+          <p class="cultivation-label">현재 애병(愛兵)</p>
+          <span class="sword-grade rar-chip rar-0" id="swordGrade">일반 · 一般</span>
+          <h2 class="cultivation-name rar-0" id="swordName">목검</h2>
+          <p class="cultivation-hanja" id="swordHanja">(木劍)</p>
+          <p class="sword-lore" id="swordLore"></p>
+          <p class="cultivation-desc" id="swordDesc"></p>
+          <div class="cultivation-stats">
+            <div class="cultivation-stat">
+              <span>공부 1분당 획득</span>
+              <strong id="swordStudyRange">0~0C</strong>
+            </div>
           </div>
         </div>
-        <div class="cultivation-next" id="swordNextBox">
-          <p class="next-label">다음 애병</p>
-          <p class="next-name" id="swordNextName"></p>
-          <button class="btn-upgrade" id="swordUpgradeBtn"></button>
-          <div class="enhance-odds" id="swordEnhanceOdds">
-            <p class="odds-row odds-success">성공 <strong id="swordSuccessRate">0%</strong></p>
-            <p class="odds-row odds-fail">실패 <strong id="swordFailRate">0%</strong></p>
-          </div>
+
+        <div class="gacha-controls">
+          <label class="gacha-count-label" for="gachaCount">뽑기 횟수</label>
+          <input type="number" id="gachaCount" min="1" max="100" step="1" value="1" inputmode="numeric">
+          <button class="btn-draw" id="gachaDrawBtn">1회 뽑기</button>
+          <p class="gacha-cost" id="gachaCostLabel"></p>
         </div>
+
+        <div class="gacha-results" id="gachaResults"></div>
+        <p class="empty-state" id="gachaResultsEmpty">뽑기 버튼을 눌러 새로운 검을 찾아보세요 ⚔️</p>
       </div>
 
-      <div class="card ladder-card">
+      <div class="card rarity-card">
         <div class="card-head">
-          <h2><span class="card-icon">⚔️</span> 병기 계보</h2>
-          <span class="badge" id="swordBadge">1 / 1</span>
+          <h2><span class="card-icon">🎲</span> 등급별 확률</h2>
         </div>
-        <ul class="ladder-list" id="swordLadderList"></ul>
+        <ul class="rarity-table" id="rarityTable"></ul>
+        <p class="rarity-note">같은 등급 안에서는 모든 검이 동일한 확률로 등장해요. 지금보다 좋은 검이 나오면 자동으로 장착됩니다.</p>
       </div>
+
+    </div>
+  </section>
+
+  <!-- Codex (도감) Tab -->
+  <section class="tab-panel" id="panel-codex">
+    <div class="card codex-card-wrap sword-theme">
+      <div class="card-head">
+        <h2><span class="card-icon">📖</span> 검 도감</h2>
+        <span class="badge" id="codexProgress">0 / 0</span>
+      </div>
+      <p class="codex-note">한 번이라도 뽑은 검만 설정과 설명이 공개돼요.</p>
+      <div class="codex-grid" id="codexGrid"></div>
     </div>
   </section>
 
@@ -356,6 +376,26 @@
     <span class="ladder-range"></span>
     <span class="ladder-status"></span>
   </li>
+</template>
+
+<template id="swordResultTemplate">
+  <div class="sword-result">
+    <span class="sword-result-grade"></span>
+    <span class="sword-result-name"></span>
+    <span class="sword-result-hanja"></span>
+    <span class="sword-result-tag"></span>
+  </div>
+</template>
+
+<template id="codexCardTemplate">
+  <article class="codex-card">
+    <span class="codex-grade"></span>
+    <h3 class="codex-name"></h3>
+    <p class="codex-hanja"></p>
+    <p class="codex-lore"></p>
+    <p class="codex-desc"></p>
+    <p class="codex-bonus"></p>
+  </article>
 </template>
 
 <template id="rankRowTemplate">

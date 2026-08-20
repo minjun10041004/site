@@ -973,51 +973,6 @@ body {
 .ladder-name.tier-7 { color: #a48cff; }
 .ladder-name.tier-8 { color: #ff6ec7; }
 
-/* Sword gets its own "blade" palette, distinct from the realm's "aura" palette:
-   steel -> cold edge -> blood -> demonic -> ancient gold -> divine white -> prismatic. */
-.sword-theme .cultivation-name.tier-0 { --cult-a: #9aa4b5; --cult-b: #eef1f6; }
-.sword-theme .cultivation-name.tier-1 {
-  --cult-a: #38bdf8; --cult-b: #d6f3ff;
-  filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.45));
-}
-.sword-theme .cultivation-name.tier-2 {
-  --cult-a: #f43f5e; --cult-b: #ffb3c1;
-  filter: drop-shadow(0 0 14px rgba(244, 63, 94, 0.45));
-  animation: shimmer 3.6s ease-in-out infinite, glowPulse 2.4s ease-in-out infinite;
-}
-.sword-theme .cultivation-name.tier-3 {
-  --cult-a: #a855f7; --cult-b: #e9d0ff;
-  filter: drop-shadow(0 0 16px rgba(168, 85, 247, 0.5));
-  animation: shimmer 3.2s ease-in-out infinite, glowPulse 2.1s ease-in-out infinite;
-}
-.sword-theme .cultivation-name.tier-4 {
-  --cult-a: #eab308; --cult-b: #fff2b8;
-  filter: drop-shadow(0 0 18px rgba(234, 179, 8, 0.55));
-  animation: shimmer 2.8s ease-in-out infinite, glowPulse 1.8s ease-in-out infinite;
-}
-.sword-theme .cultivation-name.tier-5 {
-  --cult-a: #fde68a; --cult-b: #ffffff;
-  filter: drop-shadow(0 0 22px rgba(253, 230, 138, 0.65));
-  animation: shimmer 2.4s ease-in-out infinite, glowPulse 1.5s ease-in-out infinite;
-  letter-spacing: 0.01em;
-}
-.sword-theme .cultivation-name.tier-6 {
-  background-image: linear-gradient(100deg, #ffffff, #7cf5ff, #a855f7, #ffd76a, #ffffff);
-  background-size: 420% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  filter: drop-shadow(0 0 22px rgba(255, 255, 255, 0.55)) drop-shadow(0 0 22px rgba(124, 245, 255, 0.45));
-  animation: rainbowShift 3.6s linear infinite, glowPulse 1.1s ease-in-out infinite;
-  letter-spacing: 0.01em;
-}
-
-.sword-theme .ladder-name.tier-1 { color: #38bdf8; }
-.sword-theme .ladder-name.tier-2 { color: #f43f5e; }
-.sword-theme .ladder-name.tier-3 { color: #a855f7; }
-.sword-theme .ladder-name.tier-4 { color: #eab308; }
-.sword-theme .ladder-name.tier-5 { color: #f4d35e; }
-.sword-theme .ladder-name.tier-6 { color: #7cf5ff; }
-
 .cultivation-hanja {
   position: relative;
   margin: 6px 0 16px;
@@ -1438,3 +1393,494 @@ body {
   color: var(--gold);
   white-space: nowrap;
 }
+
+/* ============================================================
+   Glossy game-UI layer (Sailor Piece / Legacy Piece flavoured)
+   A single set of primitives — bevel, sheen sweep, inked text —
+   reused by every panel so the whole site reads as one skin.
+   ============================================================ */
+:root {
+  --gloss-top: rgba(255, 255, 255, 0.55);
+  --gloss-bottom: rgba(255, 255, 255, 0);
+  --bevel-light: rgba(255, 255, 255, 0.75);
+  --bevel-dark: rgba(20, 12, 45, 0.22);
+  --ink: rgba(24, 16, 52, 0.5);
+}
+[data-theme="dark"] {
+  --gloss-top: rgba(255, 255, 255, 0.22);
+  --gloss-bottom: rgba(255, 255, 255, 0);
+  --bevel-light: rgba(255, 255, 255, 0.28);
+  --bevel-dark: rgba(0, 0, 0, 0.5);
+  --ink: rgba(0, 0, 0, 0.75);
+}
+
+/* Sheen: a narrow bright band that slides across a surface. */
+@keyframes sheenSweep {
+  0%   { transform: translateX(-120%) skewX(-18deg); }
+  55%  { transform: translateX(320%) skewX(-18deg); }
+  100% { transform: translateX(320%) skewX(-18deg); }
+}
+/* Text gloss: the same idea, but riding a background-clip gradient. */
+@keyframes textSheen {
+  0%   { background-position: -180% 50%; }
+  60%  { background-position: 180% 50%; }
+  100% { background-position: 180% 50%; }
+}
+
+.card,
+.hero,
+.auth-card {
+  position: relative;
+  border-top-color: var(--bevel-light);
+  box-shadow: var(--shadow), inset 0 1px 0 var(--bevel-light), inset 0 -2px 0 var(--bevel-dark);
+}
+.card::after,
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 46%;
+  border-radius: inherit;
+  background: linear-gradient(to bottom, var(--gloss-top), var(--gloss-bottom));
+  pointer-events: none;
+  z-index: 0;
+}
+.card > *,
+.hero > * { position: relative; z-index: 1; }
+
+/* Chunky, inked headings — the game-UI voice. */
+.card-head h2,
+.hero-quote,
+.stat-value,
+.tab-btn,
+.btn-primary,
+.btn-measure,
+.btn-upgrade,
+.btn-draw,
+.brand-name {
+  text-shadow: 0 1px 0 var(--bevel-light), 0 2px 3px var(--ink);
+  letter-spacing: 0.01em;
+}
+[data-theme="dark"] .card-head h2,
+[data-theme="dark"] .hero-quote,
+[data-theme="dark"] .stat-value,
+[data-theme="dark"] .brand-name { text-shadow: 0 2px 4px var(--ink); }
+
+.card-head h2,
+.brand-name { font-weight: 900; }
+
+/* Glossy buttons: bevel + a sheen that sweeps on hover. */
+.btn-primary,
+.btn-measure,
+.btn-upgrade,
+.btn-draw,
+.tab-btn.active,
+.chip-btn {
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.6), inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+}
+.btn-primary::before,
+.btn-measure::before,
+.btn-upgrade::before,
+.btn-draw::before,
+.tab-btn.active::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 52% 0;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+.btn-primary::after,
+.btn-measure::after,
+.btn-upgrade::after,
+.btn-draw::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 28%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.62), transparent);
+  transform: translateX(-120%) skewX(-18deg);
+  pointer-events: none;
+}
+.btn-primary:hover:not(:disabled)::after,
+.btn-measure:hover:not(:disabled)::after,
+.btn-upgrade:hover:not(:disabled)::after,
+.btn-draw:hover:not(:disabled)::after {
+  animation: sheenSweep 0.85s ease-out;
+}
+
+/* Numbers that should feel like a HUD readout: a gloss band drifts across
+   the digits. These already paint their fill via background-clip, so all
+   they need is a wider canvas for the band to travel on. */
+.timer-display,
+.today-total-display {
+  background-size: 220% auto;
+  animation: textSheen 6s ease-in-out infinite;
+}
+.gold-badge strong {
+  background: linear-gradient(100deg, #8a5a06, var(--gold), #f0b429, var(--gold), #8a5a06);
+  background-size: 240% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: textSheen 5s ease-in-out infinite;
+}
+[data-theme="dark"] .gold-badge strong {
+  background-image: linear-gradient(100deg, var(--gold-2), var(--gold), #fff8e0, var(--gold), var(--gold-2));
+}
+
+/* ============ Sword rarity palette (6 grades) ============
+   일반 steel · 고급 jade · 희귀 azure · 영웅 amethyst ·
+   전설 molten gold · 신화 prismatic. Every grade gets a stronger
+   glow and a busier sheen than the one below it. */
+.rar-0 { --rar-a: #9aa4b5; --rar-b: #e8edf5; --rar-solid: #64748b; --rar-deep: #334155; --rar-glow: rgba(148, 163, 184, 0.5); }
+.rar-1 { --rar-a: #22c55e; --rar-b: #bbf7d0; --rar-solid: #16a34a; --rar-deep: #14532d; --rar-glow: rgba(34, 197, 94, 0.55); }
+.rar-2 { --rar-a: #3b82f6; --rar-b: #bfdbfe; --rar-solid: #2563eb; --rar-deep: #1e3a8a; --rar-glow: rgba(59, 130, 246, 0.6); }
+.rar-3 { --rar-a: #a855f7; --rar-b: #e9d5ff; --rar-solid: #9333ea; --rar-deep: #581c87; --rar-glow: rgba(168, 85, 247, 0.65); }
+.rar-4 { --rar-a: #f59e0b; --rar-b: #fde68a; --rar-solid: #d97706; --rar-deep: #7c2d12; --rar-glow: rgba(245, 158, 11, 0.7); }
+.rar-5 { --rar-a: #ff2d55; --rar-b: #7cf5ff; --rar-solid: #e11d48; --rar-deep: #701a3a; --rar-glow: rgba(255, 77, 109, 0.75); }
+[data-theme="dark"] .rar-0 { --rar-solid: #94a3b8; }
+[data-theme="dark"] .rar-1 { --rar-solid: #22c55e; }
+[data-theme="dark"] .rar-2 { --rar-solid: #3b82f6; }
+[data-theme="dark"] .rar-3 { --rar-solid: #a855f7; }
+[data-theme="dark"] .rar-4 { --rar-solid: #f59e0b; }
+[data-theme="dark"] .rar-5 { --rar-solid: #ff4d6d; }
+
+/* The gloss band that sweeps a sword's name has to be lighter than the
+   letters in dark mode and darker than them in light mode, otherwise the
+   highlight stop is the same value as the card behind it and the name
+   disappears at the moment the band passes. So each theme gets its own
+   set of gradient stops rather than sharing one. */
+.cultivation-name.rar-0,
+.cultivation-name.rar-1,
+.cultivation-name.rar-2,
+.cultivation-name.rar-3,
+.cultivation-name.rar-4 {
+  background-image: linear-gradient(100deg,
+    var(--rar-deep), var(--rar-solid), var(--rar-a), var(--rar-solid), var(--rar-deep));
+  background-size: 260% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: textSheen 4.5s ease-in-out infinite;
+}
+[data-theme="dark"] .cultivation-name.rar-0,
+[data-theme="dark"] .cultivation-name.rar-1,
+[data-theme="dark"] .cultivation-name.rar-2,
+[data-theme="dark"] .cultivation-name.rar-3,
+[data-theme="dark"] .cultivation-name.rar-4 {
+  background-image: linear-gradient(100deg,
+    var(--rar-a), var(--rar-b), #ffffff, var(--rar-b), var(--rar-a));
+}
+.cultivation-name.rar-1 { filter: drop-shadow(0 0 10px var(--rar-glow)); }
+.cultivation-name.rar-2 { filter: drop-shadow(0 0 14px var(--rar-glow)); animation-duration: 3.8s; }
+.cultivation-name.rar-3 { filter: drop-shadow(0 0 18px var(--rar-glow)); animation-duration: 3.2s; }
+.cultivation-name.rar-4 {
+  filter: drop-shadow(0 0 22px var(--rar-glow)) drop-shadow(0 0 12px rgba(255, 200, 60, 0.4));
+  animation-duration: 2.6s;
+}
+.cultivation-name.rar-5 {
+  background-image: linear-gradient(100deg, #be123c, #b45309, #0e7490, #6b21a8, #be123c);
+  background-size: 420% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 20px rgba(225, 29, 72, 0.45));
+  animation: rainbowShift 3.4s linear infinite, glowPulse 1.1s ease-in-out infinite;
+}
+[data-theme="dark"] .cultivation-name.rar-5 {
+  background-image: linear-gradient(100deg, #ff2d55, #ffd76a, #7cf5ff, #a855f7, #ffffff, #ff2d55);
+  filter: drop-shadow(0 0 24px rgba(255, 45, 85, 0.6)) drop-shadow(0 0 24px rgba(124, 245, 255, 0.5));
+}
+
+/* Grade chip */
+.rar-chip {
+  display: inline-block;
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  color: #fff;
+  background: linear-gradient(160deg, var(--rar-a), var(--rar-solid));
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 14px var(--rar-glow), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+.rar-chip small { margin-left: 6px; opacity: 0.8; font-weight: 700; }
+
+/* ============ Gacha ============ */
+.gacha-grid {
+  display: grid;
+  grid-template-columns: 1.55fr 1fr;
+  gap: 22px;
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .gacha-grid { grid-template-columns: 1fr; }
+}
+
+.gacha-main-card {
+  align-items: center;
+  text-align: center;
+  padding: 34px 28px 30px;
+  overflow: hidden;
+}
+.equipped-block { width: 100%; }
+.sword-lore {
+  margin: 14px auto 6px;
+  max-width: 46ch;
+  font-size: 0.84rem;
+  line-height: 1.7;
+  color: var(--text-faint);
+  font-style: italic;
+  word-break: keep-all;
+}
+
+.gacha-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 22px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border);
+  width: 100%;
+}
+.gacha-count-label {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--text-soft);
+  letter-spacing: 0.06em;
+}
+#gachaCount {
+  width: 90px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-solid);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 800;
+  text-align: center;
+  box-shadow: inset 0 2px 5px var(--bevel-dark);
+}
+.btn-draw {
+  border: none;
+  background: linear-gradient(160deg, #ffd76a, #f59e0b 55%, #b45309);
+  color: #3b1d00;
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  padding: 15px 34px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+.btn-draw:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.06); }
+.btn-draw:disabled { opacity: 0.45; cursor: not-allowed; }
+.gacha-cost {
+  flex-basis: 100%;
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-faint);
+}
+
+.gacha-results {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 9px;
+  margin-top: 20px;
+  width: 100%;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.gacha-results:empty { margin-top: 0; }
+
+.sword-result {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 10px 13px;
+  min-width: 104px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--rar-solid);
+  background: linear-gradient(160deg,
+    color-mix(in srgb, var(--rar-a) 26%, var(--surface-solid)),
+    var(--surface-solid));
+  box-shadow: 0 0 12px var(--rar-glow), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  animation: resultPop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+@keyframes resultPop {
+  from { opacity: 0; transform: scale(0.72) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.sword-result.upgraded { border-width: 2px; box-shadow: 0 0 22px var(--rar-glow), inset 0 1px 0 rgba(255, 255, 255, 0.55); }
+.sword-result-grade {
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  color: var(--rar-solid);
+}
+.sword-result-name {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: var(--text);
+}
+.sword-result-hanja { font-size: 0.66rem; color: var(--text-faint); letter-spacing: 0.08em; }
+.sword-result-tag {
+  position: absolute;
+  top: -7px;
+  right: -6px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 0.58rem;
+  font-weight: 900;
+  color: #fff;
+  background: linear-gradient(140deg, var(--accent-2), var(--danger));
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+.sword-result.upgraded .sword-result-tag {
+  background: linear-gradient(140deg, #ffd76a, #f59e0b);
+  color: #3b1d00;
+}
+
+/* Rarity odds table */
+.rarity-table { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.rarity-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 15px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--rar-solid);
+  background: linear-gradient(100deg,
+    color-mix(in srgb, var(--rar-a) 18%, transparent), transparent 70%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+.rarity-name {
+  font-family: 'Noto Serif KR', serif;
+  font-weight: 900;
+  font-size: 1rem;
+  color: var(--rar-solid);
+  text-shadow: 0 0 12px var(--rar-glow);
+}
+.rarity-name small { margin-left: 6px; font-size: 0.68rem; opacity: 0.7; font-weight: 600; }
+.rarity-chance { font-weight: 900; font-size: 1rem; font-variant-numeric: tabular-nums; }
+.rarity-count { font-size: 0.72rem; color: var(--text-faint); font-weight: 700; }
+.rarity-note {
+  margin: 14px 0 0;
+  font-size: 0.76rem;
+  line-height: 1.65;
+  color: var(--text-faint);
+  word-break: keep-all;
+}
+
+/* ============ Codex (도감) ============ */
+.codex-note { margin: 0 0 16px; font-size: 0.8rem; color: var(--text-faint); font-weight: 600; }
+.codex-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+  gap: 14px;
+}
+.codex-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 16px 16px 15px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--rar-solid);
+  background: linear-gradient(160deg,
+    color-mix(in srgb, var(--rar-a) 20%, var(--surface-solid)),
+    var(--surface-solid));
+  box-shadow: 0 0 14px var(--rar-glow), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  overflow: hidden;
+}
+.codex-card::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 42%;
+  background: linear-gradient(to bottom, var(--gloss-top), var(--gloss-bottom));
+  pointer-events: none;
+}
+.codex-card.locked {
+  border-color: var(--border);
+  background: var(--surface-solid);
+  box-shadow: inset 0 1px 0 var(--bevel-light);
+  opacity: 0.72;
+}
+.codex-card.equipped { outline: 2px solid var(--rar-solid); outline-offset: 2px; }
+.codex-card.equipped::before {
+  content: '장착 중';
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-weight: 900;
+  color: #fff;
+  background: linear-gradient(140deg, var(--accent), var(--accent-2));
+}
+.codex-grade {
+  position: relative;
+  z-index: 1;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  color: var(--rar-solid);
+}
+.codex-card.locked .codex-grade { color: var(--text-faint); }
+.codex-name {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-family: 'Noto Serif KR', serif;
+  font-size: 1.16rem;
+  font-weight: 900;
+  color: var(--text);
+}
+.codex-hanja {
+  position: relative;
+  z-index: 1;
+  margin: 0 0 6px;
+  font-size: 0.74rem;
+  letter-spacing: 0.1em;
+  color: var(--text-faint);
+}
+.codex-lore,
+.codex-desc {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.65;
+  color: var(--text-soft);
+  word-break: keep-all;
+}
+.codex-lore { font-style: italic; color: var(--text-faint); }
+.codex-bonus {
+  position: relative;
+  z-index: 1;
+  margin: 9px 0 0;
+  font-size: 0.78rem;
+  font-weight: 900;
+  color: var(--rar-solid);
+  font-variant-numeric: tabular-nums;
+}
+.codex-card.locked .codex-bonus { color: var(--text-faint); }
