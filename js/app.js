@@ -10,7 +10,9 @@
     subjects: 'momentum_subjects',
     study: 'momentum_study',
     activeSession: 'momentum_active_session',
-    inventory: 'momentum_inventory',
+    realmLevel: 'momentum_realm_level',
+    swordLevel: 'momentum_sword_level',
+    todoGold: 'momentum_todo_gold_claimed',
   };
 
   const load = (key, fallback) => {
@@ -29,7 +31,9 @@
   let subjects = load(STORE_KEYS.subjects, []);
   let studyByDate = load(STORE_KEYS.study, {});
   let activeSession = load(STORE_KEYS.activeSession, null);
-  let inventory = load(STORE_KEYS.inventory, {});
+  let realmLevel = load(STORE_KEYS.realmLevel, 0);
+  let swordLevel = load(STORE_KEYS.swordLevel, 0);
+  let todoGoldClaimed = load(STORE_KEYS.todoGold, {});
 
   /* ---------------- Date helpers ---------------- */
   const toKey = (d) => {
@@ -112,13 +116,14 @@
   const tabPanels = {
     main: el('panel-main'),
     study: el('panel-study'),
-    shop: el('panel-shop'),
-    inventory: el('panel-inventory'),
+    realm: el('panel-realm'),
+    sword: el('panel-sword'),
   };
 
   const timerSubjectLabel = el('timerSubjectLabel');
   const timerDisplay = el('timerDisplay');
   const measureBtn = el('measureBtn');
+  const timerHint = el('timerHint');
   const subjectBadge = el('subjectBadge');
   const subjectList = el('subjectList');
   const subjectEmpty = el('subjectEmpty');
@@ -126,55 +131,87 @@
   const subjectTextInput = el('subjectText');
   const subjectItemTpl = el('subjectItemTemplate');
 
-  const shopBadge = el('shopBadge');
-  const shopItemGrid = el('shopItemGrid');
-  const shopItemTpl = el('shopItemTemplate');
-  const shopDetailEmpty = el('shopDetailEmpty');
-  const shopDetailContent = el('shopDetailContent');
-  const shopDetailIcon = el('shopDetailIcon');
-  const shopDetailName = el('shopDetailName');
-  const shopDetailTier = el('shopDetailTier');
-  const shopDetailDesc = el('shopDetailDesc');
-  const shopDetailPrice = el('shopDetailPrice');
-  const shopBuyBtn = el('shopBuyBtn');
-  const shopBuyMsg = el('shopBuyMsg');
-
-  const inventoryBadge = el('inventoryBadge');
-  const inventoryGrid = el('inventoryGrid');
-  const inventoryEmpty = el('inventoryEmpty');
-  const inventoryItemTpl = el('inventoryItemTemplate');
+  const ladderRowTpl = el('ladderRowTemplate');
 
   const toastEl = el('toast');
 
   const RING_CIRCUMFERENCE = 2 * Math.PI * 60;
 
-  /* ---------------- RPG Shop catalog ---------------- */
-  const SHOP_ITEMS = [
-    { id: 'wooden-sword', icon: '🗡️', tier: '커먼', rarity: 'common', name: '초심자의 목검', price: 120000,
-      desc: '수련생이라면 누구나 한 번쯤 쥐어보는 소박한 목검. 볼품없어 보이지만, 이 검으로 시작한 전설이 한둘이 아니다.' },
-    { id: 'steel-blade', icon: '⚔️', tier: '커먼', rarity: 'common', name: '단조 강철검 "브레이브하트"', price: 260000,
-      desc: '숙련된 대장장이가 천 번을 두드려 만든 강철검. 손에 쥐는 순간 심장이 뜨거워진다.' },
-    { id: 'ring-of-flame', icon: '💍', tier: '레어', rarity: 'rare', name: '불꽃심장의 반지', price: 480000,
-      desc: '착용자의 의지가 약해질 때마다 은은한 열기를 내뿜어 다시 일으켜 세운다는 전설의 반지.' },
-    { id: 'shadow-cloak', icon: '🧥', tier: '레어', rarity: 'rare', name: '그림자 망토', price: 650000,
-      desc: '어둠 속에서 짜여진 망토. 걸치는 순간 발걸음이 가벼워지고, 방해되는 유혹들이 눈에 띄지 않게 된다.' },
-    { id: 'dragon-heart', icon: '❤️‍🔥', tier: '에픽', rarity: 'epic', name: '용의 심장 목걸이', price: 1250000,
-      desc: '잠든 고룡의 심장에서 떨어져 나온 파편. 목에 거는 순간 끝없는 지구력이 샘솟는다.' },
-    { id: 'thunder-spear', icon: '🔱', tier: '에픽', rarity: 'epic', name: '뇌전을 두른 창 "제우스의 분노"', price: 1980000,
-      desc: '벼락이 내려친 자리에서만 발견된다는 신화의 창. 내지르는 순간 천둥이 함께 울린다.' },
-    { id: 'ice-crown', icon: '👑', tier: '에픽', rarity: 'epic', name: '얼음여왕의 왕관', price: 2750000,
-      desc: '천 년 동안 얼음 성에 잠들어 있던 왕관. 쓰는 자에게 흔들리지 않는 냉철한 집중력을 선사한다.' },
-    { id: 'phoenix-feather', icon: '🪶', tier: '레전더리', rarity: 'legendary', name: '불사조의 깃털', price: 3600000,
-      desc: '타버려도 다시 태어나는 불사조의 깃털 한 장. 아무리 지쳐도 다시 일어날 수 있다는 증표.' },
-    { id: 'primordial-shield', icon: '🛡️', tier: '레전더리', rarity: 'legendary', name: '태초의 방패 "부동석"', price: 5200000,
-      desc: '세상이 갈라지던 태초의 순간부터 존재했다는 방패. 그 무엇도 이 방패 앞에서는 흔들 수 없다.' },
-    { id: 'chrono-blade', icon: '⏳', tier: '신화', rarity: 'mythic', name: '시공을 가르는 검 "크로노브레이커"', price: 7400000,
-      desc: '휘두르는 순간 시간의 흐름이 잠시 멈춘다는 검. 오직 극소수의 용사만이 다뤄본 적 있다.' },
-    { id: 'chaos-essence', icon: '🔮', tier: '신화', rarity: 'mythic', name: '혼돈의 정수', price: 8800000,
-      desc: '세계의 균열에서 흘러나온 순수한 혼돈의 결정체. 다루는 이의 한계를 재정의한다.' },
-    { id: 'apocalypse-seal', icon: '🌌', tier: '신화', rarity: 'mythic', name: '종말의 인장', price: 15000000,
-      desc: '모든 것의 끝과 시작을 동시에 상징하는 궁극의 인장. 손에 넣는 자, 전설 그 자체가 된다.' },
+  /* ---------------- Cultivation realm ladder (경지) ---------------- */
+  const REALMS = [
+    { name: '삼류무사', hanja: '三流武士', price: 0, studyBonus: 0, dailyBonus: 0,
+      desc: '무공의 첫걸음을 뗀 초심자. 검을 쥐는 법조차 서투르지만, 모든 전설은 여기서 시작된다.' },
+    { name: '이류무사', hanja: '二流武士', price: 20000, studyBonus: 300, dailyBonus: 5000,
+      desc: '어설프던 초식이 제법 날카로워졌다. 이제 겨우 무림의 문턱을 넘본다.' },
+    { name: '일류무사', hanja: '一流武士', price: 45000, studyBonus: 400, dailyBonus: 7000,
+      desc: '정파 명문 문파의 후기지수들과 어깨를 견줄 만한 실력을 갖췄다.' },
+    { name: '절정 초입', hanja: '絶頂 初入', price: 90000, studyBonus: 600, dailyBonus: 10000,
+      desc: '내공이 단전에 뿌리내리기 시작하며, 비로소 「고수」라 불리기 시작한다.' },
+    { name: '절정 중반', hanja: '絶頂 中盤', price: 160000, studyBonus: 800, dailyBonus: 13000,
+      desc: '일 갑자에 가까운 내공을 다루며, 한 지역을 대표하는 강자로 자리매김한다.' },
+    { name: '절정 대성', hanja: '絶頂 大成', price: 280000, studyBonus: 1000, dailyBonus: 17000,
+      desc: '절정의 끝에 다다라, 펼치는 초식 하나하나에 산을 가르는 기세가 실린다.' },
+    { name: '초절정', hanja: '超絶頂', price: 480000, studyBonus: 1400, dailyBonus: 22000,
+      desc: '인간의 한계를 넘어섰다는 평가를 받는 경지. 구파일방의 장로급 고수다.' },
+    { name: '화경 초입', hanja: '化境 初入', price: 800000, studyBonus: 1800, dailyBonus: 28000,
+      desc: '몸과 내공이 하나로 화하기 시작하며, 검이 곧 몸이 되는 감각을 깨우친다.' },
+    { name: '화경 중반', hanja: '化境 中盤', price: 1300000, studyBonus: 2300, dailyBonus: 35000,
+      desc: '이기어검(以氣馭劍)의 초입에 다다른, 천하에 손꼽히는 절대 고수.' },
+    { name: '화경 대성', hanja: '化境 大成', price: 2100000, studyBonus: 2900, dailyBonus: 43000,
+      desc: '한 문파의 장문인조차 함부로 대하지 못하는, 사실상 무림 최정상의 반열.' },
+    { name: '현경', hanja: '玄境', price: 3400000, studyBonus: 3600, dailyBonus: 52000,
+      desc: '생각이 곧 검이 되는 경지. 이미 인간의 무학을 초월했다는 평을 듣는다.' },
+    { name: '생사경', hanja: '生死境', price: 5400000, studyBonus: 4400, dailyBonus: 62000,
+      desc: '삶과 죽음의 경계를 손끝으로 다루는 자. 전설 속 인물로나 회자되던 경지.' },
+    { name: '삼화취정', hanja: '三花聚頂', price: 8500000, studyBonus: 5300, dailyBonus: 74000,
+      desc: '정(精)·기(氣)·신(神) 세 송이 꽃이 정수리에 모이며, 신선의 반열에 발을 들인다.' },
+    { name: '오기조원', hanja: '五氣朝元', price: 13000000, studyBonus: 6300, dailyBonus: 88000,
+      desc: '오장육부의 기운이 하나의 근원으로 모이는, 우화등선을 목전에 둔 경지.' },
+    { name: '반로환동', hanja: '返老還童', price: 20000000, studyBonus: 7500, dailyBonus: 104000,
+      desc: '늙은 육신이 다시 어린아이처럼 회춘하는, 인간의 굴레를 벗어난 신비의 경지.' },
+    { name: '탈태환골', hanja: '奪胎換骨', price: 30000000, studyBonus: 9000, dailyBonus: 123000,
+      desc: '범인의 태를 벗고 신선의 뼈로 다시 태어나는, 전설로만 전해지던 경지.' },
+    { name: '우화등선', hanja: '羽化登仙', price: 45000000, studyBonus: 11000, dailyBonus: 146000,
+      desc: '육신을 벗고 날개를 얻어 하늘로 오른다. 그 이름 자체가 곧 신화가 된다.' },
+    { name: '자연경', hanja: '自然境', price: 68000000, studyBonus: 14000, dailyBonus: 175000,
+      desc: '자연과 하나가 되어, 더 이상 「경지」라는 말로도 설명할 수 없는 무학의 종착점.' },
   ];
+
+  /* ---------------- Sword ladder (검) ---------------- */
+  const SWORDS = [
+    { name: '목검', hanja: '木劍', price: 0, studyBonus: 0, dailyBonus: 0,
+      desc: '수련용 목검. 볼품없지만 이 검으로 시작한 고수가 한둘이 아니다.' },
+    { name: '철검', hanja: '鐵劍', price: 15000, studyBonus: 250, dailyBonus: 4000,
+      desc: '저잣거리 대장간에서 벼려낸 투박한 첫 애병.' },
+    { name: '청강검', hanja: '靑鋼劍', price: 35000, studyBonus: 400, dailyBonus: 6500,
+      desc: '푸른 강철로 정련되어 예기가 살아있는 검.' },
+    { name: '백은검', hanja: '白銀劍', price: 70000, studyBonus: 600, dailyBonus: 9500,
+      desc: '은은한 백색 광택을 내는, 명문 무기점의 수작.' },
+    { name: '한빙검', hanja: '寒氷劍', price: 130000, studyBonus: 850, dailyBonus: 13500,
+      desc: '베는 순간 서릿발이 서린다는 극음(極陰)의 명검.' },
+    { name: '적염검', hanja: '赤炎劍', price: 230000, studyBonus: 1150, dailyBonus: 18500,
+      desc: '칼날에 불꽃이 어른거린다는 극양(極陽)의 보검.' },
+    { name: '뇌명검', hanja: '雷鳴劍', price: 400000, studyBonus: 1550, dailyBonus: 25000,
+      desc: '휘두르면 천둥소리가 울린다는 전설의 신병(神兵).' },
+    { name: '파풍검', hanja: '破風劍', price: 700000, studyBonus: 2050, dailyBonus: 33000,
+      desc: '바람조차 갈라버린다는, 쾌검의 극의가 담긴 검.' },
+    { name: '용린검', hanja: '龍鱗劍', price: 1200000, studyBonus: 2700, dailyBonus: 43000,
+      desc: '용의 비늘을 벼려 만들었다는 전설 속의 신검.' },
+    { name: '천마검', hanja: '天魔劍', price: 2000000, studyBonus: 3500, dailyBonus: 55000,
+      desc: '마교 역대 교주만이 다뤘다는, 하늘마저 두려워한 마검.' },
+    { name: '만년현철검', hanja: '萬年玄鐵劍', price: 3400000, studyBonus: 4500, dailyBonus: 70000,
+      desc: '만년 묵은 현철로 주조된, 그 자체로 하나의 보물인 신검.' },
+    { name: '파천검', hanja: '破天劍', price: 5600000, studyBonus: 5800, dailyBonus: 89000,
+      desc: '하늘을 가른다는 이름 그대로, 존재 자체가 재앙인 신검.' },
+    { name: '주선검', hanja: '誅仙劍', price: 9200000, studyBonus: 7400, dailyBonus: 112000,
+      desc: '선인마저 베어낸다는 태고의 흉기. 그 이름만으로 강호를 떨게 한다.' },
+    { name: '반고신검', hanja: '盤古神劍', price: 15000000, studyBonus: 9500, dailyBonus: 140000,
+      desc: '천지를 개벽한 반고가 남겼다는 전설의 신검. 이 검을 쥔 자, 곧 하늘이 된다.' },
+  ];
+
+  const BASE_STUDY_MIN = 2000;
+  const BASE_STUDY_MAX = 4000;
+  const BASE_DAILY_MAX = 100000;
 
   /* ---------------- Quotes ---------------- */
   const QUOTES = [
@@ -395,6 +432,7 @@
     ringFg.style.strokeDashoffset = String(offset);
     ringPercent.textContent = `${pct}%`;
     ringFg.style.stroke = pct >= 80 ? 'var(--accent-3)' : 'var(--accent)';
+    settleDailyTodoGold(pct);
 
     streakValue.textContent = computeStreak();
     todoCount.textContent = getTodosFor(todayK).length;
@@ -605,8 +643,9 @@
     addStudySeconds(todayKey(), subjectId, elapsedSeconds);
 
     const blocks = Math.floor(elapsedSeconds / 600);
+    const [rangeMin, rangeMax] = currentStudyRange();
     let reward = 0;
-    for (let i = 0; i < blocks; i++) reward += randomInt(5000, 20000);
+    for (let i = 0; i < blocks; i++) reward += randomInt(rangeMin, rangeMax);
 
     activeSession = null;
     save(STORE_KEYS.activeSession, null);
@@ -638,84 +677,144 @@
     renderSubjects();
   });
 
-  /* ---------------- Shop ---------------- */
-  let selectedShopItemId = null;
-
-  function renderShop() {
-    shopItemGrid.innerHTML = '';
-    shopBadge.textContent = `${SHOP_ITEMS.length}개`;
-
-    SHOP_ITEMS.forEach((item) => {
-      const node = shopItemTpl.content.cloneNode(true);
-      const btn = node.querySelector('.shop-item');
-      btn.querySelector('.icon-frame').classList.add(`rarity-${item.rarity}`);
-      btn.querySelector('.icon-frame-glyph').textContent = item.icon;
-      btn.querySelector('.shop-item-name').textContent = item.name;
-      btn.querySelector('.shop-item-price-value').textContent = item.price.toLocaleString('ko-KR');
-      if (selectedShopItemId === item.id) btn.classList.add('selected');
-      if (inventory[item.id]) btn.classList.add('owned');
-      btn.addEventListener('click', () => {
-        selectedShopItemId = item.id;
-        renderShop();
-        renderShopDetail();
-      });
-      btn.dataset.id = item.id;
-      shopItemGrid.appendChild(node);
-    });
+  /* ---------------- Cultivation bonuses (경지 + 검 → 골드 획득량) ---------------- */
+  function cumulativeBonus(list, level, field) {
+    let sum = 0;
+    for (let i = 0; i <= level; i++) sum += list[i][field];
+    return sum;
   }
 
-  function renderShopDetail() {
-    const item = SHOP_ITEMS.find((i) => i.id === selectedShopItemId);
-    if (!item) {
-      shopDetailEmpty.style.display = 'block';
-      shopDetailContent.style.display = 'none';
-      return;
+  function studyRangeAt(realmIdx, swordIdx) {
+    const bonus = cumulativeBonus(REALMS, realmIdx, 'studyBonus') + cumulativeBonus(SWORDS, swordIdx, 'studyBonus');
+    return [BASE_STUDY_MIN + bonus, BASE_STUDY_MAX + bonus];
+  }
+
+  function dailyMaxAt(realmIdx, swordIdx) {
+    const bonus = cumulativeBonus(REALMS, realmIdx, 'dailyBonus') + cumulativeBonus(SWORDS, swordIdx, 'dailyBonus');
+    return BASE_DAILY_MAX + bonus;
+  }
+
+  function currentStudyRange() { return studyRangeAt(realmLevel, swordLevel); }
+  function currentDailyMax() { return dailyMaxAt(realmLevel, swordLevel); }
+
+  function renderStudyHint() {
+    const [min, max] = currentStudyRange();
+    timerHint.textContent = `10분마다 ${min.toLocaleString('ko-KR')}~${max.toLocaleString('ko-KR')} 골드를 획득해요 🪙`;
+  }
+
+  /* ---------------- 오늘 할 일 달성 보상 (자동 정산) ---------------- */
+  function settleDailyTodoGold(pctToday) {
+    const todayK = todayKey();
+    const target = Math.round((pctToday / 100) * currentDailyMax());
+    const claimed = todoGoldClaimed[todayK] || 0;
+    if (target <= claimed) return;
+    const diff = target - claimed;
+    todoGoldClaimed[todayK] = target;
+    save(STORE_KEYS.todoGold, todoGoldClaimed);
+    addGold(diff);
+    if (pctToday >= 100) {
+      showToast(`🎉 오늘 할 일 100% 달성! +${diff.toLocaleString('ko-KR')} 골드 획득!`);
     }
-    shopDetailEmpty.style.display = 'none';
-    shopDetailContent.style.display = 'flex';
-    shopDetailIcon.className = `shop-detail-icon icon-frame rarity-${item.rarity}`;
-    el('shopDetailIconGlyph').textContent = item.icon;
-    shopDetailName.textContent = item.name;
-    shopDetailTier.textContent = `${item.tier} 등급${inventory[item.id] ? ` · 보유 x${inventory[item.id]}` : ''}`;
-    shopDetailDesc.textContent = item.desc;
-    shopDetailPrice.textContent = item.price.toLocaleString('ko-KR');
-    const canAfford = gold >= item.price;
-    shopBuyBtn.disabled = !canAfford;
-    shopBuyBtn.textContent = canAfford ? '구매하기' : '골드가 부족해요';
-    shopBuyMsg.textContent = '';
   }
 
-  shopBuyBtn.addEventListener('click', () => {
-    const item = SHOP_ITEMS.find((i) => i.id === selectedShopItemId);
-    if (!item || gold < item.price) return;
-    gold -= item.price;
-    save(STORE_KEYS.gold, gold);
-    inventory[item.id] = (inventory[item.id] || 0) + 1;
-    save(STORE_KEYS.inventory, inventory);
-    renderGold();
-    renderShop();
-    renderShopDetail();
-    renderInventory();
-    showToast(`🎉 [${item.name}]을(를) 구매했어요!`);
-  });
+  /* ---------------- 경지 / 검 승급 (공용) ---------------- */
+  const CULT_TRACKS = {
+    realm: {
+      axis: 'realm',
+      list: REALMS,
+      getLevel: () => realmLevel,
+      setLevel: (v) => { realmLevel = v; save(STORE_KEYS.realmLevel, realmLevel); },
+      getOtherLevel: () => swordLevel,
+      els: {
+        name: el('realmName'), hanja: el('realmHanja'), desc: el('realmDesc'),
+        studyRange: el('realmStudyRange'), dailyMax: el('realmDailyMax'), badge: el('realmBadge'),
+        nextName: el('realmNextName'), upgradeBtn: el('realmUpgradeBtn'), ladderList: el('realmLadderList'),
+      },
+      maxedNextText: '이미 무학의 정점, 자연경(自然境)에 이르렀습니다',
+      verb: '경지에 올랐습니다',
+    },
+    sword: {
+      axis: 'sword',
+      list: SWORDS,
+      getLevel: () => swordLevel,
+      setLevel: (v) => { swordLevel = v; save(STORE_KEYS.swordLevel, swordLevel); },
+      getOtherLevel: () => realmLevel,
+      els: {
+        name: el('swordName'), hanja: el('swordHanja'), desc: el('swordDesc'),
+        studyRange: el('swordStudyRange'), dailyMax: el('swordDailyMax'), badge: el('swordBadge'),
+        nextName: el('swordNextName'), upgradeBtn: el('swordUpgradeBtn'), ladderList: el('swordLadderList'),
+      },
+      maxedNextText: '이미 천하제일검, 반고신검(盤古神劍)을 손에 넣었습니다',
+      verb: '을(를) 손에 넣었습니다',
+    },
+  };
 
-  /* ---------------- Inventory ---------------- */
-  function renderInventory() {
-    const ownedIds = Object.keys(inventory).filter((id) => inventory[id] > 0);
-    inventoryBadge.textContent = `${ownedIds.length}개`;
-    inventoryGrid.innerHTML = '';
-    inventoryEmpty.style.display = ownedIds.length ? 'none' : 'block';
+  function rangeForTrackIndex(track, index) {
+    const other = track.getOtherLevel();
+    return track.axis === 'realm' ? studyRangeAt(index, other) : studyRangeAt(other, index);
+  }
+  function dailyMaxForTrackIndex(track, index) {
+    const other = track.getOtherLevel();
+    return track.axis === 'realm' ? dailyMaxAt(index, other) : dailyMaxAt(other, index);
+  }
 
-    ownedIds.forEach((id) => {
-      const item = SHOP_ITEMS.find((i) => i.id === id);
-      if (!item) return;
-      const node = inventoryItemTpl.content.cloneNode(true);
-      node.querySelector('.icon-frame').classList.add(`rarity-${item.rarity}`);
-      node.querySelector('.icon-frame-glyph').textContent = item.icon;
-      node.querySelector('.inventory-item-name').textContent = item.name;
-      node.querySelector('.inventory-item-qty').textContent = `x${inventory[id]}`;
-      inventoryGrid.appendChild(node);
+  function renderCultivationTrack(track) {
+    const level = track.getLevel();
+    const cur = track.list[level];
+    const e = track.els;
+
+    e.name.textContent = cur.name;
+    e.hanja.textContent = `(${cur.hanja})`;
+    e.desc.textContent = cur.desc;
+    const [min, max] = rangeForTrackIndex(track, level);
+    e.studyRange.textContent = `${min.toLocaleString('ko-KR')}~${max.toLocaleString('ko-KR')}C`;
+    e.dailyMax.textContent = `${dailyMaxForTrackIndex(track, level).toLocaleString('ko-KR')}C`;
+    e.badge.textContent = `${level + 1} / ${track.list.length}`;
+
+    const next = track.list[level + 1];
+    if (next) {
+      e.nextName.textContent = `${next.name} (${next.hanja})`;
+      e.upgradeBtn.textContent = `${next.price.toLocaleString('ko-KR')}C로 승급하기`;
+      e.upgradeBtn.disabled = gold < next.price;
+      e.upgradeBtn.classList.remove('maxed');
+      e.upgradeBtn.onclick = () => upgradeTrack(track);
+    } else {
+      e.nextName.textContent = track.maxedNextText;
+      e.upgradeBtn.textContent = '달성 완료';
+      e.upgradeBtn.disabled = true;
+      e.upgradeBtn.classList.add('maxed');
+      e.upgradeBtn.onclick = null;
+    }
+
+    e.ladderList.innerHTML = '';
+    track.list.forEach((item, i) => {
+      const node = ladderRowTpl.content.cloneNode(true);
+      const li = node.querySelector('.ladder-row');
+      node.querySelector('.ladder-rank').textContent = i + 1;
+      node.querySelector('.ladder-name').textContent = item.name;
+      node.querySelector('.ladder-hanja').textContent = `(${item.hanja})`;
+      const [rmin, rmax] = rangeForTrackIndex(track, i);
+      node.querySelector('.ladder-range').textContent = `${rmin.toLocaleString('ko-KR')}~${rmax.toLocaleString('ko-KR')}C`;
+      const statusEl = node.querySelector('.ladder-status');
+      if (i < level) { li.classList.add('done'); statusEl.textContent = '달성'; }
+      else if (i === level) { li.classList.add('current'); statusEl.textContent = '현재'; }
+      else { li.classList.add('locked'); statusEl.textContent = `${item.price.toLocaleString('ko-KR')}C`; }
+      e.ladderList.appendChild(node);
     });
+  }
+
+  function upgradeTrack(track) {
+    const level = track.getLevel();
+    const next = track.list[level + 1];
+    if (!next || gold < next.price) return;
+    gold -= next.price;
+    save(STORE_KEYS.gold, gold);
+    track.setLevel(level + 1);
+    renderGold();
+    renderCultivationTrack(CULT_TRACKS.realm);
+    renderCultivationTrack(CULT_TRACKS.sword);
+    renderStudyHint();
+    showToast(`🌟 ${next.name}(${next.hanja}) ${track.verb}`);
   }
 
   /* ---------------- Theme ---------------- */
@@ -749,10 +848,10 @@
     renderGold();
     renderSubjects();
     renderTimerUI();
+    renderStudyHint();
     if (activeSession) startTicking();
-    renderShop();
-    renderShopDetail();
-    renderInventory();
+    renderCultivationTrack(CULT_TRACKS.realm);
+    renderCultivationTrack(CULT_TRACKS.sword);
   }
 
   init();
