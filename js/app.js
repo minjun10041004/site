@@ -918,12 +918,15 @@
     return track.axis === 'realm' ? dailyMaxAt(index, other) : dailyMaxAt(other, index);
   }
 
+  const tierOf = (index) => Math.floor(index / 3);
+
   function renderCultivationTrack(track) {
     const level = track.getLevel();
     const cur = track.list[level];
     const e = track.els;
 
     e.name.textContent = cur.name;
+    e.name.className = `cultivation-name tier-${tierOf(level)}`;
     e.hanja.textContent = `(${cur.hanja})`;
     e.desc.textContent = cur.desc;
     const [min, max] = rangeForTrackIndex(track, level);
@@ -951,7 +954,9 @@
       const node = ladderRowTpl.content.cloneNode(true);
       const li = node.querySelector('.ladder-row');
       node.querySelector('.ladder-rank').textContent = i + 1;
-      node.querySelector('.ladder-name').textContent = item.name;
+      const nameEl = node.querySelector('.ladder-name');
+      nameEl.textContent = item.name;
+      nameEl.classList.add(`tier-${tierOf(i)}`);
       node.querySelector('.ladder-hanja').textContent = `(${item.hanja})`;
       const [rmin, rmax] = rangeForTrackIndex(track, i);
       node.querySelector('.ladder-range').textContent = `${rmin.toLocaleString('ko-KR')}~${rmax.toLocaleString('ko-KR')}C`;
