@@ -1,20 +1,8 @@
 (() => {
   'use strict';
 
-  /* ---------------- Storage helpers ---------------- */
-  const STORE_KEYS = {
-    schedules: 'momentum_schedules',
-    todos: 'momentum_todos',
-    theme: 'momentum_theme',
-    gold: 'momentum_gold',
-    subjects: 'momentum_subjects',
-    study: 'momentum_study',
-    activeSession: 'momentum_active_session',
-    realmLevel: 'momentum_realm_level',
-    swordLevel: 'momentum_sword_level',
-    todoGold: 'momentum_todo_gold_claimed',
-  };
-
+  /* ---------------- Local (device-level) storage — theme only ---------------- */
+  const THEME_KEY = 'momentum_theme';
   const load = (key, fallback) => {
     try {
       const raw = localStorage.getItem(key);
@@ -25,14 +13,13 @@
   };
   const save = (key, value) => localStorage.setItem(key, JSON.stringify(value));
 
-  /* ---------------- Accounts (local-only login) ---------------- */
-  const ACCOUNTS_KEY = 'momentum_accounts';
-  const CURRENT_USER_KEY = 'momentum_current_user';
+  /* ---------------- Supabase (accounts + cloud data) ---------------- */
+  const SUPABASE_URL = 'https://mtjqnbmtyiqncococimb.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10anFuYm10eWlxbmNvY29jaW1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyMTA0MzUsImV4cCI6MjEwMjc4NjQzNX0.w7xBKguv8ynXLOqNMMlJJf6ODnypwR-4a7hR_yztOcE';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const usernameToEmail = (username) => `${username.trim().toLowerCase()}@momentum.local`;
 
-  let currentUser = null;
-  const userKey = (key) => `u_${currentUser}__${key}`;
-  const loadData = (key, fallback) => load(userKey(key), fallback);
-  const saveData = (key, value) => save(userKey(key), value);
+  let currentUserId = null;
 
   let schedules = [];
   let todosByDate = {};
@@ -44,16 +31,48 @@
   let swordLevel = 0;
   let todoGoldClaimed = {};
 
-  function loadUserState() {
-    schedules = loadData(STORE_KEYS.schedules, []);
-    todosByDate = loadData(STORE_KEYS.todos, {});
-    gold = loadData(STORE_KEYS.gold, 1000);
-    subjects = loadData(STORE_KEYS.subjects, []);
-    studyByDate = loadData(STORE_KEYS.study, {});
-    activeSession = loadData(STORE_KEYS.activeSession, null);
-    realmLevel = loadData(STORE_KEYS.realmLevel, 0);
-    swordLevel = loadData(STORE_KEYS.swordLevel, 0);
-    todoGoldClaimed = loadData(STORE_KEYS.todoGold, {});
+  function collectState() {
+    return { schedules, todosByDate, gold, subjects, studyByDate, activeSession, realmLevel, swordLevel, todoGoldClaimed };
+  }
+
+  function applyState(data) {
+    schedules = data.schedules ?? [];
+    todosByDate = data.todosByDate ?? {};
+    gold = data.gold ?? 1000;
+    subjects = data.subjects ?? [];
+    studyByDate = data.studyByDate ?? {};
+    activeSession = data.activeSession ?? null;
+    realmLevel = data.realmLevel ?? 0;
+    swordLevel = data.swordLevel ?? 0;
+    todoGoldClaimed = data.todoGoldClaimed ?? {};
+  }
+
+  async function flushSave() {
+    if (!currentUserId) return;
+    await sb.from('app_data').upsert({
+      user_id: currentUserId,
+      data: collectState(),
+      updated_at: new Date().toISOString(),
+    });
+  }
+
+  let saveTimer = null;
+  function queueSave() {
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(flushSave, 500);
+  }
+  window.addEventListener('beforeunload', () => {
+    if (saveTimer) flushSave();
+  });
+
+  async function loadUserState() {
+    const { data } = await sb.from('app_data').select('data').eq('user_id', currentUserId).maybeSingle();
+    if (data && data.data) {
+      applyState(data.data);
+    } else {
+      applyState({});
+      await flushSave();
+    }
   }
 
   /* ---------------- Date helpers ---------------- */
@@ -319,7 +338,7 @@
 
       delBtn.addEventListener('click', () => {
         schedules = schedules.filter((x) => x.id !== s.id);
-        saveData(STORE_KEYS.schedules, schedules);
+        queueSave();
         renderSchedules();
       });
 
@@ -334,7 +353,7 @@
     const date = scheduleDateInput.value;
     if (!title || !date) return;
     schedules.push({ id: crypto.randomUUID(), title, date });
-    saveData(STORE_KEYS.schedules, schedules);
+    queueSave();
     scheduleForm.reset();
     renderSchedules();
   });
@@ -419,7 +438,7 @@
   }
 
   function persistTodos() {
-    saveData(STORE_KEYS.todos, todosByDate);
+    queueSave();
   }
 
   function renderSummary() {
@@ -550,7 +569,7 @@
 
   function addGold(amount) {
     gold += amount;
-    saveData(STORE_KEYS.gold, gold);
+    queueSave();
     renderGold();
   }
 
@@ -587,7 +606,7 @@
   function addStudySeconds(dateKey, subjectId, seconds) {
     if (!studyByDate[dateKey]) studyByDate[dateKey] = {};
     studyByDate[dateKey][subjectId] = (studyByDate[dateKey][subjectId] || 0) + seconds;
-    saveData(STORE_KEYS.study, studyByDate);
+    queueSave();
   }
 
   function renderSubjects() {
@@ -625,7 +644,7 @@
           return;
         }
         subjects = subjects.filter((x) => x.id !== s.id);
-        saveData(STORE_KEYS.subjects, subjects);
+        queueSave();
         if (selectedSubjectId === s.id) selectedSubjectId = null;
         renderSubjects();
         renderTimerUI();
@@ -684,7 +703,7 @@
 
   function startTimer(subjectId) {
     activeSession = { subjectId, startTs: Date.now() };
-    saveData(STORE_KEYS.activeSession, activeSession);
+    queueSave();
     renderSubjects();
     renderTimerUI();
     startTicking();
@@ -706,7 +725,7 @@
     for (let i = 0; i < blocks; i++) reward += randomInt(rangeMin, rangeMax);
 
     activeSession = null;
-    saveData(STORE_KEYS.activeSession, null);
+    queueSave();
 
     if (reward > 0) {
       addGold(reward);
@@ -730,7 +749,7 @@
     const name = subjectTextInput.value.trim();
     if (!name) return;
     subjects.push({ id: crypto.randomUUID(), name });
-    saveData(STORE_KEYS.subjects, subjects);
+    queueSave();
     subjectForm.reset();
     renderSubjects();
   });
@@ -768,7 +787,7 @@
     if (target <= claimed) return;
     const diff = target - claimed;
     todoGoldClaimed[todayK] = target;
-    saveData(STORE_KEYS.todoGold, todoGoldClaimed);
+    queueSave();
     addGold(diff);
     if (pctToday >= 100) {
       showToast(`🎉 오늘 할 일 100% 달성! +${diff.toLocaleString('ko-KR')} 골드 획득!`);
@@ -781,7 +800,7 @@
       axis: 'realm',
       list: REALMS,
       getLevel: () => realmLevel,
-      setLevel: (v) => { realmLevel = v; saveData(STORE_KEYS.realmLevel, realmLevel); },
+      setLevel: (v) => { realmLevel = v; queueSave(); },
       getOtherLevel: () => swordLevel,
       els: {
         name: el('realmName'), hanja: el('realmHanja'), desc: el('realmDesc'),
@@ -795,7 +814,7 @@
       axis: 'sword',
       list: SWORDS,
       getLevel: () => swordLevel,
-      setLevel: (v) => { swordLevel = v; saveData(STORE_KEYS.swordLevel, swordLevel); },
+      setLevel: (v) => { swordLevel = v; queueSave(); },
       getOtherLevel: () => realmLevel,
       els: {
         name: el('swordName'), hanja: el('swordHanja'), desc: el('swordDesc'),
@@ -866,7 +885,7 @@
     const next = track.list[level + 1];
     if (!next || gold < next.price) return;
     gold -= next.price;
-    saveData(STORE_KEYS.gold, gold);
+    queueSave();
     track.setLevel(level + 1);
     renderGold();
     renderCultivationTrack(CULT_TRACKS.realm);
@@ -884,55 +903,51 @@
   }
 
   themeSwitch.addEventListener('click', () => {
-    const current = load(STORE_KEYS.theme, 'dark');
+    const current = load(THEME_KEY, 'dark');
     const next = current === 'dark' ? 'light' : 'dark';
-    save(STORE_KEYS.theme, next);
+    save(THEME_KEY, next);
     applyTheme(next);
   });
 
-  applyTheme(load(STORE_KEYS.theme, 'dark'));
+  applyTheme(load(THEME_KEY, 'dark'));
 
-  /* ---------------- Accounts: hashing ---------------- */
-  async function hashPassword(password, salt) {
-    const bytes = new TextEncoder().encode(`${salt}:${password}`);
-    const digest = await crypto.subtle.digest('SHA-256', bytes);
-    return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('');
+  /* ---------------- Accounts (Supabase Auth) ---------------- */
+  function usernameError(username) {
+    if (!username) return '아이디를 입력해주세요.';
+    if (!/^[a-zA-Z0-9_-]{2,24}$/.test(username)) return '아이디는 영문/숫자/_/- 2~24자로 입력해주세요.';
+    return null;
   }
 
-  const getAccounts = () => load(ACCOUNTS_KEY, {});
-  const saveAccounts = (accounts) => save(ACCOUNTS_KEY, accounts);
-
   async function trySignup(username, password) {
-    if (!username || !password) return '아이디와 비밀번호를 입력해주세요.';
-    if (password.length < 4) return '비밀번호는 4자 이상이어야 해요.';
-    const accounts = getAccounts();
-    if (accounts[username]) return '이미 존재하는 아이디예요.';
-    const salt = crypto.randomUUID();
-    accounts[username] = { salt, hash: await hashPassword(password, salt) };
-    saveAccounts(accounts);
+    const unameErr = usernameError(username);
+    if (unameErr) return unameErr;
+    if (!password || password.length < 4) return '비밀번호는 4자 이상이어야 해요.';
+    const { error } = await sb.auth.signUp({
+      email: usernameToEmail(username),
+      password,
+      options: { data: { username } },
+    });
+    if (error) {
+      if (/already|registered|exists/i.test(error.message)) return '이미 존재하는 아이디예요.';
+      return `회원가입에 실패했어요: ${error.message}`;
+    }
     return null;
   }
 
   async function tryLogin(username, password) {
-    const account = getAccounts()[username];
-    if (!account) return '존재하지 않는 아이디예요.';
-    const hash = await hashPassword(password, account.salt);
-    if (hash !== account.hash) return '비밀번호가 올바르지 않아요.';
+    const unameErr = usernameError(username);
+    if (unameErr) return unameErr;
+    const { error } = await sb.auth.signInWithPassword({
+      email: usernameToEmail(username),
+      password,
+    });
+    if (error) return '아이디 또는 비밀번호가 올바르지 않아요.';
     return null;
   }
 
-  function enterApp(username) {
-    currentUser = username;
-    save(CURRENT_USER_KEY, username);
-    loadUserState();
-    authGate.classList.add('hidden');
-    settingsUsernameEl.textContent = username;
-    init();
-  }
-
-  logoutBtn.addEventListener('click', () => {
-    save(CURRENT_USER_KEY, null);
-    location.reload();
+  logoutBtn.addEventListener('click', async () => {
+    if (saveTimer) await flushSave();
+    await sb.auth.signOut();
   });
 
   let authMode = 'login';
@@ -956,11 +971,8 @@
       const errorMsg = authMode === 'login'
         ? await tryLogin(username, password)
         : await trySignup(username, password);
-      if (errorMsg) {
-        authError.textContent = errorMsg;
-        return;
-      }
-      enterApp(username);
+      if (errorMsg) authError.textContent = errorMsg;
+      // On success, onAuthStateChange below picks up the new session and enters the app.
     } finally {
       authSubmitBtn.disabled = false;
     }
@@ -984,11 +996,27 @@
     renderCultivationTrack(CULT_TRACKS.sword);
   }
 
-  /* ---------------- Auto-login ---------------- */
-  const savedUser = load(CURRENT_USER_KEY, null);
-  if (savedUser && getAccounts()[savedUser]) {
-    enterApp(savedUser);
-  } else {
-    authGate.classList.remove('hidden');
+  /* ---------------- Session lifecycle ---------------- */
+  async function enterApp(user) {
+    currentUserId = user.id;
+    settingsUsernameEl.textContent = user.user_metadata?.username || user.email.split('@')[0];
+    await loadUserState();
+    authGate.classList.add('hidden');
+    init();
   }
+
+  let sessionKnownUserId = undefined;
+  sb.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_OUT') {
+      location.reload();
+      return;
+    }
+    const user = session?.user;
+    if (user && user.id !== sessionKnownUserId) {
+      sessionKnownUserId = user.id;
+      enterApp(user);
+    } else if (!user) {
+      authGate.classList.remove('hidden');
+    }
+  });
 })();
