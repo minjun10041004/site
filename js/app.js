@@ -6,6 +6,11 @@
     schedules: 'momentum_schedules',
     todos: 'momentum_todos',
     theme: 'momentum_theme',
+    gold: 'momentum_gold',
+    subjects: 'momentum_subjects',
+    study: 'momentum_study',
+    activeSession: 'momentum_active_session',
+    inventory: 'momentum_inventory',
   };
 
   const load = (key, fallback) => {
@@ -20,6 +25,11 @@
 
   let schedules = load(STORE_KEYS.schedules, []);
   let todosByDate = load(STORE_KEYS.todos, {});
+  let gold = load(STORE_KEYS.gold, 1000);
+  let subjects = load(STORE_KEYS.subjects, []);
+  let studyByDate = load(STORE_KEYS.study, {});
+  let activeSession = load(STORE_KEYS.activeSession, null);
+  let inventory = load(STORE_KEYS.inventory, {});
 
   /* ---------------- Date helpers ---------------- */
   const toKey = (d) => {
@@ -97,7 +107,74 @@
 
   const themeToggle = el('themeToggle');
 
+  const goldAmountEl = el('goldAmount');
+  const tabButtons = Array.from(document.querySelectorAll('.tab-btn'));
+  const tabPanels = {
+    main: el('panel-main'),
+    study: el('panel-study'),
+    shop: el('panel-shop'),
+    inventory: el('panel-inventory'),
+  };
+
+  const timerSubjectLabel = el('timerSubjectLabel');
+  const timerDisplay = el('timerDisplay');
+  const measureBtn = el('measureBtn');
+  const subjectBadge = el('subjectBadge');
+  const subjectList = el('subjectList');
+  const subjectEmpty = el('subjectEmpty');
+  const subjectForm = el('subjectForm');
+  const subjectTextInput = el('subjectText');
+  const subjectItemTpl = el('subjectItemTemplate');
+
+  const shopBadge = el('shopBadge');
+  const shopItemGrid = el('shopItemGrid');
+  const shopItemTpl = el('shopItemTemplate');
+  const shopDetailEmpty = el('shopDetailEmpty');
+  const shopDetailContent = el('shopDetailContent');
+  const shopDetailIcon = el('shopDetailIcon');
+  const shopDetailName = el('shopDetailName');
+  const shopDetailTier = el('shopDetailTier');
+  const shopDetailDesc = el('shopDetailDesc');
+  const shopDetailPrice = el('shopDetailPrice');
+  const shopBuyBtn = el('shopBuyBtn');
+  const shopBuyMsg = el('shopBuyMsg');
+
+  const inventoryBadge = el('inventoryBadge');
+  const inventoryGrid = el('inventoryGrid');
+  const inventoryEmpty = el('inventoryEmpty');
+  const inventoryItemTpl = el('inventoryItemTemplate');
+
+  const toastEl = el('toast');
+
   const RING_CIRCUMFERENCE = 2 * Math.PI * 60;
+
+  /* ---------------- RPG Shop catalog ---------------- */
+  const SHOP_ITEMS = [
+    { id: 'wooden-sword', icon: '🗡️', tier: '커먼', name: '초심자의 목검', price: 120000,
+      desc: '수련생이라면 누구나 한 번쯤 쥐어보는 소박한 목검. 볼품없어 보이지만, 이 검으로 시작한 전설이 한둘이 아니다.' },
+    { id: 'steel-blade', icon: '⚔️', tier: '커먼', name: '단조 강철검 "브레이브하트"', price: 260000,
+      desc: '숙련된 대장장이가 천 번을 두드려 만든 강철검. 손에 쥐는 순간 심장이 뜨거워진다.' },
+    { id: 'ring-of-flame', icon: '💍', tier: '레어', name: '불꽃심장의 반지', price: 480000,
+      desc: '착용자의 의지가 약해질 때마다 은은한 열기를 내뿜어 다시 일으켜 세운다는 전설의 반지.' },
+    { id: 'shadow-cloak', icon: '🧥', tier: '레어', name: '그림자 망토', price: 650000,
+      desc: '어둠 속에서 짜여진 망토. 걸치는 순간 발걸음이 가벼워지고, 방해되는 유혹들이 눈에 띄지 않게 된다.' },
+    { id: 'dragon-heart', icon: '❤️‍🔥', tier: '에픽', name: '용의 심장 목걸이', price: 1250000,
+      desc: '잠든 고룡의 심장에서 떨어져 나온 파편. 목에 거는 순간 끝없는 지구력이 샘솟는다.' },
+    { id: 'thunder-spear', icon: '🔱', tier: '에픽', name: '뇌전을 두른 창 "제우스의 분노"', price: 1980000,
+      desc: '벼락이 내려친 자리에서만 발견된다는 신화의 창. 내지르는 순간 천둥이 함께 울린다.' },
+    { id: 'ice-crown', icon: '👑', tier: '에픽', name: '얼음여왕의 왕관', price: 2750000,
+      desc: '천 년 동안 얼음 성에 잠들어 있던 왕관. 쓰는 자에게 흔들리지 않는 냉철한 집중력을 선사한다.' },
+    { id: 'phoenix-feather', icon: '🪶', tier: '레전더리', name: '불사조의 깃털', price: 3600000,
+      desc: '타버려도 다시 태어나는 불사조의 깃털 한 장. 아무리 지쳐도 다시 일어날 수 있다는 증표.' },
+    { id: 'primordial-shield', icon: '🛡️', tier: '레전더리', name: '태초의 방패 "부동석"', price: 5200000,
+      desc: '세상이 갈라지던 태초의 순간부터 존재했다는 방패. 그 무엇도 이 방패 앞에서는 흔들 수 없다.' },
+    { id: 'chrono-blade', icon: '⏳', tier: '신화', name: '시공을 가르는 검 "크로노브레이커"', price: 7400000,
+      desc: '휘두르는 순간 시간의 흐름이 잠시 멈춘다는 검. 오직 극소수의 용사만이 다뤄본 적 있다.' },
+    { id: 'chaos-essence', icon: '🔮', tier: '신화', name: '혼돈의 정수', price: 8800000,
+      desc: '세계의 균열에서 흘러나온 순수한 혼돈의 결정체. 다루는 이의 한계를 재정의한다.' },
+    { id: 'apocalypse-seal', icon: '🌌', tier: '신화', name: '종말의 인장', price: 15000000,
+      desc: '모든 것의 끝과 시작을 동시에 상징하는 궁극의 인장. 손에 넣는 자, 전설 그 자체가 된다.' },
+  ];
 
   /* ---------------- Quotes ---------------- */
   const QUOTES = [
@@ -361,6 +438,283 @@
     historyEmpty.style.display = hasAny ? 'none' : 'block';
   }
 
+  /* ---------------- Toast ---------------- */
+  let toastTimeout = null;
+  function showToast(message) {
+    toastEl.textContent = message;
+    toastEl.classList.add('show');
+    if (toastTimeout) clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => toastEl.classList.remove('show'), 2800);
+  }
+
+  /* ---------------- Gold ---------------- */
+  function renderGold() {
+    goldAmountEl.textContent = gold.toLocaleString('ko-KR');
+  }
+
+  function addGold(amount) {
+    gold += amount;
+    save(STORE_KEYS.gold, gold);
+    renderGold();
+  }
+
+  const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+  /* ---------------- Tabs ---------------- */
+  function switchTab(name) {
+    tabButtons.forEach((btn) => btn.classList.toggle('active', btn.dataset.tab === name));
+    Object.entries(tabPanels).forEach(([key, panel]) => panel.classList.toggle('active', key === name));
+  }
+  tabButtons.forEach((btn) => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+
+  /* ---------------- Study Timer ---------------- */
+  let selectedSubjectId = activeSession ? activeSession.subjectId : null;
+  let tickInterval = null;
+
+  const formatDuration = (totalSeconds) => {
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = Math.floor(totalSeconds % 60);
+    return [h, m, s].map((n) => String(n).padStart(2, '0')).join(':');
+  };
+
+  const formatStudyLabel = (totalSeconds) => {
+    const mins = Math.floor(totalSeconds / 60);
+    if (mins < 60) return `오늘 ${mins}분`;
+    return `오늘 ${Math.floor(mins / 60)}시간 ${mins % 60}분`;
+  };
+
+  function getStudySeconds(dateKey, subjectId) {
+    return (studyByDate[dateKey] && studyByDate[dateKey][subjectId]) || 0;
+  }
+
+  function addStudySeconds(dateKey, subjectId, seconds) {
+    if (!studyByDate[dateKey]) studyByDate[dateKey] = {};
+    studyByDate[dateKey][subjectId] = (studyByDate[dateKey][subjectId] || 0) + seconds;
+    save(STORE_KEYS.study, studyByDate);
+  }
+
+  function renderSubjects() {
+    const todayK = todayKey();
+    subjectList.innerHTML = '';
+    subjectBadge.textContent = `${subjects.length}개`;
+    subjectEmpty.style.display = subjects.length ? 'none' : 'block';
+
+    subjects.forEach((s) => {
+      const node = subjectItemTpl.content.cloneNode(true);
+      const li = node.querySelector('.subject-item');
+      const selectBtn = node.querySelector('.subject-select-btn');
+      const nameEl = node.querySelector('.subject-name');
+      const timeEl = node.querySelector('.subject-time');
+      const delBtn = node.querySelector('.delete-btn');
+
+      nameEl.textContent = s.name;
+      timeEl.textContent = formatStudyLabel(getStudySeconds(todayK, s.id));
+
+      const isRunning = !!(activeSession && activeSession.subjectId === s.id);
+      if (isRunning) {
+        li.classList.add('running');
+        selectBtn.textContent = '■';
+      } else if (selectedSubjectId === s.id) {
+        li.classList.add('selected');
+        selectBtn.textContent = '▶';
+      } else {
+        selectBtn.textContent = '▶';
+      }
+
+      selectBtn.addEventListener('click', () => selectSubject(s.id));
+      delBtn.addEventListener('click', () => {
+        if (activeSession && activeSession.subjectId === s.id) {
+          showToast('측정 중인 과목은 삭제할 수 없어요. 먼저 종료해주세요.');
+          return;
+        }
+        subjects = subjects.filter((x) => x.id !== s.id);
+        save(STORE_KEYS.subjects, subjects);
+        if (selectedSubjectId === s.id) selectedSubjectId = null;
+        renderSubjects();
+        renderTimerUI();
+      });
+
+      li.dataset.id = s.id;
+      subjectList.appendChild(node);
+    });
+  }
+
+  function selectSubject(id) {
+    if (activeSession) {
+      if (activeSession.subjectId === id) stopTimer();
+      else showToast('측정 중에는 다른 과목을 선택할 수 없어요.');
+      return;
+    }
+    selectedSubjectId = selectedSubjectId === id ? null : id;
+    renderSubjects();
+    renderTimerUI();
+  }
+
+  function renderTimerUI() {
+    if (activeSession) {
+      const subj = subjects.find((s) => s.id === activeSession.subjectId);
+      timerSubjectLabel.textContent = subj ? subj.name : '';
+      measureBtn.disabled = false;
+      measureBtn.textContent = '■ 측정 종료';
+      measureBtn.classList.add('running');
+      return;
+    }
+    const selected = subjects.find((s) => s.id === selectedSubjectId);
+    timerDisplay.textContent = '00:00:00';
+    measureBtn.classList.remove('running');
+    if (selected) {
+      timerSubjectLabel.textContent = selected.name;
+      measureBtn.disabled = false;
+      measureBtn.textContent = '▶ 측정 시작';
+    } else {
+      timerSubjectLabel.textContent = '과목을 선택해주세요';
+      measureBtn.disabled = true;
+      measureBtn.textContent = '▶ 측정 시작';
+    }
+  }
+
+  function tick() {
+    if (!activeSession) return;
+    const elapsed = Math.floor((Date.now() - activeSession.startTs) / 1000);
+    timerDisplay.textContent = formatDuration(elapsed);
+  }
+
+  function startTicking() {
+    if (tickInterval) clearInterval(tickInterval);
+    tick();
+    tickInterval = setInterval(tick, 1000);
+  }
+
+  function startTimer(subjectId) {
+    activeSession = { subjectId, startTs: Date.now() };
+    save(STORE_KEYS.activeSession, activeSession);
+    renderSubjects();
+    renderTimerUI();
+    startTicking();
+  }
+
+  function stopTimer() {
+    if (!activeSession) return;
+    const elapsedSeconds = Math.floor((Date.now() - activeSession.startTs) / 1000);
+    const subjectId = activeSession.subjectId;
+    const subj = subjects.find((s) => s.id === subjectId);
+
+    clearInterval(tickInterval);
+    tickInterval = null;
+    addStudySeconds(todayKey(), subjectId, elapsedSeconds);
+
+    const blocks = Math.floor(elapsedSeconds / 600);
+    let reward = 0;
+    for (let i = 0; i < blocks; i++) reward += randomInt(5000, 20000);
+
+    activeSession = null;
+    save(STORE_KEYS.activeSession, null);
+
+    if (reward > 0) {
+      addGold(reward);
+      showToast(`⏱️ ${subj ? subj.name : '공부'} 측정 완료! +${reward.toLocaleString('ko-KR')} 골드 획득 🪙`);
+    } else {
+      showToast('⏱️ 측정 종료! 10분을 채우면 골드를 받을 수 있어요.');
+    }
+
+    renderSubjects();
+    renderTimerUI();
+    renderHeader();
+  }
+
+  measureBtn.addEventListener('click', () => {
+    if (activeSession) stopTimer();
+    else if (selectedSubjectId) startTimer(selectedSubjectId);
+  });
+
+  subjectForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = subjectTextInput.value.trim();
+    if (!name) return;
+    subjects.push({ id: crypto.randomUUID(), name });
+    save(STORE_KEYS.subjects, subjects);
+    subjectForm.reset();
+    renderSubjects();
+  });
+
+  /* ---------------- Shop ---------------- */
+  let selectedShopItemId = null;
+
+  function renderShop() {
+    shopItemGrid.innerHTML = '';
+    shopBadge.textContent = `${SHOP_ITEMS.length}개`;
+
+    SHOP_ITEMS.forEach((item) => {
+      const node = shopItemTpl.content.cloneNode(true);
+      const btn = node.querySelector('.shop-item');
+      btn.querySelector('.shop-item-icon').textContent = item.icon;
+      btn.querySelector('.shop-item-name').textContent = item.name;
+      btn.querySelector('.shop-item-price-value').textContent = item.price.toLocaleString('ko-KR');
+      if (selectedShopItemId === item.id) btn.classList.add('selected');
+      if (inventory[item.id]) btn.classList.add('owned');
+      btn.addEventListener('click', () => {
+        selectedShopItemId = item.id;
+        renderShop();
+        renderShopDetail();
+      });
+      btn.dataset.id = item.id;
+      shopItemGrid.appendChild(node);
+    });
+  }
+
+  function renderShopDetail() {
+    const item = SHOP_ITEMS.find((i) => i.id === selectedShopItemId);
+    if (!item) {
+      shopDetailEmpty.style.display = 'block';
+      shopDetailContent.style.display = 'none';
+      return;
+    }
+    shopDetailEmpty.style.display = 'none';
+    shopDetailContent.style.display = 'flex';
+    shopDetailIcon.textContent = item.icon;
+    shopDetailName.textContent = item.name;
+    shopDetailTier.textContent = `${item.tier} 등급${inventory[item.id] ? ` · 보유 x${inventory[item.id]}` : ''}`;
+    shopDetailDesc.textContent = item.desc;
+    shopDetailPrice.textContent = item.price.toLocaleString('ko-KR');
+    const canAfford = gold >= item.price;
+    shopBuyBtn.disabled = !canAfford;
+    shopBuyBtn.textContent = canAfford ? '구매하기' : '골드가 부족해요';
+    shopBuyMsg.textContent = '';
+  }
+
+  shopBuyBtn.addEventListener('click', () => {
+    const item = SHOP_ITEMS.find((i) => i.id === selectedShopItemId);
+    if (!item || gold < item.price) return;
+    gold -= item.price;
+    save(STORE_KEYS.gold, gold);
+    inventory[item.id] = (inventory[item.id] || 0) + 1;
+    save(STORE_KEYS.inventory, inventory);
+    renderGold();
+    renderShop();
+    renderShopDetail();
+    renderInventory();
+    showToast(`🎉 [${item.name}]을(를) 구매했어요!`);
+  });
+
+  /* ---------------- Inventory ---------------- */
+  function renderInventory() {
+    const ownedIds = Object.keys(inventory).filter((id) => inventory[id] > 0);
+    inventoryBadge.textContent = `${ownedIds.length}개`;
+    inventoryGrid.innerHTML = '';
+    inventoryEmpty.style.display = ownedIds.length ? 'none' : 'block';
+
+    ownedIds.forEach((id) => {
+      const item = SHOP_ITEMS.find((i) => i.id === id);
+      if (!item) return;
+      const node = inventoryItemTpl.content.cloneNode(true);
+      node.querySelector('.inventory-item-icon').textContent = item.icon;
+      node.querySelector('.inventory-item-name').textContent = item.name;
+      node.querySelector('.inventory-item-qty').textContent = `x${inventory[id]}`;
+      inventoryGrid.appendChild(node);
+    });
+  }
+
   /* ---------------- Theme ---------------- */
   function applyTheme(theme) {
     if (theme === 'dark') {
@@ -388,6 +742,14 @@
     renderSummary();
     renderHeader();
     renderHeatmap();
+
+    renderGold();
+    renderSubjects();
+    renderTimerUI();
+    if (activeSession) startTicking();
+    renderShop();
+    renderShopDetail();
+    renderInventory();
   }
 
   init();

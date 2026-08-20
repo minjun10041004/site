@@ -20,6 +20,21 @@
 
 <div class="app">
 
+  <div class="topbar">
+    <div class="gold-badge" title="보유 골드">
+      <span class="gold-icon">🪙</span>
+      <span>Gold : <strong id="goldAmount">0</strong>C</span>
+    </div>
+    <nav class="tab-nav" id="tabNav">
+      <button class="tab-btn active" data-tab="main">🏠 메인</button>
+      <button class="tab-btn" data-tab="study">⏱️ 공부 시간</button>
+      <button class="tab-btn" data-tab="shop">🛒 상점</button>
+      <button class="tab-btn" data-tab="inventory">🎒 인벤토리</button>
+    </nav>
+  </div>
+
+  <section class="tab-panel active" id="panel-main">
+
   <!-- Header -->
   <header class="hero">
     <div class="hero-top">
@@ -125,10 +140,84 @@
 
   </main>
 
+  </section>
+
+  <!-- Study Timer Tab -->
+  <section class="tab-panel" id="panel-study">
+    <div class="study-grid">
+      <div class="card timer-card">
+        <p class="timer-subject" id="timerSubjectLabel">과목을 선택해주세요</p>
+        <div class="timer-display" id="timerDisplay">00:00:00</div>
+        <button class="btn-measure" id="measureBtn" disabled>▶ 측정 시작</button>
+        <p class="timer-hint" id="timerHint">10분마다 5,000~20,000 골드를 획득해요 🪙</p>
+      </div>
+
+      <div class="card subject-card">
+        <div class="card-head">
+          <h2><span class="card-icon">📚</span> 과목</h2>
+          <span class="badge" id="subjectBadge">0개</span>
+        </div>
+
+        <ul class="subject-list" id="subjectList"></ul>
+
+        <form id="subjectForm" class="add-row">
+          <span class="add-row-plus">+</span>
+          <input type="text" id="subjectText" placeholder="과목을 입력하고 Enter" required maxlength="40">
+        </form>
+        <p class="empty-state" id="subjectEmpty">과목을 추가하고 눌러서 선택해보세요 📖</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Shop Tab -->
+  <section class="tab-panel" id="panel-shop">
+    <div class="shop-grid">
+      <div class="card shop-list-card">
+        <div class="card-head">
+          <h2><span class="card-icon">🛒</span> 상점</h2>
+          <span class="badge" id="shopBadge">0개</span>
+        </div>
+        <div class="shop-grid-items" id="shopItemGrid"></div>
+      </div>
+
+      <div class="card shop-detail-card">
+        <div id="shopDetailEmpty" class="shop-detail-empty">
+          <p>아이템을 선택하면<br>설명이 여기에 표시돼요 ✨</p>
+        </div>
+        <div id="shopDetailContent" class="shop-detail-content" style="display:none;">
+          <div class="shop-detail-icon" id="shopDetailIcon"></div>
+          <h3 id="shopDetailName"></h3>
+          <p class="shop-detail-tier" id="shopDetailTier"></p>
+          <p class="shop-detail-desc" id="shopDetailDesc"></p>
+          <div class="shop-detail-price">
+            <span class="gold-icon">🪙</span>
+            <strong id="shopDetailPrice">0</strong>C
+          </div>
+          <button class="btn-primary buy-btn" id="shopBuyBtn">구매하기</button>
+          <p class="shop-buy-msg" id="shopBuyMsg"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Inventory Tab -->
+  <section class="tab-panel" id="panel-inventory">
+    <div class="card inventory-card">
+      <div class="card-head">
+        <h2><span class="card-icon">🎒</span> 인벤토리</h2>
+        <span class="badge" id="inventoryBadge">0개</span>
+      </div>
+      <div class="inventory-grid" id="inventoryGrid"></div>
+      <p class="empty-state" id="inventoryEmpty">아직 구매한 아이템이 없어요. 상점에서 득템해보세요 🗡️</p>
+    </div>
+  </section>
+
   <footer class="footer">
     <p>모든 데이터는 이 브라우저에만 저장됩니다 (localStorage).</p>
   </footer>
 </div>
+
+<div class="toast" id="toast"></div>
 
 <template id="scheduleItemTemplate">
   <li class="schedule-item">
@@ -151,6 +240,31 @@
     </div>
     <button class="icon-btn delete-btn" title="삭제">✕</button>
   </li>
+</template>
+
+<template id="subjectItemTemplate">
+  <li class="subject-item">
+    <button class="subject-select-btn" title="과목 선택">▶</button>
+    <span class="subject-name"></span>
+    <span class="subject-time">오늘 0분</span>
+    <button class="icon-btn delete-btn" title="삭제">✕</button>
+  </li>
+</template>
+
+<template id="shopItemTemplate">
+  <button class="shop-item">
+    <span class="shop-item-icon"></span>
+    <span class="shop-item-name"></span>
+    <span class="shop-item-price"><span class="gold-icon">🪙</span><span class="shop-item-price-value"></span>C</span>
+  </button>
+</template>
+
+<template id="inventoryItemTemplate">
+  <div class="inventory-item">
+    <span class="inventory-item-icon"></span>
+    <span class="inventory-item-name"></span>
+    <span class="inventory-item-qty"></span>
+  </div>
 </template>
 
 <script src="js/app.js"></script>
