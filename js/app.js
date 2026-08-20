@@ -698,7 +698,14 @@
     renderGold();
   }
 
-  const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+  function niceGold(n) {
+    if (n < 100) return Math.round(n / 5) * 5;
+    if (n < 1000) return Math.round(n / 10) * 10;
+    if (n < 10000) return Math.round(n / 100) * 100;
+    if (n < 1000000) return Math.round(n / 1000) * 1000;
+    if (n < 100000000) return Math.round(n / 100000) * 100000;
+    return Math.round(n / 1000000) * 1000000;
+  }
 
   /* ---------------- Tabs ---------------- */
   function switchTab(name) {
@@ -904,9 +911,7 @@
     addStudySeconds(todayKey(), subjectId, elapsedSeconds);
 
     const blocks = Math.floor(elapsedSeconds / 60);
-    const [rangeMin, rangeMax] = currentStudyRange();
-    let reward = 0;
-    for (let i = 0; i < blocks; i++) reward += randomInt(rangeMin, rangeMax);
+    const reward = blocks * currentStudyIncome();
 
     activeSession = null;
     queueSave();
@@ -947,18 +952,20 @@
   }
 
   /* Realms stack (you keep every rung you climbed); a sword does not —
-     only the single blade you have equipped counts. */
-  function studyRangeAt(realmIdx, swordIdx) {
+     only the single blade you have equipped counts. A flat amount per
+     minute, not a range — the old 1~2x roll is folded into this fixed
+     number (at 1.5x the old minimum) so the payout rate is unchanged,
+     it just no longer varies draw to draw. */
+  function studyIncomeAt(realmIdx, swordIdx) {
     const bonus = cumulativeBonus(REALMS, realmIdx, 'studyBonus') + SWORDS[swordIdx].studyBonus;
-    const min = BASE_STUDY_MIN + bonus;
-    return [min, min * 2];
+    return niceGold((BASE_STUDY_MIN + bonus) * 1.5);
   }
 
-  function currentStudyRange() { return studyRangeAt(realmLevel, swordLevel); }
+  function currentStudyIncome() { return studyIncomeAt(realmLevel, swordLevel); }
 
   function renderStudyHint() {
-    const [min, max] = currentStudyRange();
-    timerHint.textContent = `1분마다 ${min.toLocaleString('ko-KR')}~${max.toLocaleString('ko-KR')} 골드를 획득해요 🪙`;
+    const income = currentStudyIncome();
+    timerHint.textContent = `1분마다 ${income.toLocaleString('ko-KR')} 골드를 획득해요 🪙`;
   }
 
   /* ---------------- 경지 승급 (경지 트랙) ---------------- */
@@ -979,8 +986,8 @@
     },
   };
 
-  function rangeForTrackIndex(track, index) {
-    return studyRangeAt(index, track.getOtherLevel());
+  function incomeForTrackIndex(track, index) {
+    return studyIncomeAt(index, track.getOtherLevel());
   }
   const tierOf = (index) => Math.floor(index / 3);
 
@@ -993,8 +1000,7 @@
     e.name.className = `cultivation-name tier-${tierOf(level)}`;
     e.hanja.textContent = `(${cur.hanja})`;
     e.desc.textContent = cur.desc;
-    const [min, max] = rangeForTrackIndex(track, level);
-    e.studyRange.textContent = `${min.toLocaleString('ko-KR')}~${max.toLocaleString('ko-KR')}C`;
+    e.studyRange.textContent = `+${incomeForTrackIndex(track, level).toLocaleString('ko-KR')}C`;
     e.badge.textContent = `${level + 1} / ${track.list.length}`;
 
     const next = track.list[level + 1];
@@ -1021,8 +1027,7 @@
       nameEl.textContent = item.name;
       nameEl.classList.add(`tier-${tierOf(i)}`);
       node.querySelector('.ladder-hanja').textContent = `(${item.hanja})`;
-      const [rmin, rmax] = rangeForTrackIndex(track, i);
-      node.querySelector('.ladder-range').textContent = `${rmin.toLocaleString('ko-KR')}~${rmax.toLocaleString('ko-KR')}C`;
+      node.querySelector('.ladder-range').textContent = `+${incomeForTrackIndex(track, i).toLocaleString('ko-KR')}C`;
       const statusEl = node.querySelector('.ladder-status');
       if (i < level) { li.classList.add('done'); statusEl.textContent = '달성'; }
       else if (i === level) { li.classList.add('current'); statusEl.textContent = '현재'; }
@@ -1149,8 +1154,7 @@
     equippedEls.grade.className = `sword-grade rar-chip rar-${cur.rarity}`;
     equippedEls.lore.textContent = cur.lore;
     equippedEls.desc.textContent = cur.desc;
-    const [min, max] = studyRangeAt(realmLevel, swordLevel);
-    equippedEls.studyRange.textContent = `${min.toLocaleString('ko-KR')}~${max.toLocaleString('ko-KR')}C`;
+    equippedEls.studyRange.textContent = `+${studyIncomeAt(realmLevel, swordLevel).toLocaleString('ko-KR')}C`;
 
     const n = clampDrawCount();
     const cost = drawCost();
