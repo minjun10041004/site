@@ -150,29 +150,29 @@
 
   /* ---------------- RPG Shop catalog ---------------- */
   const SHOP_ITEMS = [
-    { id: 'wooden-sword', icon: '🗡️', tier: '커먼', name: '초심자의 목검', price: 120000,
+    { id: 'wooden-sword', icon: '🗡️', tier: '커먼', rarity: 'common', name: '초심자의 목검', price: 120000,
       desc: '수련생이라면 누구나 한 번쯤 쥐어보는 소박한 목검. 볼품없어 보이지만, 이 검으로 시작한 전설이 한둘이 아니다.' },
-    { id: 'steel-blade', icon: '⚔️', tier: '커먼', name: '단조 강철검 "브레이브하트"', price: 260000,
+    { id: 'steel-blade', icon: '⚔️', tier: '커먼', rarity: 'common', name: '단조 강철검 "브레이브하트"', price: 260000,
       desc: '숙련된 대장장이가 천 번을 두드려 만든 강철검. 손에 쥐는 순간 심장이 뜨거워진다.' },
-    { id: 'ring-of-flame', icon: '💍', tier: '레어', name: '불꽃심장의 반지', price: 480000,
+    { id: 'ring-of-flame', icon: '💍', tier: '레어', rarity: 'rare', name: '불꽃심장의 반지', price: 480000,
       desc: '착용자의 의지가 약해질 때마다 은은한 열기를 내뿜어 다시 일으켜 세운다는 전설의 반지.' },
-    { id: 'shadow-cloak', icon: '🧥', tier: '레어', name: '그림자 망토', price: 650000,
+    { id: 'shadow-cloak', icon: '🧥', tier: '레어', rarity: 'rare', name: '그림자 망토', price: 650000,
       desc: '어둠 속에서 짜여진 망토. 걸치는 순간 발걸음이 가벼워지고, 방해되는 유혹들이 눈에 띄지 않게 된다.' },
-    { id: 'dragon-heart', icon: '❤️‍🔥', tier: '에픽', name: '용의 심장 목걸이', price: 1250000,
+    { id: 'dragon-heart', icon: '❤️‍🔥', tier: '에픽', rarity: 'epic', name: '용의 심장 목걸이', price: 1250000,
       desc: '잠든 고룡의 심장에서 떨어져 나온 파편. 목에 거는 순간 끝없는 지구력이 샘솟는다.' },
-    { id: 'thunder-spear', icon: '🔱', tier: '에픽', name: '뇌전을 두른 창 "제우스의 분노"', price: 1980000,
+    { id: 'thunder-spear', icon: '🔱', tier: '에픽', rarity: 'epic', name: '뇌전을 두른 창 "제우스의 분노"', price: 1980000,
       desc: '벼락이 내려친 자리에서만 발견된다는 신화의 창. 내지르는 순간 천둥이 함께 울린다.' },
-    { id: 'ice-crown', icon: '👑', tier: '에픽', name: '얼음여왕의 왕관', price: 2750000,
+    { id: 'ice-crown', icon: '👑', tier: '에픽', rarity: 'epic', name: '얼음여왕의 왕관', price: 2750000,
       desc: '천 년 동안 얼음 성에 잠들어 있던 왕관. 쓰는 자에게 흔들리지 않는 냉철한 집중력을 선사한다.' },
-    { id: 'phoenix-feather', icon: '🪶', tier: '레전더리', name: '불사조의 깃털', price: 3600000,
+    { id: 'phoenix-feather', icon: '🪶', tier: '레전더리', rarity: 'legendary', name: '불사조의 깃털', price: 3600000,
       desc: '타버려도 다시 태어나는 불사조의 깃털 한 장. 아무리 지쳐도 다시 일어날 수 있다는 증표.' },
-    { id: 'primordial-shield', icon: '🛡️', tier: '레전더리', name: '태초의 방패 "부동석"', price: 5200000,
+    { id: 'primordial-shield', icon: '🛡️', tier: '레전더리', rarity: 'legendary', name: '태초의 방패 "부동석"', price: 5200000,
       desc: '세상이 갈라지던 태초의 순간부터 존재했다는 방패. 그 무엇도 이 방패 앞에서는 흔들 수 없다.' },
-    { id: 'chrono-blade', icon: '⏳', tier: '신화', name: '시공을 가르는 검 "크로노브레이커"', price: 7400000,
+    { id: 'chrono-blade', icon: '⏳', tier: '신화', rarity: 'mythic', name: '시공을 가르는 검 "크로노브레이커"', price: 7400000,
       desc: '휘두르는 순간 시간의 흐름이 잠시 멈춘다는 검. 오직 극소수의 용사만이 다뤄본 적 있다.' },
-    { id: 'chaos-essence', icon: '🔮', tier: '신화', name: '혼돈의 정수', price: 8800000,
+    { id: 'chaos-essence', icon: '🔮', tier: '신화', rarity: 'mythic', name: '혼돈의 정수', price: 8800000,
       desc: '세계의 균열에서 흘러나온 순수한 혼돈의 결정체. 다루는 이의 한계를 재정의한다.' },
-    { id: 'apocalypse-seal', icon: '🌌', tier: '신화', name: '종말의 인장', price: 15000000,
+    { id: 'apocalypse-seal', icon: '🌌', tier: '신화', rarity: 'mythic', name: '종말의 인장', price: 15000000,
       desc: '모든 것의 끝과 시작을 동시에 상징하는 궁극의 인장. 손에 넣는 자, 전설 그 자체가 된다.' },
   ];
 
@@ -648,7 +648,8 @@
     SHOP_ITEMS.forEach((item) => {
       const node = shopItemTpl.content.cloneNode(true);
       const btn = node.querySelector('.shop-item');
-      btn.querySelector('.shop-item-icon').textContent = item.icon;
+      btn.querySelector('.icon-frame').classList.add(`rarity-${item.rarity}`);
+      btn.querySelector('.icon-frame-glyph').textContent = item.icon;
       btn.querySelector('.shop-item-name').textContent = item.name;
       btn.querySelector('.shop-item-price-value').textContent = item.price.toLocaleString('ko-KR');
       if (selectedShopItemId === item.id) btn.classList.add('selected');
@@ -672,7 +673,8 @@
     }
     shopDetailEmpty.style.display = 'none';
     shopDetailContent.style.display = 'flex';
-    shopDetailIcon.textContent = item.icon;
+    shopDetailIcon.className = `shop-detail-icon icon-frame rarity-${item.rarity}`;
+    el('shopDetailIconGlyph').textContent = item.icon;
     shopDetailName.textContent = item.name;
     shopDetailTier.textContent = `${item.tier} 등급${inventory[item.id] ? ` · 보유 x${inventory[item.id]}` : ''}`;
     shopDetailDesc.textContent = item.desc;
@@ -708,7 +710,8 @@
       const item = SHOP_ITEMS.find((i) => i.id === id);
       if (!item) return;
       const node = inventoryItemTpl.content.cloneNode(true);
-      node.querySelector('.inventory-item-icon').textContent = item.icon;
+      node.querySelector('.icon-frame').classList.add(`rarity-${item.rarity}`);
+      node.querySelector('.icon-frame-glyph').textContent = item.icon;
       node.querySelector('.inventory-item-name').textContent = item.name;
       node.querySelector('.inventory-item-qty').textContent = `x${inventory[id]}`;
       inventoryGrid.appendChild(node);
