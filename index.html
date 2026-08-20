@@ -65,26 +65,7 @@
 
   <main class="grid">
 
-    <!-- Schedule Section -->
-    <section class="card schedule-card">
-      <div class="card-head">
-        <h2><span class="card-icon">📅</span> 일정 &amp; D-Day</h2>
-        <span class="badge" id="scheduleBadge">0개</span>
-      </div>
-
-      <form id="scheduleForm" class="inline-form">
-        <input type="text" id="scheduleTitle" placeholder="일정 이름 (예: 기말고사)" required maxlength="60">
-        <input type="date" id="scheduleDate" required>
-        <button type="submit" class="btn-primary">추가</button>
-      </form>
-
-      <ul class="schedule-list" id="scheduleList">
-        <!-- rendered by JS -->
-      </ul>
-      <p class="empty-state" id="scheduleEmpty">아직 등록된 일정이 없어요. 첫 일정을 추가해보세요 ✨</p>
-    </section>
-
-    <!-- Today's Todo Section -->
+    <!-- Today's Todo Section (left) -->
     <section class="card todo-card">
       <div class="card-head">
         <h2><span class="card-icon">✅</span> 오늘의 할 일</h2>
@@ -96,15 +77,15 @@
         </div>
       </div>
 
-      <form id="todoForm" class="inline-form">
-        <input type="text" id="todoText" placeholder="할 일을 입력하세요" required maxlength="80">
-        <button type="submit" class="btn-primary">추가</button>
-      </form>
-
       <ul class="todo-list" id="todoList">
         <!-- rendered by JS -->
       </ul>
-      <p class="empty-state" id="todoEmpty">할 일을 추가하고 완료율을 채워보세요 💪</p>
+
+      <form id="todoForm" class="add-row">
+        <span class="add-row-plus">+</span>
+        <input type="text" id="todoText" placeholder="할 일을 입력하고 Enter" required maxlength="80">
+      </form>
+      <p class="empty-state" id="todoEmpty">아직 할 일이 없어요. 위 입력창에 첫 할 일을 적어보세요 💪</p>
 
       <div class="day-summary">
         <div class="day-summary-bar">
@@ -112,6 +93,25 @@
         </div>
         <span class="day-summary-text"><strong id="daySummaryPercent">0%</strong> 완료</span>
       </div>
+    </section>
+
+    <!-- Schedule Section (right) -->
+    <section class="card schedule-card">
+      <div class="card-head">
+        <h2><span class="card-icon">📅</span> 일정 &amp; D-Day</h2>
+        <span class="badge" id="scheduleBadge">0개</span>
+      </div>
+
+      <ul class="schedule-list" id="scheduleList">
+        <!-- rendered by JS -->
+      </ul>
+      <p class="empty-state" id="scheduleEmpty">아직 등록된 일정이 없어요. 첫 일정을 추가해보세요 ✨</p>
+
+      <form id="scheduleForm" class="inline-form">
+        <input type="text" id="scheduleTitle" placeholder="일정 이름 (예: 기말고사)" required maxlength="60">
+        <input type="date" id="scheduleDate" required>
+        <button type="submit" class="btn-primary">추가</button>
+      </form>
     </section>
 
     <!-- History Section -->
@@ -146,7 +146,7 @@
     <button class="check-btn" title="완료 표시"></button>
     <span class="todo-text"></span>
     <div class="percent-control">
-      <input type="range" min="0" max="100" step="5" class="percent-slider">
+      <input type="range" min="0" max="100" step="5" class="percent-slider" title="완료율 직접 입력">
       <span class="percent-value">0%</span>
     </div>
     <button class="icon-btn delete-btn" title="삭제">✕</button>

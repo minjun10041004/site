@@ -81,9 +81,9 @@ body {
 .app {
   position: relative;
   z-index: 1;
-  max-width: 1080px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 28px 20px 60px;
+  padding: 32px 24px 60px;
 }
 
 /* ---------- Header ---------- */
@@ -190,12 +190,12 @@ body {
 /* ---------- Grid & Cards ---------- */
 .grid {
   display: grid;
-  grid-template-columns: 1.1fr 1.3fr;
-  gap: 20px;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 22px;
 }
 .history-card { grid-column: 1 / -1; }
 
-@media (max-width: 860px) {
+@media (max-width: 760px) {
   .grid { grid-template-columns: 1fr; }
 }
 
@@ -377,20 +377,22 @@ body {
 }
 
 .check-btn {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
   border: 2px solid var(--border);
-  background: transparent;
+  background: var(--surface-solid);
   cursor: pointer;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 800;
   color: transparent;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
+.check-btn:hover { border-color: var(--accent); transform: scale(1.06); }
 .check-btn.done {
   background: linear-gradient(135deg, var(--accent-3), #10b981);
   border-color: transparent;
@@ -426,6 +428,55 @@ body {
   min-width: 34px;
   text-align: right;
 }
+
+/* ---------- Add row (rounded-rectangle inline input) ---------- */
+.add-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface-solid);
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  margin-top: 4px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.add-row:focus-within {
+  border-style: solid;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.15);
+  background: var(--surface-solid);
+}
+.add-row-plus {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--border);
+  color: var(--text-faint);
+  font-weight: 800;
+  font-size: 1rem;
+  transition: all 0.15s ease;
+}
+.add-row:focus-within .add-row-plus {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+}
+.add-row input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--text);
+  padding: 4px 0;
+}
+.add-row input::placeholder { color: var(--text-faint); font-weight: 500; }
 
 .day-summary {
   margin-top: 16px;
