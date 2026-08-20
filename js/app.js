@@ -274,47 +274,47 @@
 
   /* ---------------- Sword ladder (검) ---------------- */
   const SWORDS = [
-    { name: '목검', hanja: '木劍', price: 0, studyBonus: 0,
+    { name: '목검', hanja: '木劍', price: 0, studyBonus: 0, successRate: 0,
       desc: '수련용 목검. 볼품없지만 이 검으로 시작한 고수가 한둘이 아니다.' },
-    { name: '철검', hanja: '鐵劍', price: 100000, studyBonus: 1000,
+    { name: '철검', hanja: '鐵劍', price: 50000, studyBonus: 1000, successRate: 95,
       desc: '저잣거리 대장간에서 벼려낸 투박한 첫 애병.' },
-    { name: '청강검', hanja: '靑鋼劍', price: 150000, studyBonus: 1000,
+    { name: '청강검', hanja: '靑鋼劍', price: 75000, studyBonus: 1000, successRate: 91,
       desc: '푸른 강철로 정련되어 예기가 살아있는 검.' },
-    { name: '백은검', hanja: '白銀劍', price: 230000, studyBonus: 1000,
+    { name: '백은검', hanja: '白銀劍', price: 110000, studyBonus: 1000, successRate: 87,
       desc: '은은한 백색 광택을 내는, 명문 무기점의 수작.' },
-    { name: '한빙검', hanja: '寒氷劍', price: 370000, studyBonus: 2000,
+    { name: '한빙검', hanja: '寒氷劍', price: 170000, studyBonus: 2000, successRate: 82,
       desc: '베는 순간 서릿발이 서린다는 극음(極陰)의 명검.' },
-    { name: '적염검', hanja: '赤炎劍', price: 620000, studyBonus: 3000,
+    { name: '적염검', hanja: '赤炎劍', price: 270000, studyBonus: 3000, successRate: 78,
       desc: '칼날에 불꽃이 어른거린다는 극양(極陽)의 보검.' },
-    { name: '뇌명검', hanja: '雷鳴劍', price: 960000, studyBonus: 3000,
+    { name: '뇌명검', hanja: '雷鳴劍', price: 410000, studyBonus: 3000, successRate: 74,
       desc: '휘두르면 천둥소리가 울린다는 전설의 신병(神兵).' },
-    { name: '파풍검', hanja: '破風劍', price: 1600000, studyBonus: 5000,
+    { name: '파풍검', hanja: '破風劍', price: 640000, studyBonus: 5000, successRate: 70,
       desc: '바람조차 갈라버린다는, 쾌검의 극의가 담긴 검.' },
-    { name: '용린검', hanja: '龍鱗劍', price: 2500000, studyBonus: 6000,
+    { name: '용린검', hanja: '龍鱗劍', price: 990000, studyBonus: 6000, successRate: 66,
       desc: '용의 비늘을 벼려 만들었다는 전설 속의 신검.' },
-    { name: '천마검', hanja: '天魔劍', price: 4000000, studyBonus: 8000,
+    { name: '천마검', hanja: '天魔劍', price: 1500000, studyBonus: 8000, successRate: 61,
       desc: '마교 역대 교주만이 다뤘다는, 하늘마저 두려워한 마검.' },
-    { name: '만년현철검', hanja: '萬年玄鐵劍', price: 6300000, studyBonus: 10000,
+    { name: '만년현철검', hanja: '萬年玄鐵劍', price: 2300000, studyBonus: 10000, successRate: 57,
       desc: '만년 묵은 현철로 주조된, 그 자체로 하나의 보물인 신검.' },
-    { name: '파천검', hanja: '破天劍', price: 9800000, studyBonus: 13000,
+    { name: '파천검', hanja: '破天劍', price: 3500000, studyBonus: 13000, successRate: 53,
       desc: '하늘을 가른다는 이름 그대로, 존재 자체가 재앙인 신검.' },
-    { name: '주선검', hanja: '誅仙劍', price: 15000000, studyBonus: 16000,
+    { name: '주선검', hanja: '誅仙劍', price: 5200000, studyBonus: 16000, successRate: 49,
       desc: '선인마저 베어낸다는 태고의 흉기. 그 이름만으로 강호를 떨게 한다.' },
-    { name: '반고신검', hanja: '盤古神劍', price: 24000000, studyBonus: 21000,
+    { name: '반고신검', hanja: '盤古神劍', price: 7800000, studyBonus: 21000, successRate: 44,
       desc: '천지를 개벽한 반고가 남겼다는 전설의 신검. 이 검을 쥔 자, 곧 하늘이 된다.' },
-    { name: '개천검', hanja: '開天劍', price: 36000000, studyBonus: 25000,
+    { name: '개천검', hanja: '開天劍', price: 12000000, studyBonus: 25000, successRate: 40,
       desc: '닫힌 하늘을 강제로 열어젖힌다는 창세의 신검. 반고 이후 두 번째로 하늘을 가른 자만이 얻는다.' },
-    { name: '창세검', hanja: '創世劍', price: 54000000, studyBonus: 31000,
+    { name: '창세검', hanja: '創世劍', price: 17000000, studyBonus: 31000, successRate: 36,
       desc: '무(無)에서 유(有)를 빚어낸다는 태초의 권능이 깃든 검.' },
-    { name: '삼라만상검', hanja: '森羅萬象劍', price: 82000000, studyBonus: 37000,
+    { name: '삼라만상검', hanja: '森羅萬象劍', price: 25000000, studyBonus: 37000, successRate: 32,
       desc: '세상 만물의 이치가 검신에 아로새겨진, 존재 자체가 하나의 우주인 신검.' },
-    { name: '육도윤회검', hanja: '六道輪廻劍', price: 120000000, studyBonus: 45000,
+    { name: '육도윤회검', hanja: '六道輪廻劍', price: 35000000, studyBonus: 45000, successRate: 28,
       desc: '생과 사, 윤회의 여섯 갈래 길을 넘나든다는 금단의 신검.' },
-    { name: '태극혼돈검', hanja: '太極混沌劍', price: 180000000, studyBonus: 55000,
+    { name: '태극혼돈검', hanja: '太極混沌劍', price: 51000000, studyBonus: 55000, successRate: 23,
       desc: '혼돈에서 태극이, 태극에서 삼라만상이 태어났다는 만물의 근원을 담은 검.' },
-    { name: '심검', hanja: '心劍', price: 270000000, studyBonus: 67000,
+    { name: '심검', hanja: '心劍', price: 73000000, studyBonus: 67000, successRate: 19,
       desc: '검은 손이 아닌 마음에 있다. 실체 없는 검으로도 천하를 벤다는 절대의 깨달음.' },
-    { name: '무형검', hanja: '無形劍', price: 400000000, studyBonus: 82000,
+    { name: '무형검', hanja: '無形劍', price: 100000000, studyBonus: 82000, successRate: 15,
       desc: '형(形)조차 초월한 검의 종착점. 검을 쥐지 않아도, 그 앞에 설 자가 없다.' },
   ];
 
@@ -864,6 +864,7 @@
     },
     sword: {
       axis: 'sword',
+      enhance: true,
       list: SWORDS,
       getLevel: () => swordLevel,
       setLevel: (v) => { swordLevel = v; queueSave(); },
@@ -900,7 +901,9 @@
     const next = track.list[level + 1];
     if (next) {
       e.nextName.textContent = `${next.name} (${next.hanja})`;
-      e.upgradeBtn.textContent = `${next.price.toLocaleString('ko-KR')}C로 승급하기`;
+      e.upgradeBtn.textContent = track.enhance
+        ? `${next.price.toLocaleString('ko-KR')}C로 강화 시도 (성공률 ${next.successRate}%)`
+        : `${next.price.toLocaleString('ko-KR')}C로 승급하기`;
       e.upgradeBtn.disabled = gold < next.price;
       e.upgradeBtn.classList.remove('maxed');
       e.upgradeBtn.onclick = () => upgradeTrack(track);
@@ -926,7 +929,12 @@
       const statusEl = node.querySelector('.ladder-status');
       if (i < level) { li.classList.add('done'); statusEl.textContent = '달성'; }
       else if (i === level) { li.classList.add('current'); statusEl.textContent = '현재'; }
-      else { li.classList.add('locked'); statusEl.textContent = `${item.price.toLocaleString('ko-KR')}C`; }
+      else {
+        li.classList.add('locked');
+        statusEl.textContent = track.enhance
+          ? `${item.price.toLocaleString('ko-KR')}C (${item.successRate}%)`
+          : `${item.price.toLocaleString('ko-KR')}C`;
+      }
       e.ladderList.appendChild(node);
     });
   }
@@ -935,14 +943,27 @@
     const level = track.getLevel();
     const next = track.list[level + 1];
     if (!next || gold < next.price) return;
+
     gold -= next.price;
-    queueSave();
-    track.setLevel(level + 1);
     renderGold();
+
+    if (track.enhance) {
+      const succeeded = Math.random() * 100 < next.successRate;
+      if (succeeded) {
+        track.setLevel(level + 1);
+        showToast(`⚔️ 강화 성공! ${next.name}(${next.hanja}) ${track.verb}`);
+      } else {
+        queueSave();
+        showToast(`💥 강화 실패... ${next.price.toLocaleString('ko-KR')}C를 잃었습니다.`);
+      }
+    } else {
+      track.setLevel(level + 1);
+      showToast(`🌟 ${next.name}(${next.hanja}) ${track.verb}`);
+    }
+
     renderCultivationTrack(CULT_TRACKS.realm);
     renderCultivationTrack(CULT_TRACKS.sword);
     renderStudyHint();
-    showToast(`🌟 ${next.name}(${next.hanja}) ${track.verb}`);
   }
 
   /* ---------------- Theme ---------------- */
