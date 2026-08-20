@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Momentum — 일정 &amp; 할 일 트래커</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔥</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="bg-decor" aria-hidden="true">
+  <span class="blob blob-a"></span>
+  <span class="blob blob-b"></span>
+  <span class="blob blob-c"></span>
+</div>
+
+<div class="app">
+
+  <!-- Header -->
+  <header class="hero">
+    <div class="hero-top">
+      <div class="brand">
+        <span class="brand-mark">🔥</span>
+        <span class="brand-name">Momentum</span>
+      </div>
+      <button id="themeToggle" class="icon-btn" title="테마 전환" aria-label="테마 전환">🌙</button>
+    </div>
+
+    <div class="hero-main">
+      <div class="hero-text">
+        <p class="hero-date" id="todayDate"></p>
+        <h1 class="hero-quote" id="motivationQuote">오늘도 한 걸음, 미래의 나에게 선물하는 하루.</h1>
+        <div class="hero-stats">
+          <div class="stat">
+            <span class="stat-value" id="streakValue">0</span>
+            <span class="stat-label">연속 달성일 🔥</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value" id="upcomingCount">0</span>
+            <span class="stat-label">다가오는 일정</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value" id="todoCount">0</span>
+            <span class="stat-label">오늘 할 일</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="progress-ring-wrap">
+        <svg class="progress-ring" viewBox="0 0 140 140">
+          <circle class="ring-bg" cx="70" cy="70" r="60"></circle>
+          <circle class="ring-fg" id="ringFg" cx="70" cy="70" r="60"></circle>
+        </svg>
+        <div class="progress-ring-label">
+          <span id="ringPercent">0%</span>
+          <small>오늘 완료율</small>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="grid">
+
+    <!-- Schedule Section -->
+    <section class="card schedule-card">
+      <div class="card-head">
+        <h2><span class="card-icon">📅</span> 일정 &amp; D-Day</h2>
+        <span class="badge" id="scheduleBadge">0개</span>
+      </div>
+
+      <form id="scheduleForm" class="inline-form">
+        <input type="text" id="scheduleTitle" placeholder="일정 이름 (예: 기말고사)" required maxlength="60">
+        <input type="date" id="scheduleDate" required>
+        <button type="submit" class="btn-primary">추가</button>
+      </form>
+
+      <ul class="schedule-list" id="scheduleList">
+        <!-- rendered by JS -->
+      </ul>
+      <p class="empty-state" id="scheduleEmpty">아직 등록된 일정이 없어요. 첫 일정을 추가해보세요 ✨</p>
+    </section>
+
+    <!-- Today's Todo Section -->
+    <section class="card todo-card">
+      <div class="card-head">
+        <h2><span class="card-icon">✅</span> 오늘의 할 일</h2>
+        <div class="day-nav">
+          <button id="prevDay" class="icon-btn small" title="이전 날">◀</button>
+          <span id="viewingDate" class="viewing-date"></span>
+          <button id="nextDay" class="icon-btn small" title="다음 날">▶</button>
+          <button id="jumpToday" class="chip-btn" title="오늘로 이동">오늘</button>
+        </div>
+      </div>
+
+      <form id="todoForm" class="inline-form">
+        <input type="text" id="todoText" placeholder="할 일을 입력하세요" required maxlength="80">
+        <button type="submit" class="btn-primary">추가</button>
+      </form>
+
+      <ul class="todo-list" id="todoList">
+        <!-- rendered by JS -->
+      </ul>
+      <p class="empty-state" id="todoEmpty">할 일을 추가하고 완료율을 채워보세요 💪</p>
+
+      <div class="day-summary">
+        <div class="day-summary-bar">
+          <div class="day-summary-fill" id="daySummaryFill"></div>
+        </div>
+        <span class="day-summary-text"><strong id="daySummaryPercent">0%</strong> 완료</span>
+      </div>
+    </section>
+
+    <!-- History Section -->
+    <section class="card history-card">
+      <div class="card-head">
+        <h2><span class="card-icon">📊</span> 최근 14일 기록</h2>
+      </div>
+      <div class="heatmap" id="heatmap"></div>
+      <p class="empty-state" id="historyEmpty">기록이 쌓이면 여기에 그래프가 표시돼요.</p>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>모든 데이터는 이 브라우저에만 저장됩니다 (localStorage).</p>
+  </footer>
+</div>
+
+<template id="scheduleItemTemplate">
+  <li class="schedule-item">
+    <div class="dday-pill"></div>
+    <div class="schedule-info">
+      <p class="schedule-title"></p>
+      <p class="schedule-date"></p>
+    </div>
+    <button class="icon-btn delete-btn" title="삭제">✕</button>
+  </li>
+</template>
+
+<template id="todoItemTemplate">
+  <li class="todo-item">
+    <button class="check-btn" title="완료 표시"></button>
+    <span class="todo-text"></span>
+    <div class="percent-control">
+      <input type="range" min="0" max="100" step="5" class="percent-slider">
+      <span class="percent-value">0%</span>
+    </div>
+    <button class="icon-btn delete-btn" title="삭제">✕</button>
+  </li>
+</template>
+
+<script src="js/app.js"></script>
+</body>
+</html>
