@@ -317,8 +317,9 @@
   /* ---------------- Sword pool (검 도감) ----------------
      Ordered weakest -> strongest, so a higher index is always the better
      blade. Within one grade the spread is kept inside 20%; between grades
-     it is ~4.2x through 보검/영검, then jumps hard — ~15x into 신병이기 and
-     ~26x into 선검 — so the top two grades are a different league entirely. */
+     it is ~4.2x through 보검/영검, then a bigger but still capped ~8x into
+     신병이기 and ~9x into 선검 — noticeably above the lower steps without
+     ever handing a single pull more than roughly a 10x income multiplier. */
   const SWORDS = [
     /* ---- 범품(凡品) — 2자 ---- */
     { name: '목검', hanja: '木劍', rarity: 0, studyBonus: 200,
@@ -377,39 +378,39 @@
       desc: '탐욕과 오만, 잔혹과 어리석음이 번갈아 주인을 부른다. 검을 이긴 자만이 검을 쓸 수 있다.' },
 
     /* ---- 신병이기(神兵利器) — 2자, 구야자·간장의 신화 ---- */
-    { name: '순구', hanja: '純鈞', rarity: 4, studyBonus: 222000,
+    { name: '순구', hanja: '純鈞', rarity: 4, studyBonus: 119000,
       lore: '구야자(歐冶子)가 벼린 명검. 상감(相劍)의 명인 설촉은 이 검을 보고 「값을 매길 수 없다(無價之寶)」 하였다.',
       desc: '티 하나 없이 순수한 검. 화려한 기예가 없어도, 검 그 자체로 이미 완성되어 있다.' },
-    { name: '승사', hanja: '勝邪', rarity: 4, studyBonus: 228000,
+    { name: '승사', hanja: '勝邪', rarity: 4, studyBonus: 122000,
       lore: '이름 그대로 사악함을 이긴다(勝邪)는 뜻을 얻은 구야자의 검.',
       desc: '요사한 기운을 정면으로 눌러 없앤다. 베는 것이 아니라 굴복시키는 종류의 검.' },
-    { name: '어장', hanja: '魚腸', rarity: 4, studyBonus: 233000,
+    { name: '어장', hanja: '魚腸', rarity: 4, studyBonus: 125000,
       lore: '물고기 뱃속에 감출 만큼 짧게 벼려진 비수. 전제(專諸)가 구운 생선 속에 숨겨 오왕 요(僚)를 시해한 그 검이다.',
       desc: '천하를 뒤집는 데 필요한 길이는 한 뼘이면 족했다. 짧기에 아무도 오는 것을 보지 못한다.' },
-    { name: '거궐', hanja: '巨闕', rarity: 4, studyBonus: 239000,
+    { name: '거궐', hanja: '巨闕', rarity: 4, studyBonus: 128000,
       lore: '월왕 구천이 지녔다는 구야자의 검. 큰 궁궐(巨闕)의 문마저 갈라낸다 하여 그 이름을 얻었다.',
       desc: '섬세함을 논하지 않는다. 가로막은 것이 무엇이든, 그저 잘려 있을 뿐이다.' },
-    { name: '담로', hanja: '湛盧', rarity: 4, studyBonus: 244000,
+    { name: '담로', hanja: '湛盧', rarity: 4, studyBonus: 131000,
       lore: '무도한 주인을 스스로 떠나 다른 나라의 어진 임금에게 갔다는 인의(仁義)의 검.',
       desc: '이 검은 쥐는 자를 고른다. 자격이 없다고 판단되면, 어느 날 칼집만 남아 있다.' },
-    { name: '태아', hanja: '太阿', rarity: 4, studyBonus: 250000,
+    { name: '태아', hanja: '太阿', rarity: 4, studyBonus: 134000,
       lore: '구야자와 간장이 함께 벼린 위도(威道)의 검. 초나라가 포위되던 날, 성루에서 뽑아 든 것만으로 진나라 대군이 무너졌다 한다.',
       desc: '휘두르지 않아도 이긴다. 검을 뽑는 소리 하나가 이미 만 명의 전의를 꺾는다.' },
-    { name: '용천', hanja: '龍泉', rarity: 4, studyBonus: 255000,
+    { name: '용천', hanja: '龍泉', rarity: 4, studyBonus: 137000,
       lore: '본래 이름은 용연(龍淵). 훗날 임금의 휘(諱)를 피해 용천으로 고쳐 부르게 되었다. 일곱 별의 형상이 검신에 어렸다 한다.',
       desc: '들여다보면 깊은 못 속에 엎드린 용이 비친다. 물처럼 고요하다가, 한순간 승천한다.' },
-    { name: '막야', hanja: '莫邪', rarity: 4, studyBonus: 261000,
+    { name: '막야', hanja: '莫邪', rarity: 4, studyBonus: 140000,
       lore: '쇠가 끝내 녹지 않자, 간장의 아내 막야가 스스로 화로에 몸을 던져 완성했다는 자검(雌劍).',
       desc: '사람의 목숨 하나가 검이 되었다. 이 검이 우는 날은, 짝인 웅검이 가까이 있다는 뜻이다.' },
-    { name: '간장', hanja: '干將', rarity: 4, studyBonus: 266000,
+    { name: '간장', hanja: '干將', rarity: 4, studyBonus: 143000,
       lore: '명장 간장이 삼 년에 걸쳐 벼려낸 웅검(雄劍). 그는 이 검을 감추고 자검만을 왕에게 바쳤다가 목숨을 잃었다.',
       desc: '주인의 원한을 대신 기억하는 검. 짝을 잃은 뒤로 늘 한쪽으로 조금 기울어 운다.' },
 
     /* ---- 선검(仙劍) ---- */
-    { name: '천주멸신검', hanja: '天誅滅神劍', rarity: 5, studyBonus: 5780000,
+    { name: '천주멸신검', hanja: '天誅滅神劍', rarity: 5, studyBonus: 1070000,
       lore: '하늘이 직접 내리는 벌(天誅)을 형체로 굳힌 검. 사람을 베기 위한 물건이 아니라, 신을 멸(滅神)하기 위해 벼려졌다.',
       desc: '이 검 앞에서는 신위(神位)조차 필멸의 살덩이가 된다. 하늘의 이치로도 이 검날은 막지 못한다.' },
-    { name: '개벽조화검', hanja: '開闢造化劍', rarity: 5, studyBonus: 6940000,
+    { name: '개벽조화검', hanja: '開闢造化劍', rarity: 5, studyBonus: 1280000,
       lore: '혼돈을 갈라 천지를 연(開闢) 그 최초의 일격이, 식지 않고 검의 형상으로 남은 것이라 전해진다.',
       desc: '베는 것이 아니라 짓는다(造化). 이 검이 그은 자리에는 없던 하늘과 없던 땅이 생겨난다.' },
   ];
