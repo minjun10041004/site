@@ -673,7 +673,6 @@ body {
   font-size: clamp(2.8rem, 8vw, 4.6rem);
   font-weight: 800;
   letter-spacing: 0.02em;
-  background: linear-gradient(90deg, var(--accent-2), var(--accent));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -700,7 +699,6 @@ body {
   font-size: clamp(3.6rem, 10vw, 6.4rem);
   font-weight: 800;
   letter-spacing: 0.02em;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -1512,13 +1510,35 @@ body {
   animation: sheenSweep 0.85s ease-out;
 }
 
-/* Numbers that should feel like a HUD readout: a gloss band drifts across
-   the digits. These already paint their fill via background-clip, so all
-   they need is a wider canvas for the band to travel on. */
-.timer-display,
+/* Numbers that should feel like a HUD readout: a thin light glint drifts
+   across the digits while the underlying two-tone colors stay put. Sliding
+   a plain two-stop gradient has nothing for a "glint" to be — it just
+   morphs the whole readout between two flat hues, which read as broken
+   rather than glossy. So this is two background layers instead of one: a
+   fixed accent-to-accent-2 base, plus a narrow soft-white band on a much
+   wider canvas that overlay-blends into it as it slides — only that band
+   moves, so the base color stays put and the shine reads as an object with
+   light passing over it, not a color cross-fade. */
+.timer-display {
+  background-image:
+    linear-gradient(100deg, transparent 44%, rgba(255, 255, 255, 0.7) 50%, transparent 56%),
+    linear-gradient(90deg, var(--accent), var(--accent-2));
+  background-size: 320% 100%, 100% 100%;
+  background-blend-mode: soft-light;
+  animation: numberGlint 5s ease-in-out infinite;
+}
 .today-total-display {
-  background-size: 220% auto;
-  animation: textSheen 6s ease-in-out infinite;
+  background-image:
+    linear-gradient(100deg, transparent 44%, rgba(255, 255, 255, 0.7) 50%, transparent 56%),
+    linear-gradient(90deg, var(--accent-2), var(--accent));
+  background-size: 320% 100%, 100% 100%;
+  background-blend-mode: soft-light;
+  animation: numberGlint 5s ease-in-out infinite;
+}
+@keyframes numberGlint {
+  0%   { background-position: -110% 0, 0 0; }
+  55%  { background-position: 210% 0, 0 0; }
+  100% { background-position: 210% 0, 0 0; }
 }
 .gold-badge strong {
   background: linear-gradient(100deg, #8a5a06, var(--gold), #f0b429, var(--gold), #8a5a06);
