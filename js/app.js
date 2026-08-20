@@ -722,7 +722,7 @@
       column: 'sword_level',
       label: (v) => (SWORDS[v] ? `[${RARITIES[SWORDS[v].rarity].name}] ${SWORDS[v].name}` : '-'),
     },
-    gold: { column: 'gold', label: (v) => `${(v || 0).toLocaleString('ko-KR')}C` },
+    gold: { column: 'gold', label: (v) => `${(v || 0).toLocaleString('ko-KR')}G` },
     study_today: { column: 'study_today', label: (v) => formatDurationLabel(v || 0) },
     study_week: { column: 'study_week', label: (v) => formatDurationLabel(v || 0) },
     study_month: { column: 'study_month', label: (v) => formatDurationLabel(v || 0) },
@@ -1000,13 +1000,13 @@
     e.name.className = `cultivation-name tier-${tierOf(level)}`;
     e.hanja.textContent = `(${cur.hanja})`;
     e.desc.textContent = cur.desc;
-    e.studyRange.textContent = `+${incomeForTrackIndex(track, level).toLocaleString('ko-KR')}C`;
+    e.studyRange.textContent = `+${incomeForTrackIndex(track, level).toLocaleString('ko-KR')}G`;
     e.badge.textContent = `${level + 1} / ${track.list.length}`;
 
     const next = track.list[level + 1];
     if (next) {
       e.nextName.textContent = `${next.name} (${next.hanja})`;
-      e.upgradeBtn.textContent = `${next.price.toLocaleString('ko-KR')}C로 승급하기`;
+      e.upgradeBtn.textContent = `${next.price.toLocaleString('ko-KR')}G로 승급하기`;
       e.upgradeBtn.disabled = gold < next.price;
       e.upgradeBtn.classList.remove('maxed');
       e.upgradeBtn.onclick = () => upgradeTrack(track);
@@ -1027,11 +1027,11 @@
       nameEl.textContent = item.name;
       nameEl.classList.add(`tier-${tierOf(i)}`);
       node.querySelector('.ladder-hanja').textContent = `(${item.hanja})`;
-      node.querySelector('.ladder-range').textContent = `+${incomeForTrackIndex(track, i).toLocaleString('ko-KR')}C`;
+      node.querySelector('.ladder-range').textContent = `+${incomeForTrackIndex(track, i).toLocaleString('ko-KR')}G`;
       const statusEl = node.querySelector('.ladder-status');
       if (i < level) { li.classList.add('done'); statusEl.textContent = '달성'; }
       else if (i === level) { li.classList.add('current'); statusEl.textContent = '현재'; }
-      else { li.classList.add('locked'); statusEl.textContent = `${item.price.toLocaleString('ko-KR')}C`; }
+      else { li.classList.add('locked'); statusEl.textContent = `${item.price.toLocaleString('ko-KR')}G`; }
       e.ladderList.appendChild(node);
     });
   }
@@ -1078,7 +1078,7 @@
     const cost = drawCost();
     const total = cost * count;
     if (gold < total) {
-      showToast(`💸 골드가 부족해요. ${count}회 뽑기에 ${total.toLocaleString('ko-KR')}C가 필요합니다.`);
+      showToast(`💸 골드가 부족해요. ${count}회 뽑기에 ${total.toLocaleString('ko-KR')}G가 필요합니다.`);
       return;
     }
 
@@ -1154,12 +1154,12 @@
     equippedEls.grade.className = `sword-grade rar-chip rar-${cur.rarity}`;
     equippedEls.lore.textContent = cur.lore;
     equippedEls.desc.textContent = cur.desc;
-    equippedEls.studyRange.textContent = `+${studyIncomeAt(realmLevel, swordLevel).toLocaleString('ko-KR')}C`;
+    equippedEls.studyRange.textContent = `+${studyIncomeAt(realmLevel, swordLevel).toLocaleString('ko-KR')}G`;
 
     const n = clampDrawCount();
     const cost = drawCost();
     const total = cost * n;
-    gachaCostLabel.textContent = `1회 ${cost.toLocaleString('ko-KR')}C · ${n}회 ${total.toLocaleString('ko-KR')}C`;
+    gachaCostLabel.textContent = `1회 ${cost.toLocaleString('ko-KR')}G · ${n}회 ${total.toLocaleString('ko-KR')}G`;
     gachaDrawBtn.textContent = `${n}회 뽑기`;
     gachaDrawBtn.disabled = gold < total;
 
@@ -1246,7 +1246,7 @@
       node.querySelector('.codex-lore').textContent = found ? s.lore : '???';
       node.querySelector('.codex-desc').textContent = found ? s.desc : '???';
       node.querySelector('.codex-bonus').textContent = found
-        ? `분당 +${s.studyBonus.toLocaleString('ko-KR')}C`
+        ? `분당 +${s.studyBonus.toLocaleString('ko-KR')}G`
         : '분당 +???';
       codexGrid.appendChild(node);
     });
