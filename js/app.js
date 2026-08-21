@@ -1132,7 +1132,7 @@
 
   function renderStudyHint() {
     const income = currentStudyIncome();
-    timerHint.textContent = `1분마다 ${income.toLocaleString('ko-KR')} 골드를 획득해요 🪙`;
+    timerHint.textContent = `1분마다 ${income.toLocaleString('ko-KR')} 골드, 1시간이면 ${(income * 60).toLocaleString('ko-KR')} 골드를 획득해요 🪙`;
   }
 
   /* ---------------- 경지 승급 (경지 트랙) ---------------- */
