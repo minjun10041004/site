@@ -769,9 +769,11 @@
     rankCategoryButtons.forEach((b) => b.classList.toggle('active', b.dataset.cat === category));
     const cfg = RANK_CATEGORIES[category];
 
+    // Named columns, not '*' -- keeps updated_at and anything added later out
+    // of a query that already runs often and carries an avatar per row.
     const { data, error } = await sb
       .from('leaderboard')
-      .select('*')
+      .select('user_id, username, nickname, avatar, realm_level, sword_level, gold, study_today, study_week, study_month')
       .order(cfg.column, { ascending: false })
       .limit(200);
 
@@ -807,7 +809,11 @@
   rankCategoryButtons.forEach((btn) => btn.addEventListener('click', () => renderRanking(btn.dataset.cat)));
 
   /* ---------------- Profile (프로필) ---------------- */
-  const MAX_AVATAR_DIM = 128;
+  // Small on purpose: this rides along in every row of every leaderboard
+  // fetch (up to 200 rows at a time), so its size multiplies by however
+  // many people are looking at the board at once.
+  const MAX_AVATAR_DIM = 96;
+  const AVATAR_MAX_BYTES = 24 * 1024;
 
   function renderAvatar() {
     if (avatar) {
@@ -837,7 +843,16 @@
       canvas.height = MAX_AVATAR_DIM;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, sx, sy, side, side, 0, 0, MAX_AVATAR_DIM, MAX_AVATAR_DIM);
-      avatar = canvas.toDataURL('image/jpeg', 0.72);
+      // Step quality down further for an unusually detailed/noisy photo
+      // rather than shipping a leaderboard-row outlier several times the
+      // size of everyone else's.
+      let quality = 0.65;
+      let dataUrl = canvas.toDataURL('image/jpeg', quality);
+      while (dataUrl.length > AVATAR_MAX_BYTES && quality > 0.3) {
+        quality -= 0.15;
+        dataUrl = canvas.toDataURL('image/jpeg', quality);
+      }
+      avatar = dataUrl;
       renderAvatar();
       queueSave();
       showToast('🙂 프로필 사진을 저장했어요.');
