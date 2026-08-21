@@ -202,6 +202,7 @@
   const upcomingCount = el('upcomingCount');
   const todoCount = el('todoCount');
   const incomePerMinute = el('incomePerMinute');
+  const incomePerMinuteLabel = el('incomePerMinuteLabel');
   const incomePerHour = el('incomePerHour');
   const todayDateEl = el('todayDate');
   const motivationQuote = el('motivationQuote');
@@ -276,58 +277,58 @@
   const REALMS = [
     { name: '삼류무사', hanja: '三流武士', price: 0, studyBonus: 0,
       desc: '무공의 첫걸음을 뗀 초심자. 검을 쥐는 법조차 서투르지만, 모든 전설은 여기서 시작된다.' },
-    { name: '이류무사', hanja: '二流武士', price: 100000, studyBonus: 60,
+    { name: '이류무사', hanja: '二流武士', price: 31000, studyBonus: 170,
       desc: '어설프던 초식이 제법 날카로워졌다. 이제 겨우 무림의 문턱을 넘본다.' },
-    { name: '일류무사', hanja: '一流武士', price: 142000, studyBonus: 90,
+    { name: '일류무사', hanja: '一流武士', price: 44000, studyBonus: 230,
       desc: '정파 명문 문파의 후기지수들과 어깨를 견줄 만한 실력을 갖췄다.' },
-    { name: '절정 초입', hanja: '絶頂 初入', price: 203000, studyBonus: 120,
+    { name: '절정 초입', hanja: '絶頂 初入', price: 62000, studyBonus: 310,
       desc: '내공이 단전에 뿌리내리기 시작하며, 명문 대파의 제자로 인정받기 시작하는 경지.' },
-    { name: '절정 완숙', hanja: '絶頂 完熟', price: 296000, studyBonus: 170,
+    { name: '절정 완숙', hanja: '絶頂 完熟', price: 89000, studyBonus: 420,
       desc: '다루는 무공이 물 흐르듯 자연스러워지고, 한 지역을 대표하는 강자로 자리잡는다.' },
-    { name: '절정 극', hanja: '絶頂 極', price: 439000, studyBonus: 240,
+    { name: '절정 극', hanja: '絶頂 極', price: 129000, studyBonus: 580,
       desc: '절정의 끝자락. 이때부터는 어엿한 「고수」로 불리며, 문파나 가문의 수장을 넘보게 된다.' },
-    { name: '초절정 초입', hanja: '超絶頂 初入', price: 665000, studyBonus: 350,
+    { name: '초절정 초입', hanja: '超絶頂 初入', price: 187000, studyBonus: 800,
       desc: '구파일방과 천마신교의 장로 바로 아래 서열. 중원 전역에 이름이 알려지기 시작한다.' },
-    { name: '초절정 완숙', hanja: '超絶頂 完熟', price: 1000000, studyBonus: 490,
+    { name: '초절정 완숙', hanja: '超絶頂 完熟', price: 269000, studyBonus: 1100,
       desc: '문주, 가주, 방주, 채주급의 실력. 단신으로 수십의 일류 고수를 상대할 수 있다.' },
-    { name: '초절정 극', hanja: '超絶頂 極', price: 1600000, studyBonus: 700,
+    { name: '초절정 극', hanja: '超絶頂 極', price: 383000, studyBonus: 1500,
       desc: '초절정의 정점. 「초고수」라 불리며, 대문파의 장로 자리를 넘보는 실력자.' },
-    { name: '화경 초입', hanja: '化境 初入', price: 2400000, studyBonus: 990,
+    { name: '화경 초입', hanja: '化境 初入', price: 533000, studyBonus: 2000,
       desc: '몸과 진기가 하나로 화(化)하기 시작하며, 어검(馭劍)의 실마리를 잡는 경지.' },
-    { name: '화경 완숙', hanja: '化境 完熟', price: 3700000, studyBonus: 1400,
+    { name: '화경 완숙', hanja: '化境 完熟', price: 776000, studyBonus: 2800,
       desc: '천마신교 좌우 호법, 구파일방 장문인급. 진기만으로 병기를 부린다.' },
-    { name: '화경 극', hanja: '化境 極', price: 5700000, studyBonus: 2000,
+    { name: '화경 극', hanja: '化境 極', price: 1090000, studyBonus: 3800,
       desc: '화경의 정점. 삼대 세력 수뇌부와 어깨를 나란히 하는, 사실상 무림 최정상.' },
-    { name: '현경 초입', hanja: '炫境 初入', price: 8900000, studyBonus: 2800,
+    { name: '현경 초입', hanja: '炫境 初入', price: 1580000, studyBonus: 5300,
       desc: '생각이 곧 진기가 되어 눈부시게(炫) 빛나는 경지. 살아서는 닿기 힘들다는 벽 너머.' },
-    { name: '현경 완숙', hanja: '炫境 完熟', price: 13800000, studyBonus: 4000,
+    { name: '현경 완숙', hanja: '炫境 完熟', price: 2230000, studyBonus: 7200,
       desc: '이기어검을 자유자재로 다루며, 존재 자체가 눈부신 빛으로 화한다.' },
-    { name: '현경 극', hanja: '炫境 極', price: 21600000, studyBonus: 5700,
+    { name: '현경 극', hanja: '炫境 極', price: 3170000, studyBonus: 9900,
       desc: '현경의 끝. 전설로만 회자되던 경지에 실제로 도달한 극소수의 존재.' },
-    { name: '생사경 초입', hanja: '生死境 初入', price: 33600000, studyBonus: 8100,
+    { name: '생사경 초입', hanja: '生死境 初入', price: 4640000, studyBonus: 14000,
       desc: '삶과 죽음의 경계를 손끝으로 다루기 시작하는, 죽어야만 넘볼 수 있다던 금단의 영역.' },
-    { name: '생사경 완숙', hanja: '生死境 完熟', price: 53200000, studyBonus: 12000,
+    { name: '생사경 완숙', hanja: '生死境 完熟', price: 6500000, studyBonus: 19000,
       desc: '생과 사가 손안에서 하나가 된다. 존재만으로도 강호에 죽음의 그림자를 드리운다.' },
-    { name: '생사경 극', hanja: '生死境 極', price: 82200000, studyBonus: 16000,
+    { name: '생사경 극', hanja: '生死境 極', price: 8820000, studyBonus: 25000,
       desc: '생사경의 정점. 산 자의 몸으로 죽음 너머를 완전히 지배하는, 전설 속 인물의 경지.' },
-    { name: '자연경 초입', hanja: '自然境 初入', price: 128000000, studyBonus: 23000,
+    { name: '자연경 초입', hanja: '自然境 初入', price: 12700000, studyBonus: 35000,
       desc: '불로불사에 이르러 자연과 동화되기 시작하는, 인간의 굴레를 벗어난 신비의 경지.' },
-    { name: '자연경 완숙', hanja: '自然境 完熟', price: 200000000, studyBonus: 33000,
+    { name: '자연경 완숙', hanja: '自然境 完熟', price: 18000000, studyBonus: 48000,
       desc: '천지의 기운과 완전히 하나가 되어, 늙지도 죽지도 않는 존재로 거듭난다.' },
-    { name: '자연경 극', hanja: '自然境 極', price: 313000000, studyBonus: 47000,
+    { name: '자연경 극', hanja: '自然境 極', price: 25000000, studyBonus: 65000,
       desc: '자연경의 정점. 스스로가 곧 자연의 일부가 되어, 더는 「인간」이라 부를 수 없는 존재.' },
-    { name: '공허경 초입', hanja: '空虛境 初入', price: 489000000, studyBonus: 67000,
+    { name: '공허경 초입', hanja: '空虛境 初入', price: 35600000, studyBonus: 90000,
       desc: '우주의 이치를 어렴풋이 깨닫기 시작하는, 공(空)과 허(虛)의 경계에 선 경지.' },
-    { name: '공허경 완숙', hanja: '空虛境 完熟', price: 765000000, studyBonus: 95000,
+    { name: '공허경 완숙', hanja: '空虛境 完熟', price: 50000000, studyBonus: 123000,
       desc: '우주의 지혜가 온전히 몸에 스며들어, 만물의 근원을 손바닥 위에 놓고 본다.' },
-    { name: '공허경 극', hanja: '空虛境 極', price: 1193000000, studyBonus: 134000,
+    { name: '공허경 극', hanja: '空虛境 極', price: 70200000, studyBonus: 168000,
       desc: '공허경의 정점. 텅 빈 듯하나 만물을 품은, 언어로는 형용할 수 없는 미지의 영역.' },
-    { name: '여의경 초입', hanja: '如意境 初入', price: 1864000000, studyBonus: 191000,
+    { name: '여의경 초입', hanja: '如意境 初入', price: 98500000, studyBonus: 230000,
       desc: '뜻하는 대로 만물이 응하기 시작하는, 그 누구도 이르지 못했던 미지의 첫걸음.' },
-    { name: '여의경 완숙', hanja: '如意境 完熟', price: 2912000000, studyBonus: 271000,
+    { name: '여의경 완숙', hanja: '如意境 完熟', price: 139000000, studyBonus: 316000,
       desc: '무한한 의지(意志) 그 자체가 되어, 이치와 조화를 자유로이 넘나든다.' },
-    { name: '여의경 극', hanja: '如意境 極', price: 4549000000, studyBonus: 385000,
-      desc: '여의경의 정점이자 구도(求道)의 완성. 뜻이 곧 하늘이 되는, 더는 오를 곳이 없는 경지.' },
+    { name: '여의경 극', hanja: '如意境 極', price: 194000000, studyBonus: 432000,
+      desc: '여의경의 정점이자 구도(求道)의 완성. 뜻이 곧 하늘이 되는, 더는 오를 곳이 없는 경지.' }
   ];
 
   /* ---------------- Sword grades (검 등급) ----------------
@@ -671,8 +672,14 @@
     const qIndex = new Date().getDate() % QUOTES.length;
     motivationQuote.textContent = QUOTES[qIndex];
 
-    const total = currentStudyIncome();
+    // Spell the sum out on the label so the three tabs visibly reconcile:
+    // 경지 효율 + 검 효율 = this number.
+    const realmPart = realmIncomeAt(realmLevel);
+    const swordPart = swordIncomeAt(swordLevel);
+    const total = realmPart + swordPart;
     incomePerMinute.textContent = `${total.toLocaleString('ko-KR')}G`;
+    incomePerMinuteLabel.textContent =
+      `총 분당 골드 (경지 ${realmPart.toLocaleString('ko-KR')} + 검 ${swordPart.toLocaleString('ko-KR')})`;
     incomePerHour.textContent = `${(total * 60).toLocaleString('ko-KR')}G`;
   }
 
@@ -1106,29 +1113,28 @@
     return sum;
   }
 
-  /* Realms stack (you keep every rung you climbed); a sword does not —
-     only the single blade you have equipped counts. A flat amount per
-     minute, not a range — the old 1~2x roll is folded into this fixed
-     number (at 1.5x the old minimum) so the payout rate is unchanged,
-     it just no longer varies draw to draw. */
+  /* Income splits cleanly in two, and the total is defined as the SUM of
+     the two displayed halves — so 총 효율 = 경지 효율 + 검 효율 holds
+     exactly, on screen and in the actual payout.
+
+     The flat base belongs to the realm half only. Counting it in both
+     halves is what used to make them overshoot the total by a fixed
+     380G. Each half is rounded on its own and the total adds the two
+     rounded halves, so rounding can never break the identity either.
+
+     Realms stack (you keep every rung you climbed); a sword does not —
+     only the single blade you have equipped counts. */
+  function realmIncomeAt(realmIdx) {
+    return niceGold((BASE_STUDY_MIN + cumulativeBonus(REALMS, realmIdx, 'studyBonus')) * 1.5);
+  }
+  function swordIncomeAt(swordIdx) {
+    return niceGold(SWORDS[swordIdx].studyBonus * 1.5);
+  }
   function studyIncomeAt(realmIdx, swordIdx) {
-    const bonus = cumulativeBonus(REALMS, realmIdx, 'studyBonus') + SWORDS[swordIdx].studyBonus;
-    return niceGold((BASE_STUDY_MIN + bonus) * 1.5);
+    return realmIncomeAt(realmIdx) + swordIncomeAt(swordIdx);
   }
 
   function currentStudyIncome() { return studyIncomeAt(realmLevel, swordLevel); }
-
-  /* Standalone per-track figures — each track's own bonus only, with the
-     OTHER track's bonus zeroed out entirely (not just set to its index-0
-     item, since 목검 already carries a nonzero studyBonus). Used so the
-     경지 tab and 검 tab each show a number that depends on nothing but
-     themselves. */
-  function realmOnlyIncome(realmIdx) {
-    return niceGold((BASE_STUDY_MIN + cumulativeBonus(REALMS, realmIdx, 'studyBonus')) * 1.5);
-  }
-  function swordOnlyIncome(swordIdx) {
-    return niceGold((BASE_STUDY_MIN + SWORDS[swordIdx].studyBonus) * 1.5);
-  }
 
   function renderStudyHint() {
     const income = currentStudyIncome();
@@ -1154,7 +1160,7 @@
   };
 
   function incomeForTrackIndex(track, index) {
-    return realmOnlyIncome(index);
+    return realmIncomeAt(index);
   }
   const tierOf = (index) => Math.floor(index / 3);
 
@@ -1323,7 +1329,7 @@
     equippedEls.grade.className = `sword-grade rar-chip rar-${cur.rarity}`;
     equippedEls.lore.textContent = cur.lore;
     equippedEls.desc.textContent = cur.desc;
-    equippedEls.studyRange.textContent = `+${swordOnlyIncome(swordLevel).toLocaleString('ko-KR')}G`;
+    equippedEls.studyRange.textContent = `+${swordIncomeAt(swordLevel).toLocaleString('ko-KR')}G`;
 
     const n = clampDrawCount();
     const cost = drawCost();
@@ -1414,12 +1420,12 @@
       node.querySelector('.codex-hanja').textContent = found ? `(${s.hanja})` : '(???)';
       node.querySelector('.codex-lore').textContent = found ? s.lore : '???';
       node.querySelector('.codex-desc').textContent = found ? s.desc : '???';
-      // Real earnings if this sword were equipped right now, not the sword's
-      // own studyBonus in isolation — that number alone omits the base rate
-      // and realm bonus, so showing it as "분당 +X" understated actual pay.
+      // Each blade's own efficiency, matching the 검 tab — so the codex can
+      // be read as a straight blade-vs-blade comparison, and adding it to
+      // your 경지 효율 gives the total the main tab shows.
       node.querySelector('.codex-bonus').textContent = found
-        ? `분당 +${studyIncomeAt(realmLevel, i).toLocaleString('ko-KR')}G`
-        : '분당 +???';
+        ? `검 효율 분당 +${swordIncomeAt(i).toLocaleString('ko-KR')}G`
+        : '검 효율 분당 +???';
       codexGrid.appendChild(node);
     });
   }
