@@ -1254,9 +1254,11 @@
      rounded halves, so rounding can never break the identity either.
 
      Realms stack (you keep every rung you climbed); a sword does not —
-     only the single blade you have equipped counts. */
+     only the single blade you have equipped counts.
+
+     1.5 * 1.15 — a flat 15% buff across every realm level. */
   function realmIncomeAt(realmIdx) {
-    return niceGold((BASE_STUDY_MIN + cumulativeBonus(REALMS, realmIdx, 'studyBonus')) * 1.5);
+    return niceGold((BASE_STUDY_MIN + cumulativeBonus(REALMS, realmIdx, 'studyBonus')) * 1.725);
   }
   /* Nerfed to 1/5 of the realm-side multiplier — a lucky pull was earning
      far more than the guaranteed, grindable realm track for the same
