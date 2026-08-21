@@ -712,6 +712,7 @@
     tabButtons.forEach((btn) => btn.classList.toggle('active', btn.dataset.tab === name));
     Object.entries(tabPanels).forEach(([key, panel]) => panel.classList.toggle('active', key === name));
     if (name === 'ranking') renderRanking(currentRankCategory);
+    if (name === 'codex') renderCodex();
   }
   tabButtons.forEach((btn) => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
 
@@ -1245,8 +1246,11 @@
       node.querySelector('.codex-hanja').textContent = found ? `(${s.hanja})` : '(???)';
       node.querySelector('.codex-lore').textContent = found ? s.lore : '???';
       node.querySelector('.codex-desc').textContent = found ? s.desc : '???';
+      // Real earnings if this sword were equipped right now, not the sword's
+      // own studyBonus in isolation — that number alone omits the base rate
+      // and realm bonus, so showing it as "분당 +X" understated actual pay.
       node.querySelector('.codex-bonus').textContent = found
-        ? `분당 +${s.studyBonus.toLocaleString('ko-KR')}G`
+        ? `분당 +${studyIncomeAt(realmLevel, i).toLocaleString('ko-KR')}G`
         : '분당 +???';
       codexGrid.appendChild(node);
     });
