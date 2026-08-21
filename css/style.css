@@ -13,6 +13,8 @@
   --danger: #ef4577;
   --gold: #d69a1f;
   --gold-2: #ffd767;
+  --quote-color: #d8460f;
+  --quote-glow: rgba(216, 70, 15, 0.3);
   --shadow: 0 20px 40px -20px rgba(76, 60, 140, 0.25);
   --shadow-sm: 0 8px 20px -12px rgba(76, 60, 140, 0.3);
   --radius-lg: 26px;
@@ -36,6 +38,8 @@
   --danger: #ff6b8b;
   --gold: #ffcc4d;
   --gold-2: #ffb020;
+  --quote-color: #ff9152;
+  --quote-glow: rgba(255, 145, 82, 0.55);
   --shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.6);
   --shadow-sm: 0 8px 20px -12px rgba(0, 0, 0, 0.5);
   color-scheme: dark;
@@ -152,10 +156,12 @@ body {
   font-weight: 800;
   line-height: 1.4;
   letter-spacing: -0.01em;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  /* A gradient text-clip in the brand purple/pink read as muted on the
+     dark card and nearly disappeared into the light card's pastel
+     background. A single vivid, warm color (matching the 🔥 branding)
+     plus a glow reads clearly against both. */
+  color: var(--quote-color);
+  text-shadow: 0 0 18px var(--quote-glow), 0 1px 0 var(--bevel-light);
 }
 
 .hero-stats { display: flex; gap: 28px; flex-wrap: wrap; }
@@ -1448,7 +1454,6 @@ body {
 
 /* Chunky, inked headings — the game-UI voice. */
 .card-head h2,
-.hero-quote,
 .stat-value,
 .tab-btn,
 .btn-primary,
@@ -1460,7 +1465,6 @@ body {
   letter-spacing: 0.01em;
 }
 [data-theme="dark"] .card-head h2,
-[data-theme="dark"] .hero-quote,
 [data-theme="dark"] .stat-value,
 [data-theme="dark"] .brand-name { text-shadow: 0 2px 4px var(--ink); }
 
