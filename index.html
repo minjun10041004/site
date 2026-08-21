@@ -26,7 +26,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&family=Noto+Serif+KR:wght@500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260821g">
+<link rel="stylesheet" href="css/style.css?v=20260821h">
 </head>
 <body>
 
@@ -95,6 +95,7 @@
       <button class="tab-btn" data-tab="realm">🧘 경지</button>
       <button class="tab-btn" data-tab="sword">⚔️ 검 뽑기</button>
       <button class="tab-btn" data-tab="codex">📖 도감</button>
+      <button class="tab-btn" data-tab="epithet">🏷️ 별호</button>
       <button class="tab-btn" data-tab="profile">🪪 프로필</button>
       <button class="tab-btn" data-tab="ranking">🏆 랭킹</button>
       <button class="tab-btn" data-tab="settings">⚙️ 설정</button>
@@ -288,6 +289,7 @@
         <div class="equipped-block">
           <p class="cultivation-label">현재 애병(愛兵)</p>
           <span class="sword-grade rar-chip rar-0" id="swordGrade">일반 · 一般</span>
+          <p class="sword-epithet" id="swordEpithet" hidden></p>
           <h2 class="cultivation-name rar-0" id="swordName">목검</h2>
           <p class="cultivation-hanja" id="swordHanja">(木劍)</p>
           <p class="sword-lore" id="swordLore"></p>
@@ -331,6 +333,18 @@
       </div>
       <p class="codex-note">한 번이라도 뽑은 검만 설정과 설명이 공개돼요.</p>
       <div class="codex-grid" id="codexGrid"></div>
+    </div>
+  </section>
+
+  <!-- Epithet (별호) Tab -->
+  <section class="tab-panel" id="panel-epithet">
+    <div class="card epithet-card-wrap sword-theme">
+      <div class="card-head">
+        <h2><span class="card-icon">🏷️</span> 별호록</h2>
+        <span class="badge" id="epithetProgress">0 / 0</span>
+      </div>
+      <p class="codex-note">보검(寶劍) 이상의 검을 뽑으면 그 검만의 별호를 얻어요.</p>
+      <div class="epithet-grid" id="epithetGrid"></div>
     </div>
   </section>
 
@@ -513,9 +527,18 @@
     <span class="codex-grade"></span>
     <h3 class="codex-name"></h3>
     <p class="codex-hanja"></p>
+    <p class="codex-epithet"></p>
     <p class="codex-lore"></p>
     <p class="codex-desc"></p>
     <p class="codex-bonus"></p>
+  </article>
+</template>
+
+<template id="epithetCardTemplate">
+  <article class="epithet-card">
+    <span class="epithet-grade"></span>
+    <h3 class="epithet-title"></h3>
+    <p class="epithet-sword-name"></p>
   </article>
 </template>
 
@@ -529,6 +552,6 @@
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/app.js?v=20260821g"></script>
+<script src="js/app.js?v=20260821h"></script>
 </body>
 </html>
