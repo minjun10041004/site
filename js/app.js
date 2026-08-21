@@ -1496,7 +1496,7 @@
         const item = document.createElement('li');
         item.className = `rarity-sword-item${discovered.includes(s.idx) ? '' : ' undiscovered'}`;
         item.style.animationDelay = isOpen ? `${j * 30}ms` : '0ms';
-        item.innerHTML = `<span class="rarity-sword-name">${s.name}</span><span class="rarity-sword-hanja">(${s.hanja})</span>`;
+        item.innerHTML = `<span class="rarity-sword-name">${s.name}</span><span class="rarity-sword-hanja">(${s.hanja})</span><span class="rarity-sword-income">분당 +${swordIncomeAt(s.idx).toLocaleString('ko-KR')}G</span>`;
         sub.appendChild(item);
       });
       group.appendChild(sub);

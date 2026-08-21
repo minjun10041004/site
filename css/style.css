@@ -2031,8 +2031,16 @@ body {
 }
 .rarity-sword-name { font-family: 'Noto Serif KR', serif; font-weight: 800; color: var(--rar-solid); }
 .rarity-sword-hanja { font-size: 0.72rem; color: var(--text-faint); }
+.rarity-sword-income {
+  margin-left: auto;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--gold);
+  white-space: nowrap;
+}
 .rarity-sword-item.undiscovered .rarity-sword-name,
-.rarity-sword-item.undiscovered .rarity-sword-hanja { color: var(--text-faint); }
+.rarity-sword-item.undiscovered .rarity-sword-hanja,
+.rarity-sword-item.undiscovered .rarity-sword-income { color: var(--text-faint); }
 .rarity-sword-item.undiscovered::after {
   content: '미발견';
   margin-left: auto;
