@@ -48,6 +48,7 @@
       <button class="tab-btn" data-tab="realm">🧘 경지</button>
       <button class="tab-btn" data-tab="sword">⚔️ 검 뽑기</button>
       <button class="tab-btn" data-tab="codex">📖 도감</button>
+      <button class="tab-btn" data-tab="profile">🪪 프로필</button>
       <button class="tab-btn" data-tab="ranking">🏆 랭킹</button>
       <button class="tab-btn" data-tab="settings">⚙️ 설정</button>
     </nav>
@@ -278,6 +279,71 @@
     </div>
   </section>
 
+  <!-- Profile Tab -->
+  <section class="tab-panel" id="panel-profile">
+    <div class="profile-grid">
+      <div class="card profile-card">
+        <div class="avatar-upload">
+          <label class="avatar-circle" id="avatarCircle" for="avatarInput">
+            <span class="avatar-photo">
+              <img id="avatarImg" alt="" hidden>
+              <span class="avatar-placeholder" id="avatarPlaceholder">🙂</span>
+            </span>
+            <span class="avatar-edit-badge">📷</span>
+          </label>
+          <input type="file" id="avatarInput" accept="image/*" hidden>
+        </div>
+
+        <form id="nicknameForm" class="nickname-form">
+          <input type="text" id="nicknameInput" placeholder="닉네임을 입력하세요" maxlength="16">
+          <button type="submit" class="btn-primary">저장</button>
+        </form>
+        <p class="profile-note">닉네임을 설정하면 랭킹판에 아이디 대신 사진과 닉네임이 표시돼요.</p>
+      </div>
+
+      <div class="profile-side">
+        <div class="card profile-stats-card">
+          <div class="card-head">
+            <h2><span class="card-icon">📊</span> 내 정보</h2>
+          </div>
+          <div class="profile-stats-grid">
+            <div class="profile-stat">
+              <span class="profile-stat-label">경지</span>
+              <strong class="profile-stat-value" id="profileRealm">-</strong>
+            </div>
+            <div class="profile-stat">
+              <span class="profile-stat-label">애병</span>
+              <strong class="profile-stat-value" id="profileSword">-</strong>
+            </div>
+            <div class="profile-stat">
+              <span class="profile-stat-label">보유 골드</span>
+              <strong class="profile-stat-value" id="profileGold">0G</strong>
+            </div>
+            <div class="profile-stat">
+              <span class="profile-stat-label">오늘 공부시간</span>
+              <strong class="profile-stat-value" id="profileTodayStudy">0분</strong>
+            </div>
+            <div class="profile-stat">
+              <span class="profile-stat-label">총 공부시간</span>
+              <strong class="profile-stat-value" id="profileTotalStudy">0분</strong>
+            </div>
+            <div class="profile-stat">
+              <span class="profile-stat-label">연속 달성일</span>
+              <strong class="profile-stat-value" id="profileStreak">0일</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="card profile-rank-card">
+          <div class="card-head">
+            <h2><span class="card-icon">🏆</span> 내 랭킹</h2>
+          </div>
+          <ul class="profile-rank-list" id="profileRankList"></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Ranking Tab -->
   <section class="tab-panel" id="panel-ranking">
     <div class="card ranking-card">
@@ -401,6 +467,7 @@
 <template id="rankRowTemplate">
   <li class="rank-row">
     <span class="rank-medal"></span>
+    <span class="rank-avatar" aria-hidden="true"></span>
     <span class="rank-username"></span>
     <span class="rank-value"></span>
   </li>
