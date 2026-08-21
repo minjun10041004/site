@@ -201,6 +201,8 @@
   const streakValue = el('streakValue');
   const upcomingCount = el('upcomingCount');
   const todoCount = el('todoCount');
+  const incomePerMinute = el('incomePerMinute');
+  const incomePerHour = el('incomePerHour');
   const todayDateEl = el('todayDate');
   const motivationQuote = el('motivationQuote');
 
@@ -668,6 +670,10 @@
 
     const qIndex = new Date().getDate() % QUOTES.length;
     motivationQuote.textContent = QUOTES[qIndex];
+
+    const total = currentStudyIncome();
+    incomePerMinute.textContent = `${total.toLocaleString('ko-KR')}G`;
+    incomePerHour.textContent = `${(total * 60).toLocaleString('ko-KR')}G`;
   }
 
   /* ---------------- Heatmap ---------------- */
@@ -1112,6 +1118,18 @@
 
   function currentStudyIncome() { return studyIncomeAt(realmLevel, swordLevel); }
 
+  /* Standalone per-track figures — each track's own bonus only, with the
+     OTHER track's bonus zeroed out entirely (not just set to its index-0
+     item, since 목검 already carries a nonzero studyBonus). Used so the
+     경지 tab and 검 tab each show a number that depends on nothing but
+     themselves. */
+  function realmOnlyIncome(realmIdx) {
+    return niceGold((BASE_STUDY_MIN + cumulativeBonus(REALMS, realmIdx, 'studyBonus')) * 1.5);
+  }
+  function swordOnlyIncome(swordIdx) {
+    return niceGold((BASE_STUDY_MIN + SWORDS[swordIdx].studyBonus) * 1.5);
+  }
+
   function renderStudyHint() {
     const income = currentStudyIncome();
     timerHint.textContent = `1분마다 ${income.toLocaleString('ko-KR')} 골드를 획득해요 🪙`;
@@ -1136,7 +1154,7 @@
   };
 
   function incomeForTrackIndex(track, index) {
-    return studyIncomeAt(index, track.getOtherLevel());
+    return realmOnlyIncome(index);
   }
   const tierOf = (index) => Math.floor(index / 3);
 
@@ -1198,6 +1216,7 @@
     renderCultivationTrack(CULT_TRACKS.realm);
     renderGachaPanel();
     renderStudyHint();
+    renderHeader();
   }
 
   /* ---------------- 검 뽑기 (가챠) ----------------
@@ -1254,6 +1273,7 @@
     renderGachaPanel();
     renderCodex();
     renderStudyHint();
+    renderHeader();
 
     const best = results.reduce((a, b) => (b.idx > a.idx ? b : a));
     const bestSword = SWORDS[best.idx];
@@ -1303,7 +1323,7 @@
     equippedEls.grade.className = `sword-grade rar-chip rar-${cur.rarity}`;
     equippedEls.lore.textContent = cur.lore;
     equippedEls.desc.textContent = cur.desc;
-    equippedEls.studyRange.textContent = `+${studyIncomeAt(realmLevel, swordLevel).toLocaleString('ko-KR')}G`;
+    equippedEls.studyRange.textContent = `+${swordOnlyIncome(swordLevel).toLocaleString('ko-KR')}G`;
 
     const n = clampDrawCount();
     const cost = drawCost();
