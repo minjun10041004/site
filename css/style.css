@@ -989,7 +989,11 @@ body {
 
 .cultivation-desc {
   position: relative;
-  margin: 0 0 24px;
+  /* max-width caps the line length, but without auto side margins the box
+     itself sits flush-left in the (wider) centered card -- the text inside
+     was centered, the paragraph as a whole was not, so it read as shifted
+     off to one side under the centered title above it. */
+  margin: 0 auto 24px;
   max-width: 440px;
   font-size: 0.88rem;
   line-height: 1.7;
