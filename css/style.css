@@ -2145,3 +2145,51 @@ body {
   font-variant-numeric: tabular-nums;
 }
 .codex-card.locked .codex-bonus { color: var(--text-faint); }
+
+/* ---------- Modal overlays (check-in / honest-time adjustment) ---------- */
+.modal-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(6px);
+}
+.modal-gate.hidden { display: none; }
+
+.modal-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--surface-solid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 28px 24px 24px;
+  text-align: center;
+}
+.modal-icon { display: block; font-size: 2.4rem; line-height: 1; margin-bottom: 10px; }
+.modal-title { font-size: 1.25rem; font-weight: 800; margin: 0 0 8px; }
+.modal-text { font-size: 0.88rem; color: var(--text-soft); margin: 0 0 14px; line-height: 1.55; }
+.modal-countdown { font-size: 1.05rem; font-weight: 800; color: var(--danger); margin: 0 0 16px; }
+.modal-btn { width: 100%; margin-top: 4px; }
+.modal-note { font-size: 0.75rem; color: var(--text-faint); margin: 12px 0 0; line-height: 1.55; }
+
+.adjust-value {
+  font-size: 2rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  margin: 6px 0 12px;
+}
+.adjust-range { width: 100%; accent-color: var(--accent); }
+.adjust-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-faint);
+  margin-top: 6px;
+}

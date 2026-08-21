@@ -26,7 +26,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&family=Noto+Serif+KR:wght@500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260821d">
+<link rel="stylesheet" href="css/style.css?v=20260821e">
 </head>
 <body>
 
@@ -44,6 +44,35 @@
     </form>
     <p class="auth-error" id="authError"></p>
     <p class="auth-note">계정으로 로그인하면 어떤 기기에서든 이어서 사용할 수 있어요.</p>
+  </div>
+</div>
+
+<!-- Anti-idle check-in. Fires every 3h of an active measurement; if it is
+     not answered within an hour the whole measurement is voided, so a timer
+     left running unattended cannot bank gold. -->
+<div class="modal-gate hidden" id="checkinGate">
+  <div class="modal-card">
+    <span class="modal-icon" aria-hidden="true">👀</span>
+    <h2 class="modal-title">공부하고 있나요?</h2>
+    <p class="modal-text" id="checkinText"></p>
+    <p class="modal-countdown" id="checkinCountdown"></p>
+    <button type="button" class="btn-primary modal-btn" id="checkinYesBtn">네, 공부 중이에요</button>
+    <p class="modal-note">1시간 안에 누르지 않으면 이번 측정은 무효 처리돼요.</p>
+  </div>
+</div>
+
+<!-- Shown when a measurement ends, so only the time actually spent studying
+     gets recorded. -->
+<div class="modal-gate hidden" id="adjustGate">
+  <div class="modal-card">
+    <span class="modal-icon" aria-hidden="true">⏱️</span>
+    <h2 class="modal-title">실제로 공부한 시간</h2>
+    <p class="modal-text" id="adjustMeasured"></p>
+    <div class="adjust-value" id="adjustValue">00:00:00</div>
+    <input type="range" class="adjust-range" id="adjustRange" min="0" max="1" value="1" step="1" aria-label="실제로 공부한 시간">
+    <div class="adjust-scale"><span>0분</span><span id="adjustMax">0분</span></div>
+    <p class="modal-note" id="adjustReward"></p>
+    <button type="button" class="btn-primary modal-btn" id="adjustConfirmBtn">이 시간으로 기록하기</button>
   </div>
 </div>
 
@@ -500,6 +529,6 @@
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/app.js?v=20260821d"></script>
+<script src="js/app.js?v=20260821e"></script>
 </body>
 </html>
