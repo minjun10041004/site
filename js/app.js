@@ -1256,8 +1256,11 @@
   function realmIncomeAt(realmIdx) {
     return niceGold((BASE_STUDY_MIN + cumulativeBonus(REALMS, realmIdx, 'studyBonus')) * 1.5);
   }
+  /* Nerfed to 1/5 of the realm-side multiplier — a lucky pull was earning
+     far more than the guaranteed, grindable realm track for the same
+     study time. */
   function swordIncomeAt(swordIdx) {
-    return niceGold(SWORDS[swordIdx].studyBonus * 1.5);
+    return niceGold(SWORDS[swordIdx].studyBonus * (1.5 / 5));
   }
   function studyIncomeAt(realmIdx, swordIdx) {
     return realmIncomeAt(realmIdx) + swordIncomeAt(swordIdx);
