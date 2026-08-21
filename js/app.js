@@ -238,6 +238,17 @@
   const timerSubjectLabel = el('timerSubjectLabel');
   const timerDisplay = el('timerDisplay');
   const measureBtn = el('measureBtn');
+  const checkinGate = el('checkinGate');
+  const checkinText = el('checkinText');
+  const checkinCountdown = el('checkinCountdown');
+  const checkinYesBtn = el('checkinYesBtn');
+  const adjustGate = el('adjustGate');
+  const adjustMeasured = el('adjustMeasured');
+  const adjustValue = el('adjustValue');
+  const adjustRange = el('adjustRange');
+  const adjustMax = el('adjustMax');
+  const adjustReward = el('adjustReward');
+  const adjustConfirmBtn = el('adjustConfirmBtn');
   const timerHint = el('timerHint');
   const todayTotalDisplay = el('todayTotalDisplay');
   const subjectBadge = el('subjectBadge');
@@ -1035,16 +1046,75 @@
     }
   }
 
-  function tick() {
+  /* ---------------- Anti-idle check-in ----------------
+     A running measurement asks "공부하고 있나요?" every 3 hours. Miss the
+     answer for an hour and the whole measurement is voided, so a timer left
+     running unattended banks nothing.
+
+     Both deadlines are derived from startTs and a confirmed counter rather
+     than from timers, so closing the tab or reloading cannot dodge a
+     check-in: the state is recomputed from the clock on every tick and on
+     restore. */
+  const CHECKIN_EVERY_MS = 3 * 60 * 60 * 1000;
+  const CHECKIN_GRACE_MS = 60 * 60 * 1000;
+
+  const checkinDueAt = (s) => s.startTs + CHECKIN_EVERY_MS * ((s.confirmed || 0) + 1);
+  const checkinDeadlineAt = (s) => checkinDueAt(s) + CHECKIN_GRACE_MS;
+  const sessionElapsed = (s) => Math.floor(((s.endTs || Date.now()) - s.startTs) / 1000);
+
+  function hideCheckin() { checkinGate.classList.add('hidden'); }
+
+  function renderCheckin(now) {
+    if (!activeSession || activeSession.endTs || now < checkinDueAt(activeSession)) {
+      hideCheckin();
+      return;
+    }
+    const hours = Math.round(CHECKIN_EVERY_MS * ((activeSession.confirmed || 0) + 1) / 3600000);
+    checkinText.textContent = `측정을 시작한 지 ${hours}시간이 지났어요. 아직 공부 중이라면 아래 버튼을 눌러주세요.`;
+    const left = Math.max(0, checkinDeadlineAt(activeSession) - now);
+    checkinCountdown.textContent = `남은 시간 ${formatDuration(Math.floor(left / 1000))}`;
+    checkinGate.classList.remove('hidden');
+  }
+
+  function voidSession() {
     if (!activeSession) return;
-    const elapsed = Math.floor((Date.now() - activeSession.startTs) / 1000);
-    timerDisplay.textContent = formatDuration(elapsed);
+    const subj = subjects.find((s) => s.id === activeSession.subjectId);
+    clearInterval(tickInterval);
+    tickInterval = null;
+    activeSession = null;
+    hideCheckin();
+    adjustGate.classList.add('hidden');
+    queueSave();
+    renderSubjects();
+    renderTimerUI();
     renderTodayTotal();
+    showToast(`🚫 1시간 동안 응답이 없어 ${subj ? subj.name : '이번'} 측정이 무효 처리됐어요.`);
+  }
+
+  checkinYesBtn.addEventListener('click', () => {
+    if (!activeSession || activeSession.endTs) return;
+    const now = Date.now();
+    if (now >= checkinDeadlineAt(activeSession)) { voidSession(); return; }
+    while (now >= checkinDueAt(activeSession)) {
+      activeSession.confirmed = (activeSession.confirmed || 0) + 1;
+    }
+    queueSave();
+    hideCheckin();
+    showToast('✅ 확인했어요. 계속 집중해봐요!');
+  });
+
+  function tick() {
+    if (!activeSession || activeSession.endTs) return;
+    const now = Date.now();
+    if (now >= checkinDeadlineAt(activeSession)) { voidSession(); return; }
+    timerDisplay.textContent = formatDuration(sessionElapsed(activeSession));
+    renderTodayTotal();
+    renderCheckin(now);
   }
 
   function renderTodayTotal() {
     let total = sumStudySecondsForDate(todayKey());
-    if (activeSession) total += Math.floor((Date.now() - activeSession.startTs) / 1000);
+    if (activeSession) total += sessionElapsed(activeSession);
     todayTotalDisplay.textContent = formatDuration(total);
   }
 
@@ -1054,33 +1124,92 @@
     tickInterval = setInterval(tick, 1000);
   }
 
+  /* Restores whatever the saved session was mid-way through: a measurement
+     already past its grace window is voided on the spot, one waiting on the
+     end-of-session adjustment reopens that dialog, anything else resumes. */
+  function resumeSession() {
+    if (!activeSession) return;
+    if (activeSession.endTs) { openAdjust(); return; }
+    if (Date.now() >= checkinDeadlineAt(activeSession)) { voidSession(); return; }
+    startTicking();
+  }
+
   function startTimer(subjectId) {
-    activeSession = { subjectId, startTs: Date.now() };
+    activeSession = { subjectId, startTs: Date.now(), confirmed: 0, endTs: null };
     queueSave();
     renderSubjects();
     renderTimerUI();
     startTicking();
   }
 
+  /* ---------------- Honest-time adjustment ----------------
+     Ending a measurement freezes it (endTs) instead of committing it, then
+     asks how much of that span was really spent studying. The frozen state
+     is saved, so a reload mid-dialog reopens it rather than losing the
+     session or letting the clock keep running. */
   function stopTimer() {
+    if (!activeSession || activeSession.endTs) return;
+    if (Date.now() >= checkinDeadlineAt(activeSession)) { voidSession(); return; }
+    activeSession.endTs = Date.now();
+    clearInterval(tickInterval);
+    tickInterval = null;
+    hideCheckin();
+    queueSave();
+    openAdjust();
+  }
+
+  function adjustedSeconds() {
+    const maxMinutes = Number(adjustRange.max);
+    const chosen = Math.min(Number(adjustRange.value), maxMinutes);
+    // keep the leftover seconds when nothing was trimmed
+    return chosen === maxMinutes ? sessionElapsed(activeSession) : chosen * 60;
+  }
+
+  function renderAdjust() {
+    const seconds = adjustedSeconds();
+    adjustValue.textContent = formatDuration(seconds);
+    const reward = Math.floor(seconds / 60) * currentStudyIncome();
+    adjustReward.textContent = reward > 0
+      ? `이 시간으로 기록하면 ${reward.toLocaleString('ko-KR')} 골드를 받아요 🪙`
+      : '1분을 채우면 골드를 받을 수 있어요.';
+  }
+
+  function openAdjust() {
+    const elapsed = sessionElapsed(activeSession);
+    const maxMinutes = Math.floor(elapsed / 60);
+    if (maxMinutes < 1) { finalizeSession(elapsed); return; }
+    adjustRange.max = String(maxMinutes);
+    adjustRange.value = String(maxMinutes);
+    adjustMax.textContent = formatDurationLabel(maxMinutes * 60);
+    adjustMeasured.textContent =
+      `측정된 시간은 ${formatDurationLabel(elapsed)}이에요. 실제로 공부한 만큼만 남기고 조절해주세요.`;
+    renderAdjust();
+    adjustGate.classList.remove('hidden');
+  }
+
+  adjustRange.addEventListener('input', renderAdjust);
+
+  adjustConfirmBtn.addEventListener('click', () => {
+    if (!activeSession || !activeSession.endTs) return;
+    const seconds = adjustedSeconds();
+    adjustGate.classList.add('hidden');
+    finalizeSession(seconds);
+  });
+
+  function finalizeSession(seconds) {
     if (!activeSession) return;
-    const elapsedSeconds = Math.floor((Date.now() - activeSession.startTs) / 1000);
     const subjectId = activeSession.subjectId;
     const subj = subjects.find((s) => s.id === subjectId);
 
-    clearInterval(tickInterval);
-    tickInterval = null;
-    addStudySeconds(todayKey(), subjectId, elapsedSeconds);
-
-    const blocks = Math.floor(elapsedSeconds / 60);
-    const reward = blocks * currentStudyIncome();
+    addStudySeconds(todayKey(), subjectId, seconds);
+    const reward = Math.floor(seconds / 60) * currentStudyIncome();
 
     activeSession = null;
     queueSave();
 
     if (reward > 0) {
       addGold(reward);
-      showToast(`⏱️ ${subj ? subj.name : '공부'} 측정 완료! +${reward.toLocaleString('ko-KR')} 골드 획득 🪙`);
+      showToast(`⏱️ ${subj ? subj.name : '공부'} ${formatDurationLabel(seconds)} 기록! +${reward.toLocaleString('ko-KR')} 골드 획득 🪙`);
     } else {
       showToast('⏱️ 측정 종료! 1분을 채우면 골드를 받을 수 있어요.');
     }
@@ -1531,7 +1660,7 @@
     renderTimerUI();
     renderStudyHint();
     renderTodayTotal();
-    if (activeSession) startTicking();
+    resumeSession();
     renderCultivationTrack(CULT_TRACKS.realm);
     renderGachaPanel();
     renderGachaResults([]);
