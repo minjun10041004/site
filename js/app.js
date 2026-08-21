@@ -31,6 +31,8 @@
   let realmLevel = 0;
   let swordLevel = 0;      // index of the equipped sword in SWORDS
   let discovered = [0];    // sword indices ever drawn (도감 unlock state)
+  let nickname = '';       // shown on the leaderboard instead of the account id, once set
+  let avatar = null;       // small data URL, or null for the placeholder icon
 
   /* Bumped whenever the sword table is reshaped, so stale sword indices
      from an older layout can't silently point at the wrong blade. */
@@ -40,6 +42,7 @@
     return {
       schedules, todosByDate, gold, subjects, studyByDate, activeSession,
       realmLevel, swordLevel, discovered, swordTableVersion: SWORD_TABLE_VERSION,
+      nickname, avatar,
     };
   }
 
@@ -63,6 +66,9 @@
     swordLevel = Math.min(Math.max(swordLevel, 0), SWORDS.length - 1);
     discovered = [...new Set(discovered.filter((i) => i >= 0 && i < SWORDS.length))];
     if (!discovered.includes(swordLevel)) discovered.push(swordLevel);
+
+    nickname = typeof data.nickname === 'string' ? data.nickname : '';
+    avatar = typeof data.avatar === 'string' ? data.avatar : null;
   }
 
   function sumStudySecondsForDate(dateKey) {
@@ -78,6 +84,12 @@
     return total;
   }
 
+  function sumStudySecondsAllTime() {
+    let total = 0;
+    for (const dateKey in studyByDate) total += sumStudySecondsForDate(dateKey);
+    return total;
+  }
+
   async function flushSave() {
     if (!currentUserId) return;
     await Promise.all([
@@ -89,6 +101,8 @@
       sb.from('leaderboard').upsert({
         user_id: currentUserId,
         username: currentUsername,
+        nickname: nickname || null,
+        avatar,
         realm_level: realmLevel,
         sword_level: swordLevel,
         gold,
@@ -203,6 +217,7 @@
     realm: el('panel-realm'),
     sword: el('panel-sword'),
     codex: el('panel-codex'),
+    profile: el('panel-profile'),
     ranking: el('panel-ranking'),
     settings: el('panel-settings'),
   };
@@ -230,6 +245,20 @@
   const subjectItemTpl = el('subjectItemTemplate');
 
   const ladderRowTpl = el('ladderRowTemplate');
+
+  const avatarCircle = el('avatarCircle');
+  const avatarImg = el('avatarImg');
+  const avatarPlaceholder = el('avatarPlaceholder');
+  const avatarInput = el('avatarInput');
+  const nicknameForm = el('nicknameForm');
+  const nicknameInput = el('nicknameInput');
+  const profileRealm = el('profileRealm');
+  const profileSword = el('profileSword');
+  const profileGold = el('profileGold');
+  const profileTodayStudy = el('profileTodayStudy');
+  const profileTotalStudy = el('profileTotalStudy');
+  const profileStreak = el('profileStreak');
+  const profileRankList = el('profileRankList');
 
   const myRankEl = el('myRank');
   const rankCategoryButtons = Array.from(document.querySelectorAll('.rank-cat-btn'));
@@ -713,6 +742,7 @@
     Object.entries(tabPanels).forEach(([key, panel]) => panel.classList.toggle('active', key === name));
     if (name === 'ranking') renderRanking(currentRankCategory);
     if (name === 'codex') renderCodex();
+    if (name === 'profile') renderProfile();
   }
   tabButtons.forEach((btn) => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
 
@@ -727,6 +757,10 @@
     study_today: { column: 'study_today', label: (v) => formatDurationLabel(v || 0) },
     study_week: { column: 'study_week', label: (v) => formatDurationLabel(v || 0) },
     study_month: { column: 'study_month', label: (v) => formatDurationLabel(v || 0) },
+  };
+  const RANK_LABELS = {
+    realm: '🧘 경지', sword: '⚔️ 검', gold: '🪙 골드',
+    study_today: '☀️ 오늘 공부', study_week: '📅 최근 7일', study_month: '🗓️ 최근 30일',
   };
   let currentRankCategory = 'realm';
 
@@ -756,13 +790,99 @@
         rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : String(rank);
       if (rank <= 3) li.classList.add(`top${rank}`);
       if (row.user_id === currentUserId) li.classList.add('me');
-      node.querySelector('.rank-username').textContent = row.username || '익명';
+      // A user who has set a nickname shows only their photo + nickname on
+      // the board, never their login id; without one it falls back to id.
+      node.querySelector('.rank-username').textContent = row.nickname || row.username || '익명';
+      const avatarEl = node.querySelector('.rank-avatar');
+      if (row.avatar) {
+        avatarEl.style.backgroundImage = `url(${row.avatar})`;
+      } else {
+        avatarEl.textContent = (row.nickname || row.username || '?').trim().charAt(0).toUpperCase();
+      }
       node.querySelector('.rank-value').textContent = cfg.label(row[cfg.column]);
       rankList.appendChild(node);
     });
   }
 
   rankCategoryButtons.forEach((btn) => btn.addEventListener('click', () => renderRanking(btn.dataset.cat)));
+
+  /* ---------------- Profile (프로필) ---------------- */
+  const MAX_AVATAR_DIM = 128;
+
+  function renderAvatar() {
+    if (avatar) {
+      avatarImg.src = avatar;
+      avatarImg.hidden = false;
+      avatarPlaceholder.hidden = true;
+    } else {
+      avatarImg.hidden = true;
+      avatarPlaceholder.hidden = false;
+    }
+  }
+
+  avatarInput.addEventListener('change', () => {
+    const file = avatarInput.files && avatarInput.files[0];
+    if (!file) return;
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = () => { img.src = reader.result; };
+    img.onload = () => {
+      // Cover-crop to a square, then downscale — keeps every stored avatar
+      // small since it rides along in every leaderboard row fetched.
+      const side = Math.min(img.width, img.height);
+      const sx = (img.width - side) / 2;
+      const sy = (img.height - side) / 2;
+      const canvas = document.createElement('canvas');
+      canvas.width = MAX_AVATAR_DIM;
+      canvas.height = MAX_AVATAR_DIM;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, sx, sy, side, side, 0, 0, MAX_AVATAR_DIM, MAX_AVATAR_DIM);
+      avatar = canvas.toDataURL('image/jpeg', 0.72);
+      renderAvatar();
+      queueSave();
+      showToast('🙂 프로필 사진을 저장했어요.');
+    };
+    reader.readAsDataURL(file);
+    avatarInput.value = '';
+  });
+
+  nicknameForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    nickname = nicknameInput.value.trim().slice(0, 16);
+    nicknameInput.value = nickname;
+    queueSave();
+    showToast(nickname ? `✏️ 닉네임을 "${nickname}"(으)로 저장했어요.` : '✏️ 닉네임을 지웠어요.');
+  });
+
+  async function renderProfile() {
+    renderAvatar();
+    nicknameInput.value = nickname;
+
+    const cur = REALMS[realmLevel];
+    profileRealm.textContent = `${cur.name} (${cur.hanja})`;
+    const curSword = SWORDS[swordLevel];
+    profileSword.textContent = `[${RARITIES[curSword.rarity].name}] ${curSword.name}`;
+    profileGold.textContent = `${gold.toLocaleString('ko-KR')}G`;
+    profileTodayStudy.textContent = formatDurationLabel(sumStudySecondsForDate(todayKey()));
+    profileTotalStudy.textContent = formatDurationLabel(sumStudySecondsAllTime());
+    profileStreak.textContent = `${computeStreak()}일`;
+
+    profileRankList.innerHTML = '';
+    const entries = Object.entries(RANK_CATEGORIES);
+    const results = await Promise.all(entries.map(([, cfg]) =>
+      sb.from('leaderboard').select('user_id').order(cfg.column, { ascending: false }).limit(200)
+    ));
+    entries.forEach(([key], i) => {
+      const { data, error } = results[i];
+      const rows = error ? [] : (data || []);
+      const idx = rows.findIndex((r) => r.user_id === currentUserId);
+      const li = document.createElement('li');
+      li.className = 'profile-rank-row';
+      const label = RANK_LABELS[key] || key;
+      li.innerHTML = `<span class="profile-rank-label">${label}</span><span class="profile-rank-place">${idx >= 0 ? `${idx + 1}위` : '순위 없음'}</span>`;
+      profileRankList.appendChild(li);
+    });
+  }
 
   /* ---------------- Study Timer ---------------- */
   let selectedSubjectId = activeSession ? activeSession.subjectId : null;
