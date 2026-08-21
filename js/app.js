@@ -873,14 +873,27 @@
     renderAvatar();
     nicknameInput.value = nickname;
 
+    // 경지/검 borrow the exact tier/rarity treatment their own tabs use;
+    // the rest get a neutral glossy shine since they have no tier color.
     const cur = REALMS[realmLevel];
     profileRealm.textContent = `${cur.name} (${cur.hanja})`;
+    profileRealm.className = `profile-stat-value cultivation-name tier-${tierOf(realmLevel)}`;
+
     const curSword = SWORDS[swordLevel];
     profileSword.textContent = `[${RARITIES[curSword.rarity].name}] ${curSword.name}`;
+    profileSword.className = `profile-stat-value cultivation-name rar-${curSword.rarity}`;
+
     profileGold.textContent = `${gold.toLocaleString('ko-KR')}G`;
+    profileGold.className = 'profile-stat-value stat-shine';
+
     profileTodayStudy.textContent = formatDurationLabel(sumStudySecondsForDate(todayKey()));
+    profileTodayStudy.className = 'profile-stat-value stat-shine';
+
     profileTotalStudy.textContent = formatDurationLabel(sumStudySecondsAllTime());
+    profileTotalStudy.className = 'profile-stat-value stat-shine';
+
     profileStreak.textContent = `${computeStreak()}일`;
+    profileStreak.className = 'profile-stat-value stat-shine';
 
     profileRankList.innerHTML = '';
     const entries = Object.entries(RANK_CATEGORIES);

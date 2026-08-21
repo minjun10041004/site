@@ -1502,21 +1502,60 @@ body {
 }
 
 .profile-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 .profile-stat {
   background: var(--surface-solid);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 12px 16px;
+  padding: 13px 16px;
   display: flex;
-  flex-direction: column;
-  gap: 5px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
 }
-.profile-stat-label { font-size: 0.74rem; font-weight: 700; color: var(--text-faint); }
-.profile-stat-value { font-size: 1.05rem; font-weight: 800; color: var(--gold); }
+.profile-stat-label { font-size: 0.8rem; font-weight: 700; color: var(--text-faint); flex-shrink: 0; }
+.profile-stat-value {
+  font-size: 1.05rem;
+  font-weight: 800;
+  text-align: right;
+  word-break: keep-all;
+}
+
+/* Neutral glossy shine for stats with no inherent tier color of their own
+   (gold, study time, streak) -- a flowing steel/platinum sheen instead of
+   a flat color, so they read as designed rather than left plain next to
+   the vividly tier-colored 경지/검 values beside them. Light/dark get
+   separate stops for the same reason the gold badge and timer digits do:
+   a highlight bright enough to glow on a dark card washes out on a light
+   one. */
+.stat-shine {
+  background-image: linear-gradient(100deg, #4b5768, #8a94a6, #d7dee6, #8a94a6, #4b5768);
+  background-size: 260% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: textSheen 5s ease-in-out infinite;
+}
+[data-theme="dark"] .stat-shine {
+  background-image: linear-gradient(100deg, #9aa5b4, #cbd5e1, #ffffff, #cbd5e1, #9aa5b4);
+}
+
+/* 경지/검 values reuse the exact tier/rarity treatment their own tabs
+   use (set via JS, e.g. "profile-stat-value cultivation-name tier-3"),
+   just resized to sit in a stat row instead of a hero heading. Only
+   overrides layout properties -- color/gradient/glow stay whatever the
+   tier-N / rar-N rule gives it. */
+.profile-stat-value.cultivation-name {
+  display: inline-block;
+  font-size: 1.15rem;
+  line-height: 1.3;
+  letter-spacing: 0;
+  margin: 0;
+}
 
 .profile-rank-list {
   list-style: none;
