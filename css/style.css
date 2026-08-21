@@ -2201,3 +2201,101 @@ body {
   color: var(--text-faint);
   margin-top: 6px;
 }
+
+/* ---------- 별호 (epithet) ---------- */
+.sword-epithet {
+  margin: 8px 0 0;
+  font-family: 'Noto Serif KR', serif;
+  font-weight: 700;
+  font-size: 0.92rem;
+  letter-spacing: 0.04em;
+  color: var(--rar-solid);
+}
+
+.epithet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+.epithet-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 22px 16px 18px;
+  text-align: center;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--rar-solid);
+  background: linear-gradient(160deg,
+    color-mix(in srgb, var(--rar-a) 20%, var(--surface-solid)),
+    var(--surface-solid));
+  box-shadow: 0 0 14px var(--rar-glow), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  overflow: hidden;
+}
+.epithet-card::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 42%;
+  background: linear-gradient(to bottom, var(--gloss-top), var(--gloss-bottom));
+  pointer-events: none;
+}
+.epithet-card.locked {
+  border-color: var(--border);
+  background: var(--surface-solid);
+  box-shadow: inset 0 1px 0 var(--bevel-light);
+  opacity: 0.72;
+}
+.epithet-card.equipped { outline: 2px solid var(--rar-solid); outline-offset: 2px; }
+.epithet-card.equipped::before {
+  content: '장착 중';
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-weight: 900;
+  color: #fff;
+  background: linear-gradient(140deg, var(--accent), var(--accent-2));
+}
+.epithet-grade {
+  position: relative;
+  z-index: 1;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  color: var(--rar-solid);
+}
+.epithet-card.locked .epithet-grade { color: var(--text-faint); }
+.epithet-title {
+  position: relative;
+  z-index: 1;
+  margin: 4px 0 0;
+  font-family: 'Noto Serif KR', serif;
+  font-size: 1.28rem;
+  font-weight: 900;
+  color: var(--text);
+  word-break: keep-all;
+}
+.epithet-card.locked .epithet-title { color: var(--text-faint); }
+.epithet-sword-name {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-faint);
+}
+
+.codex-epithet {
+  position: relative;
+  z-index: 1;
+  margin: 0 0 6px;
+  font-family: 'Noto Serif KR', serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--rar-solid);
+}
+.codex-card.locked .codex-epithet { color: var(--text-faint); }
