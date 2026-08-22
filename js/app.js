@@ -507,12 +507,15 @@
   const ENHANCE_MAX_STARS = 10;
   const ENHANCE_BONUS_PER_STAR = 0.04;
   // index = current star level before the attempt (0 -> level 1, ... 9 -> level 10).
-  // These are the 범품 baseline; every other grade scales them by its own
+  // This is a shared unscaled baseline; each grade scales it by its own
   // multiplier below, so a rarer sword costs more AND succeeds less often
-  // at the same star level.
+  // at the same star level. 범품~영검 (0-3) use fractional multipliers --
+  // their income is small now, so their enhance cost has to stay cheap too,
+  // or the 별의 조각 investment dwarfs the tiny payoff ("배보다 배꼽이 커짐").
+  // 신병이기/선검 (4-5) keep their original multipliers unchanged.
   const ENHANCE_COST_BY_LEVEL = [4, 7, 11, 17, 26, 40, 62, 100, 160, 260];
   const ENHANCE_CHANCE_BY_LEVEL = [95, 90, 85, 78, 70, 60, 48, 35, 22, 12];
-  const ENHANCE_RARITY_COST_MULT = [1, 1.25, 1.6, 2.1, 3, 4.5];
+  const ENHANCE_RARITY_COST_MULT = [0.15, 0.2, 0.3, 0.5, 3, 4.5];
   const ENHANCE_RARITY_CHANCE_MULT = [1, 0.96, 0.9, 0.82, 0.7, 0.55];
   const ENHANCE_MIN_CHANCE = 5;
 
