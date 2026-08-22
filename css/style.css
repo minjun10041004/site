@@ -2380,25 +2380,54 @@ body {
 }
 .enhance-star { color: var(--border); transition: transform 0.2s ease; }
 .enhance-star.filled { color: #f59e0b; text-shadow: 0 0 8px rgba(245, 158, 11, 0.7); }
+/* 6-9★: the whole row (not just the newest star) turns to a shifting
+   purple/red/blue gradient — a visibly different "set" from the plain
+   gold of 1-5★. */
 .enhance-star.filled.star-high {
-  background-image: linear-gradient(135deg, #a855f7, #ff2d55, #3b82f6);
+  background-image: linear-gradient(135deg, #a855f7, #ff2d55, #3b82f6, #a855f7);
+  background-size: 260% auto;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  animation: enhanceHighShift 3.5s ease-in-out infinite;
   filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.7));
 }
+@keyframes enhanceHighShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+/* 10★: a pale white base with an aurora-borealis shimmer (teal/green/
+   violet/pink) instead of a hard ROYGBIV rainbow — closer to "흰 바탕에
+   오로라빛" than a straight color wheel. */
 .enhance-star.filled.star-rainbow {
-  background-image: linear-gradient(90deg, #ff2d55, #f59e0b, #eab308, #22c55e, #3b82f6, #a855f7, #ff2d55);
+  background-image: linear-gradient(100deg, #ffffff, #a7ffe8, #7cf5ff, #c4b5fd, #ffd6f2, #ffffff);
   background-size: 300% auto;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: enhanceRainbowShift 2.5s linear infinite;
-  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.6));
+  animation: enhanceAuroraShift 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 16px rgba(124, 245, 255, 0.6));
 }
-@keyframes enhanceRainbowShift {
-  from { background-position: 0% 50%; }
-  to { background-position: 300% 50%; }
+@keyframes enhanceAuroraShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* 별의 조각 currency icon — a pale glowing faceted star, evoking the
+   Minecraft Nether Star's soft cyan-white shimmer rather than a plain
+   gem emoji. */
+.frag-icon {
+  display: inline-block;
+  background-image: radial-gradient(circle at 35% 30%, #ffffff, #d6fbff 35%, #8fe9ff 65%, #4fc9ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 5px rgba(143, 233, 255, 0.9)) drop-shadow(0 0 10px rgba(79, 201, 255, 0.6));
+  animation: fragPulse 2.2s ease-in-out infinite;
+}
+@keyframes fragPulse {
+  0%, 100% { filter: drop-shadow(0 0 5px rgba(143, 233, 255, 0.9)) drop-shadow(0 0 10px rgba(79, 201, 255, 0.6)); }
+  50% { filter: drop-shadow(0 0 8px rgba(214, 251, 255, 1)) drop-shadow(0 0 16px rgba(79, 201, 255, 0.85)); }
 }
 
 /* Escalating ambient flair on the whole 강화 card, keyed to the selected
