@@ -79,7 +79,7 @@
 
   function sumStudySecondsRolling(days) {
     let total = 0;
-    const todayK = todayKey();
+    const todayK = studyDayKey();
     for (let i = 0; i < days; i++) total += sumStudySecondsForDate(addDays(todayK, -i));
     return total;
   }
@@ -106,7 +106,7 @@
         realm_level: realmLevel,
         sword_level: swordLevel,
         gold,
-        study_today: sumStudySecondsForDate(todayKey()),
+        study_today: sumStudySecondsForDate(studyDayKey()),
         study_week: sumStudySecondsRolling(7),
         study_month: sumStudySecondsRolling(30),
         updated_at: new Date().toISOString(),
@@ -146,6 +146,14 @@
     return nd;
   };
   const todayKey = () => toKey(startOfDay(new Date()));
+  /* 오늘 공부시간만 자정이 아니라 오전 5시를 기준으로 리셋된다 — 자정부터
+     새벽 4시 59분까지의 공부는 여전히 "어제"로 집계된다. 할 일/일정/연속
+     달성일 등 나머지 날짜 개념은 그대로 자정 기준(todayKey)을 쓴다. */
+  const studyDayKey = () => {
+    const shifted = new Date();
+    shifted.setHours(shifted.getHours() - 5);
+    return toKey(startOfDay(shifted));
+  };
   const addDays = (key, n) => {
     const [y, m, d] = key.split('-').map(Number);
     const dt = new Date(y, m - 1, d);
@@ -912,7 +920,7 @@
     profileGold.textContent = `${gold.toLocaleString('ko-KR')}G`;
     profileGold.className = 'profile-stat-value stat-shine';
 
-    profileTodayStudy.textContent = formatDurationLabel(sumStudySecondsForDate(todayKey()));
+    profileTodayStudy.textContent = formatDurationLabel(sumStudySecondsForDate(studyDayKey()));
     profileTodayStudy.className = 'profile-stat-value stat-shine';
 
     profileTotalStudy.textContent = formatDurationLabel(sumStudySecondsAllTime());
@@ -969,7 +977,7 @@
   }
 
   function renderSubjects() {
-    const todayK = todayKey();
+    const todayK = studyDayKey();
     subjectList.innerHTML = '';
     subjectBadge.textContent = `${subjects.length}개`;
     subjectEmpty.style.display = subjects.length ? 'none' : 'block';
@@ -1115,7 +1123,7 @@
   }
 
   function renderTodayTotal() {
-    let total = sumStudySecondsForDate(todayKey());
+    let total = sumStudySecondsForDate(studyDayKey());
     if (activeSession) total += sessionElapsed(activeSession);
     todayTotalDisplay.textContent = formatDuration(total);
   }
@@ -1203,7 +1211,7 @@
     const subjectId = activeSession.subjectId;
     const subj = subjects.find((s) => s.id === subjectId);
 
-    addStudySeconds(todayKey(), subjectId, seconds);
+    addStudySeconds(studyDayKey(), subjectId, seconds);
     const reward = Math.floor(seconds / 60) * currentStudyIncome();
 
     activeSession = null;
