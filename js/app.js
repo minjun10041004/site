@@ -507,20 +507,22 @@
   const ENHANCE_MAX_STARS = 10;
   const ENHANCE_BONUS_PER_STAR = 0.04;
   // index = current star level before the attempt (0 -> level 1, ... 9 -> level 10).
-  // This is a shared unscaled baseline; each grade scales it by its own
-  // multiplier below, so a rarer sword costs more AND succeeds less often
-  // at the same star level. 범품~영검 (0-3) use fractional multipliers --
-  // their income is small now, so their enhance cost has to stay cheap too,
-  // or the 별의 조각 investment dwarfs the tiny payoff ("배보다 배꼽이 커짐").
-  // 신병이기/선검 (4-5) keep their original multipliers unchanged.
+  // 범품~영검 (rarity 0-3) all share one flat, near-free cost table -- their
+  // income is tiny, so the 별의 조각 cost has to stay tiny too, or the
+  // investment dwarfs the payoff ("배보다 배꼽이 커짐"). 신병이기/선검
+  // (rarity 4-5) keep the original scaled formula, since they're genuine
+  // end-game gear where a bigger investment is expected.
+  const ENHANCE_LOW_TIER_COST_BY_LEVEL = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2];
   const ENHANCE_COST_BY_LEVEL = [4, 7, 11, 17, 26, 40, 62, 100, 160, 260];
   const ENHANCE_CHANCE_BY_LEVEL = [95, 90, 85, 78, 70, 60, 48, 35, 22, 12];
-  const ENHANCE_RARITY_COST_MULT = [0.15, 0.2, 0.3, 0.5, 3, 4.5];
+  const ENHANCE_RARITY_COST_MULT = [1, 1, 1, 1, 3, 4.5]; // 0-3 unused, see enhanceCostFor
   const ENHANCE_RARITY_CHANCE_MULT = [1, 0.96, 0.9, 0.82, 0.7, 0.55];
   const ENHANCE_MIN_CHANCE = 5;
 
   function enhanceCostFor(swordIdx, stars) {
-    return Math.round(ENHANCE_COST_BY_LEVEL[stars] * ENHANCE_RARITY_COST_MULT[SWORDS[swordIdx].rarity]);
+    const rarity = SWORDS[swordIdx].rarity;
+    if (rarity <= 3) return ENHANCE_LOW_TIER_COST_BY_LEVEL[stars];
+    return Math.round(ENHANCE_COST_BY_LEVEL[stars] * ENHANCE_RARITY_COST_MULT[rarity]);
   }
   function enhanceChanceFor(swordIdx, stars) {
     const raw = ENHANCE_CHANCE_BY_LEVEL[stars] * ENHANCE_RARITY_CHANCE_MULT[SWORDS[swordIdx].rarity];
