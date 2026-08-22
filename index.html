@@ -26,7 +26,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&family=Noto+Serif+KR:wght@500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260821l">
+<link rel="stylesheet" href="css/style.css?v=20260821m">
 </head>
 <body>
 
@@ -94,6 +94,7 @@
       <button class="tab-btn" data-tab="study">⏱️ 공부 시간</button>
       <button class="tab-btn" data-tab="realm">🧘 경지</button>
       <button class="tab-btn" data-tab="sword">⚔️ 검 뽑기</button>
+      <button class="tab-btn" data-tab="enhance">✨ 강화</button>
       <button class="tab-btn" data-tab="codex">📖 도감</button>
       <button class="tab-btn" data-tab="epithet">🏷️ 별호</button>
       <button class="tab-btn" data-tab="profile">🪪 프로필</button>
@@ -290,7 +291,7 @@
           <p class="cultivation-label">현재 애병(愛兵)</p>
           <span class="sword-grade rar-chip rar-0" id="swordGrade">일반 · 一般</span>
           <p class="sword-epithet" id="swordEpithet" hidden></p>
-          <h2 class="cultivation-name rar-0" id="swordName">목검</h2>
+          <h2 class="cultivation-name rar-0" id="swordName"><span id="swordNameText">목검</span><span class="enhance-badge" id="swordEnhanceBadge" hidden></span></h2>
           <p class="cultivation-hanja" id="swordHanja">(木劍)</p>
           <p class="sword-lore" id="swordLore"></p>
           <p class="cultivation-desc" id="swordDesc"></p>
@@ -321,6 +322,37 @@
         <p class="rarity-note">같은 등급 안에서는 모든 검이 동일한 확률로 등장해요. 지금보다 좋은 검이 나오면 자동으로 장착됩니다.</p>
       </div>
 
+    </div>
+  </section>
+
+  <!-- Enhance (강화) Tab -->
+  <section class="tab-panel" id="panel-enhance">
+    <div class="card enhance-card-wrap sword-theme" id="enhanceCardWrap">
+      <div class="card-head">
+        <h2><span class="card-icon">✨</span> 검 강화</h2>
+        <span class="badge" id="enhanceFragmentBadge">💎 0</span>
+      </div>
+      <p class="codex-note">이미 가진 검을 다시 뽑으면 별의 조각으로 바뀌어요. 등급이 높은 검일수록 더 많이 얻습니다.</p>
+
+      <div class="enhance-select-row">
+        <label for="enhanceSwordSelect">강화할 검</label>
+        <select id="enhanceSwordSelect"></select>
+      </div>
+
+      <div class="enhance-display" id="enhanceDisplay">
+        <span class="enhance-sword-grade" id="enhanceGrade"></span>
+        <h3 class="enhance-sword-name">
+          <span id="enhanceSwordNameText"></span><span class="enhance-badge" id="enhanceBadge" hidden></span>
+        </h3>
+        <div class="enhance-stars" id="enhanceStars"></div>
+        <p class="enhance-income" id="enhanceIncome"></p>
+
+        <div class="enhance-action">
+          <p class="enhance-next-info" id="enhanceNextInfo"></p>
+          <button type="button" class="btn-draw" id="enhanceBtn">강화하기</button>
+        </div>
+      </div>
+      <p class="empty-state" id="enhanceEmpty">먼저 검 뽑기에서 검을 하나 이상 뽑아보세요 ⚔️</p>
     </div>
   </section>
 
@@ -525,7 +557,7 @@
 <template id="codexCardTemplate">
   <article class="codex-card">
     <span class="codex-grade"></span>
-    <h3 class="codex-name"></h3>
+    <h3 class="codex-name"><span class="codex-name-text"></span><span class="enhance-badge codex-enhance-badge" hidden></span></h3>
     <p class="codex-hanja"></p>
     <p class="codex-epithet"></p>
     <p class="codex-lore"></p>
@@ -552,6 +584,6 @@
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/app.js?v=20260821l"></script>
+<script src="js/app.js?v=20260821m"></script>
 </body>
 </html>

@@ -2299,3 +2299,182 @@ body {
   color: var(--rar-solid);
 }
 .codex-card.locked .codex-epithet { color: var(--text-faint); }
+
+/* ---------- 강화 (sword enhancement) ---------- */
+.enhance-badge[hidden] { display: none; }
+.enhance-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.55em;
+  font-weight: 900;
+  vertical-align: middle;
+  color: #3b1d00;
+  background: linear-gradient(135deg, #ffd76a, #f59e0b);
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+}
+.codex-name .enhance-badge,
+.epithet-title .enhance-badge { font-size: 0.5rem; }
+
+.enhance-select-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 20px;
+}
+.enhance-select-row label { font-size: 0.85rem; font-weight: 700; color: var(--text-soft); }
+.enhance-select-row select {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-solid);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.enhance-display {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 28px 20px 24px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--surface-solid);
+  overflow: hidden;
+  transition: box-shadow 0.4s ease, border-color 0.4s ease;
+}
+.enhance-sword-grade { position: relative; z-index: 1; margin-bottom: 6px; }
+.enhance-display h3 {
+  position: relative;
+  z-index: 1;
+  margin: 4px 0 14px;
+  font-family: 'Noto Serif KR', serif;
+  font-size: 1.7rem;
+  font-weight: 900;
+  color: var(--text);
+}
+.enhance-income {
+  position: relative;
+  z-index: 1;
+  margin: 12px 0 0;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--gold);
+}
+.enhance-action { position: relative; z-index: 1; margin-top: 22px; }
+.enhance-next-info { margin: 0 0 12px; font-size: 0.8rem; font-weight: 700; color: var(--text-soft); }
+
+.enhance-stars {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 4px;
+  font-size: 1.6rem;
+  line-height: 1;
+}
+.enhance-star { color: var(--border); transition: transform 0.2s ease; }
+.enhance-star.filled { color: #f59e0b; text-shadow: 0 0 8px rgba(245, 158, 11, 0.7); }
+.enhance-star.filled.star-high {
+  background-image: linear-gradient(135deg, #a855f7, #ff2d55, #3b82f6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.7));
+}
+.enhance-star.filled.star-rainbow {
+  background-image: linear-gradient(90deg, #ff2d55, #f59e0b, #eab308, #22c55e, #3b82f6, #a855f7, #ff2d55);
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: enhanceRainbowShift 2.5s linear infinite;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.6));
+}
+@keyframes enhanceRainbowShift {
+  from { background-position: 0% 50%; }
+  to { background-position: 300% 50%; }
+}
+
+/* Escalating ambient flair on the whole 강화 card, keyed to the selected
+   sword's own star tier — deliberately absent at 0★ so a fresh sword
+   doesn't look broken, then grows louder through low -> high -> rainbow. */
+.enhance-tier-low .enhance-display {
+  border-color: #f59e0b;
+  box-shadow: 0 0 26px rgba(245, 158, 11, 0.28);
+}
+.enhance-tier-high .enhance-display {
+  border-color: #a855f7;
+  box-shadow: 0 0 40px rgba(168, 85, 247, 0.4), 0 0 70px rgba(59, 130, 246, 0.2);
+  animation: enhanceHighPulse 3s ease-in-out infinite;
+}
+@keyframes enhanceHighPulse {
+  0%, 100% { box-shadow: 0 0 40px rgba(168, 85, 247, 0.4), 0 0 70px rgba(59, 130, 246, 0.2); }
+  50% { box-shadow: 0 0 55px rgba(255, 45, 85, 0.45), 0 0 90px rgba(168, 85, 247, 0.3); }
+}
+.enhance-tier-rainbow .enhance-display {
+  border-color: transparent;
+  box-shadow: 0 0 55px rgba(255, 255, 255, 0.35);
+}
+/* A rotating gradient wash clipped by .enhance-display's own
+   overflow:hidden + border-radius, rather than a mask-composite ring —
+   that trick renders inconsistently (stray diagonal slivers) across
+   engines. Oversized (-60% inset) so no corner is ever uncovered while
+   it spins. */
+.enhance-tier-rainbow .enhance-display::before {
+  content: '';
+  position: absolute;
+  inset: -60%;
+  z-index: 0;
+  background: conic-gradient(from 0deg, #ff2d55, #f59e0b, #eab308, #22c55e, #3b82f6, #a855f7, #ff2d55);
+  opacity: 0.3;
+  animation: enhanceRainbowSpin 4s linear infinite;
+}
+.enhance-tier-rainbow .enhance-display::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.25), transparent 60%);
+  animation: enhanceRainbowGlow 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes enhanceRainbowSpin { to { transform: rotate(360deg); } }
+@keyframes enhanceRainbowGlow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* One-shot celebratory burst on a successful strengthen, layered on top
+   of the (already-updated) ambient tier styling above. */
+@keyframes enhanceBurstFlash {
+  0% { opacity: 0; transform: scale(0.85); }
+  30% { opacity: 1; transform: scale(1.04); }
+  100% { opacity: 0; transform: scale(1.35); }
+}
+.enhance-burst-low .enhance-display::after,
+.enhance-burst-high .enhance-display::after,
+.enhance-burst-rainbow .enhance-display::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+  animation: enhanceBurstFlash 1.1s ease-out;
+}
+.enhance-burst-low .enhance-display::after {
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.55), transparent 70%);
+}
+.enhance-burst-high .enhance-display::after {
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.6), transparent 70%);
+}
+.enhance-burst-rainbow .enhance-display::after {
+  background: conic-gradient(from 0deg, #ff2d55, #f59e0b, #eab308, #22c55e, #3b82f6, #a855f7, #ff2d55);
+  opacity: 0.55;
+}
