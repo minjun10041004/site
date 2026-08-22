@@ -1664,23 +1664,20 @@
     return 'none';
   }
 
-  // The whole row of filled stars shares one color treatment keyed to the
-  // CURRENT tier — reaching 6★ recolors stars 1-6 together, not just the
-  // newest one, and 10★ recolors all ten into the aurora treatment.
+  // Each star POSITION has its own fixed color (blue -> violet -> magenta
+  // -> orange as the row climbs) — reaching that star just fills it in
+  // with its own designated color, defined as CSS classes .star-pos-1
+  // through .star-pos-10. Not a tier-based recolor of the whole set.
   function renderEnhanceStars(stars) {
     enhanceStars.innerHTML = '';
-    const tier = enhanceTierOf(stars);
     for (let i = 1; i <= ENHANCE_MAX_STARS; i++) {
-      const span = document.createElement('span');
+      const img = document.createElement('img');
       const filled = i <= stars;
-      span.className = 'enhance-star';
-      if (filled) {
-        span.classList.add('filled');
-        if (tier === 'rainbow') span.classList.add('star-rainbow');
-        else if (tier === 'high') span.classList.add('star-high');
-      }
-      span.textContent = filled ? '★' : '☆';
-      enhanceStars.appendChild(span);
+      img.src = 'img/enhance-star.png';
+      img.alt = filled ? '★' : '☆';
+      img.className = 'enhance-star';
+      if (filled) img.classList.add('filled', `star-pos-${i}`);
+      enhanceStars.appendChild(img);
     }
   }
 
