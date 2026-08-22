@@ -506,9 +506,23 @@
   const STAR_FRAGMENTS_BY_RARITY = [1, 2, 5, 12, 40, 150];
   const ENHANCE_MAX_STARS = 10;
   const ENHANCE_BONUS_PER_STAR = 0.04;
-  // index = current star level before the attempt (0 -> level 1, ... 9 -> level 10)
+  // index = current star level before the attempt (0 -> level 1, ... 9 -> level 10).
+  // These are the 범품 baseline; every other grade scales them by its own
+  // multiplier below, so a rarer sword costs more AND succeeds less often
+  // at the same star level.
   const ENHANCE_COST_BY_LEVEL = [8, 14, 22, 34, 52, 80, 125, 200, 320, 520];
   const ENHANCE_CHANCE_BY_LEVEL = [95, 90, 85, 78, 70, 60, 48, 35, 22, 12];
+  const ENHANCE_RARITY_COST_MULT = [1, 1.3, 1.8, 2.5, 4, 7];
+  const ENHANCE_RARITY_CHANCE_MULT = [1, 0.96, 0.9, 0.82, 0.7, 0.55];
+  const ENHANCE_MIN_CHANCE = 5;
+
+  function enhanceCostFor(swordIdx, stars) {
+    return Math.round(ENHANCE_COST_BY_LEVEL[stars] * ENHANCE_RARITY_COST_MULT[SWORDS[swordIdx].rarity]);
+  }
+  function enhanceChanceFor(swordIdx, stars) {
+    const raw = ENHANCE_CHANCE_BY_LEVEL[stars] * ENHANCE_RARITY_CHANCE_MULT[SWORDS[swordIdx].rarity];
+    return Math.max(ENHANCE_MIN_CHANCE, Math.round(raw));
+  }
 
   const BASE_STUDY_MIN = 250;
 
@@ -1482,13 +1496,13 @@
 
     const best = results.reduce((a, b) => (b.idx > a.idx ? b : a));
     const bestSword = SWORDS[best.idx];
-    const fragText = fragmentsGained > 0 ? ` (💎 별의 조각 +${fragmentsGained.toLocaleString('ko-KR')})` : '';
+    const fragText = fragmentsGained > 0 ? ` (✳ 별의 조각 +${fragmentsGained.toLocaleString('ko-KR')})` : '';
     if (equippedChanged) {
       showToast(`⚔️ ${RARITIES[bestSword.rarity].name} ${bestSword.name}(${bestSword.hanja}) 획득! 자동으로 장착했습니다.${fragText}`);
     } else if (newlyDiscovered > 0) {
       showToast(`📖 새로운 검 ${newlyDiscovered}자루를 도감에 기록했습니다.${fragText}`);
     } else if (fragmentsGained > 0) {
-      showToast(`💎 이미 가진 검이라 별의 조각 ${fragmentsGained.toLocaleString('ko-KR')}개로 바뀌었어요.`);
+      showToast(`✳ 이미 가진 검이라 별의 조각 ${fragmentsGained.toLocaleString('ko-KR')}개로 바뀌었어요.`);
     } else {
       showToast('🌀 이번엔 더 좋은 검이 나오지 않았어요. 현재 검을 그대로 유지합니다.');
     }
@@ -1650,16 +1664,20 @@
     return 'none';
   }
 
+  // The whole row of filled stars shares one color treatment keyed to the
+  // CURRENT tier — reaching 6★ recolors stars 1-6 together, not just the
+  // newest one, and 10★ recolors all ten into the aurora treatment.
   function renderEnhanceStars(stars) {
     enhanceStars.innerHTML = '';
+    const tier = enhanceTierOf(stars);
     for (let i = 1; i <= ENHANCE_MAX_STARS; i++) {
       const span = document.createElement('span');
       const filled = i <= stars;
       span.className = 'enhance-star';
       if (filled) {
         span.classList.add('filled');
-        if (i >= 10) span.classList.add('star-rainbow');
-        else if (i >= 6) span.classList.add('star-high');
+        if (tier === 'rainbow') span.classList.add('star-rainbow');
+        else if (tier === 'high') span.classList.add('star-high');
       }
       span.textContent = filled ? '★' : '☆';
       enhanceStars.appendChild(span);
@@ -1671,7 +1689,7 @@
   let selectedEnhanceIdx = null;
 
   function renderEnhance() {
-    enhanceFragmentBadge.textContent = `💎 ${starFragments.toLocaleString('ko-KR')}`;
+    enhanceFragmentBadge.innerHTML = `<span class="frag-icon">✳</span> ${starFragments.toLocaleString('ko-KR')}`;
 
     if (!discovered.length) {
       enhanceDisplay.style.display = 'none';
@@ -1716,9 +1734,9 @@
       enhanceBtn.disabled = true;
       enhanceBtn.textContent = '강화 완료';
     } else {
-      const cost = ENHANCE_COST_BY_LEVEL[stars];
-      const chance = ENHANCE_CHANCE_BY_LEVEL[stars];
-      enhanceNextInfo.textContent = `${stars + 1}성 도전 · 💎 ${cost.toLocaleString('ko-KR')} · 성공 확률 ${chance}%`;
+      const cost = enhanceCostFor(idx, stars);
+      const chance = enhanceChanceFor(idx, stars);
+      enhanceNextInfo.innerHTML = `${stars + 1}성 도전 · <span class="frag-icon">✳</span> ${cost.toLocaleString('ko-KR')} · 성공 확률 ${chance}%`;
       enhanceBtn.disabled = starFragments < cost;
       enhanceBtn.textContent = `강화하기 (${stars}★ → ${stars + 1}★)`;
     }
@@ -1742,13 +1760,13 @@
     if (idx === null || !discovered.includes(idx)) return;
     const stars = swordStars[idx] || 0;
     if (stars >= ENHANCE_MAX_STARS) return;
-    const cost = ENHANCE_COST_BY_LEVEL[stars];
+    const cost = enhanceCostFor(idx, stars);
     if (starFragments < cost) {
-      showToast(`💎 별의 조각이 부족해요. ${cost.toLocaleString('ko-KR')}개가 필요합니다.`);
+      showToast(`✳ 별의 조각이 부족해요. ${cost.toLocaleString('ko-KR')}개가 필요합니다.`);
       return;
     }
     starFragments -= cost;
-    const chance = ENHANCE_CHANCE_BY_LEVEL[stars];
+    const chance = enhanceChanceFor(idx, stars);
     const success = Math.random() * 100 < chance;
     const s = SWORDS[idx];
 
