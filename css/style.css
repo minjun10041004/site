@@ -2374,44 +2374,29 @@ body {
   position: relative;
   z-index: 1;
   display: flex;
-  gap: 4px;
-  font-size: 1.6rem;
-  line-height: 1;
+  gap: 6px;
 }
-.enhance-star { color: var(--border); transition: transform 0.2s ease; }
-.enhance-star.filled { color: #f59e0b; text-shadow: 0 0 8px rgba(245, 158, 11, 0.7); }
-/* 6-9★: the whole row (not just the newest star) turns to a shifting
-   purple/red/blue gradient — a visibly different "set" from the plain
-   gold of 1-5★. */
-.enhance-star.filled.star-high {
-  background-image: linear-gradient(135deg, #a855f7, #ff2d55, #3b82f6, #a855f7);
-  background-size: 260% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: enhanceHighShift 3.5s ease-in-out infinite;
-  filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.7));
+.enhance-star {
+  width: 32px;
+  height: 32px;
+  transition: transform 0.2s ease;
+  filter: grayscale(1) opacity(0.35);
 }
-@keyframes enhanceHighShift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-/* 10★: a pale white base with an aurora-borealis shimmer (teal/green/
-   violet/pink) instead of a hard ROYGBIV rainbow — closer to "흰 바탕에
-   오로라빛" than a straight color wheel. */
-.enhance-star.filled.star-rainbow {
-  background-image: linear-gradient(100deg, #ffffff, #a7ffe8, #7cf5ff, #c4b5fd, #ffd6f2, #ffffff);
-  background-size: 300% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: enhanceAuroraShift 3s ease-in-out infinite;
-  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 16px rgba(124, 245, 255, 0.6));
-}
-@keyframes enhanceAuroraShift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
+/* Each star position has its own fixed color — reaching that star just
+   fills it in with its own designated shade, stepping blue -> violet ->
+   magenta -> orange as the row climbs (same hue-rotate/saturate steps
+   as the reference swatch row), rather than the whole set recoloring
+   together. */
+.enhance-star.filled.star-pos-1  { filter: hue-rotate(0deg)  saturate(1)   brightness(1.08) drop-shadow(0 0 5px rgba(255, 255, 255, 0.5)); }
+.enhance-star.filled.star-pos-2  { filter: hue-rotate(0deg)  saturate(1.6) brightness(1.08) drop-shadow(0 0 5px rgba(255, 255, 255, 0.52)); }
+.enhance-star.filled.star-pos-3  { filter: hue-rotate(0deg)  saturate(2.2) brightness(1.1)  drop-shadow(0 0 6px rgba(255, 255, 255, 0.55)); }
+.enhance-star.filled.star-pos-4  { filter: hue-rotate(30deg) saturate(1)   brightness(1.1)  drop-shadow(0 0 6px rgba(255, 255, 255, 0.58)); }
+.enhance-star.filled.star-pos-5  { filter: hue-rotate(30deg) saturate(1.6) brightness(1.1)  drop-shadow(0 0 7px rgba(255, 255, 255, 0.6)); }
+.enhance-star.filled.star-pos-6  { filter: hue-rotate(30deg) saturate(2.2) brightness(1.12) drop-shadow(0 0 7px rgba(255, 255, 255, 0.62)); }
+.enhance-star.filled.star-pos-7  { filter: hue-rotate(60deg) saturate(1)   brightness(1.12) drop-shadow(0 0 8px rgba(255, 255, 255, 0.65)); }
+.enhance-star.filled.star-pos-8  { filter: hue-rotate(60deg) saturate(1.6) brightness(1.14) drop-shadow(0 0 8px rgba(255, 255, 255, 0.68)); }
+.enhance-star.filled.star-pos-9  { filter: hue-rotate(60deg) saturate(2.2) brightness(1.16) drop-shadow(0 0 9px rgba(255, 255, 255, 0.72)); }
+.enhance-star.filled.star-pos-10 { filter: hue-rotate(90deg) saturate(1)   brightness(1.18) drop-shadow(0 0 10px rgba(255, 255, 255, 0.78)); }
 
 /* 별의 조각 currency icon — a pale glowing faceted star, evoking the
    Minecraft Nether Star's soft cyan-white shimmer rather than a plain
