@@ -1705,6 +1705,28 @@
   });
 
   /* ---------------- Init ---------------- */
+  /* The leaderboard's study_today/week/month columns are snapshots written
+     by flushSave() — nothing pushes a fresh one just because the clock
+     crossed the 5am study-day boundary. Left open across that moment, the
+     board (and this device's own "오늘" displays) would keep showing
+     yesterday's numbers under today's label until some unrelated save
+     happened to fire. Polling studyDayKey() and re-saving the instant it
+     changes closes that gap without needing a live/materialized column. */
+  let lastStudyDay = null;
+  async function checkStudyDayRollover() {
+    const cur = studyDayKey();
+    if (cur === lastStudyDay) return;
+    lastStudyDay = cur;
+    renderTodayTotal();
+    renderSubjects();
+    // Not queueSave(): the ranking/profile re-render right below reads the
+    // leaderboard row straight back from the server, so it needs the reset
+    // committed now, not after the usual 500ms debounce.
+    await flushSave();
+    if (tabPanels.ranking.classList.contains('active')) renderRanking(currentRankCategory);
+    if (tabPanels.profile.classList.contains('active')) renderProfile();
+  }
+
   function init() {
     scheduleDateInput.min = todayKey();
     renderSchedules();
@@ -1723,6 +1745,9 @@
     renderGachaPanel();
     renderGachaResults([]);
     renderCodex();
+
+    lastStudyDay = studyDayKey();
+    setInterval(checkStudyDayRollover, 60000);
   }
 
   /* ---------------- Session lifecycle ---------------- */
