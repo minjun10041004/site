@@ -505,7 +505,7 @@
      drops. */
   const STAR_FRAGMENTS_BY_RARITY = [1, 2, 5, 12, 40, 150];
   const ENHANCE_MAX_STARS = 10;
-  const ENHANCE_BONUS_PER_STAR = 0.04;
+  const ENHANCE_BONUS_PER_STAR = 0.05;
   // index = current star level before the attempt (0 -> level 1, ... 9 -> level 10).
   // 범품~영검 (rarity 0-3) all share one flat, near-free cost table -- their
   // income is tiny, so the 별의 조각 cost has to stay tiny too, or the
