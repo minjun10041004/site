@@ -261,7 +261,9 @@
 
   const timerSubjectLabel = el('timerSubjectLabel');
   const timerDisplay = el('timerDisplay');
+  const restDisplay = el('restDisplay');
   const measureBtn = el('measureBtn');
+  const restBtn = el('restBtn');
   const checkinGate = el('checkinGate');
   const checkinText = el('checkinText');
   const checkinCountdown = el('checkinCountdown');
@@ -1103,6 +1105,7 @@
       measureBtn.disabled = false;
       measureBtn.textContent = '■ 측정 종료';
       measureBtn.classList.add('running');
+      renderRest();
       return;
     }
     const selected = subjects.find((s) => s.id === selectedSubjectId);
@@ -1117,6 +1120,22 @@
       measureBtn.disabled = true;
       measureBtn.textContent = '▶ 측정 시작';
     }
+    renderRest();
+  }
+
+  function renderRest() {
+    if (!activeSession || activeSession.endTs) {
+      restBtn.classList.add('hidden');
+      restDisplay.classList.add('hidden');
+      restBtn.classList.remove('resting');
+      return;
+    }
+    restBtn.classList.remove('hidden');
+    restDisplay.classList.remove('hidden');
+    const resting = !!activeSession.restStartTs;
+    restBtn.textContent = resting ? '▶ 그만 쉬기' : '☕ 쉬기';
+    restBtn.classList.toggle('resting', resting);
+    restDisplay.textContent = `쉰 시간 ${formatDuration(restElapsed(activeSession))}`;
   }
 
   /* ---------------- Anti-idle check-in ----------------
@@ -1133,7 +1152,27 @@
 
   const checkinDueAt = (s) => s.startTs + CHECKIN_EVERY_MS * ((s.confirmed || 0) + 1);
   const checkinDeadlineAt = (s) => checkinDueAt(s) + CHECKIN_GRACE_MS;
-  const sessionElapsed = (s) => Math.floor(((s.endTs || Date.now()) - s.startTs) / 1000);
+  // Total time spent on a break: past breaks plus the one in progress, if any.
+  // Subtracted out of sessionElapsed so resting never counts as studying.
+  const restElapsedMs = (s) => {
+    const doneMs = (s.restSeconds || 0) * 1000;
+    const currentMs = s.restStartTs ? Date.now() - s.restStartTs : 0;
+    return doneMs + currentMs;
+  };
+  const restElapsed = (s) => Math.floor(restElapsedMs(s) / 1000);
+  // Folds an in-progress break into restSeconds and clears restStartTs, so
+  // whatever reads restElapsedMs next (a freeze on stop, or just resuming
+  // the study clock) sees a consistent, no-longer-ticking rest duration.
+  function endRestIfAny(s) {
+    if (!s.restStartTs) return;
+    s.restSeconds = (s.restSeconds || 0) + Math.floor((Date.now() - s.restStartTs) / 1000);
+    s.restStartTs = null;
+  }
+  // Subtracting in milliseconds before the single final floor keeps the
+  // displayed study time perfectly frozen for the whole break -- flooring
+  // the raw elapsed and the rest elapsed separately (each anchored at a
+  // different start time) would drift by a second here and there.
+  const sessionElapsed = (s) => Math.max(0, Math.floor((((s.endTs || Date.now()) - s.startTs) - restElapsedMs(s)) / 1000));
 
   function hideCheckin() { checkinGate.classList.add('hidden'); }
 
@@ -1181,6 +1220,7 @@
     const now = Date.now();
     if (now >= checkinDeadlineAt(activeSession)) { voidSession(); return; }
     timerDisplay.textContent = formatDuration(sessionElapsed(activeSession));
+    renderRest();
     renderTodayTotal();
     renderCheckin(now);
   }
@@ -1223,6 +1263,7 @@
   function stopTimer() {
     if (!activeSession || activeSession.endTs) return;
     if (Date.now() >= checkinDeadlineAt(activeSession)) { voidSession(); return; }
+    endRestIfAny(activeSession);
     activeSession.endTs = Date.now();
     clearInterval(tickInterval);
     tickInterval = null;
@@ -1296,6 +1337,14 @@
   measureBtn.addEventListener('click', () => {
     if (activeSession) stopTimer();
     else if (selectedSubjectId) startTimer(selectedSubjectId);
+  });
+
+  restBtn.addEventListener('click', () => {
+    if (!activeSession || activeSession.endTs) return;
+    if (activeSession.restStartTs) endRestIfAny(activeSession);
+    else activeSession.restStartTs = Date.now();
+    queueSave();
+    renderRest();
   });
 
   subjectForm.addEventListener('submit', (e) => {
