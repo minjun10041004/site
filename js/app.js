@@ -510,9 +510,9 @@
   // These are the 범품 baseline; every other grade scales them by its own
   // multiplier below, so a rarer sword costs more AND succeeds less often
   // at the same star level.
-  const ENHANCE_COST_BY_LEVEL = [8, 14, 22, 34, 52, 80, 125, 200, 320, 520];
+  const ENHANCE_COST_BY_LEVEL = [4, 7, 11, 17, 26, 40, 62, 100, 160, 260];
   const ENHANCE_CHANCE_BY_LEVEL = [95, 90, 85, 78, 70, 60, 48, 35, 22, 12];
-  const ENHANCE_RARITY_COST_MULT = [1, 1.3, 1.8, 2.5, 4, 7];
+  const ENHANCE_RARITY_COST_MULT = [1, 1.25, 1.6, 2.1, 3, 4.5];
   const ENHANCE_RARITY_CHANCE_MULT = [1, 0.96, 0.9, 0.82, 0.7, 0.55];
   const ENHANCE_MIN_CHANCE = 5;
 
