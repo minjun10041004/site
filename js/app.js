@@ -33,6 +33,8 @@
   let discovered = [0];    // sword indices ever drawn (도감 unlock state)
   let nickname = '';       // shown on the leaderboard instead of the account id, once set
   let avatar = null;       // small data URL, or null for the placeholder icon
+  let starFragments = 0;   // 별의 조각 — earned by drawing a sword you already own
+  let swordStars = {};     // { [swordIdx]: 0-10 } — 강화 level per individually owned sword
 
   /* Bumped whenever the sword table is reshaped, so stale sword indices
      from an older layout can't silently point at the wrong blade. */
@@ -42,7 +44,7 @@
     return {
       schedules, todosByDate, gold, subjects, studyByDate, activeSession,
       realmLevel, swordLevel, discovered, swordTableVersion: SWORD_TABLE_VERSION,
-      nickname, avatar,
+      nickname, avatar, starFragments, swordStars,
     };
   }
 
@@ -69,6 +71,18 @@
 
     nickname = typeof data.nickname === 'string' ? data.nickname : '';
     avatar = typeof data.avatar === 'string' ? data.avatar : null;
+
+    starFragments = Number.isFinite(data.starFragments) ? Math.max(0, Math.floor(data.starFragments)) : 0;
+    swordStars = {};
+    if (data.swordStars && typeof data.swordStars === 'object') {
+      for (const key of Object.keys(data.swordStars)) {
+        const idx = Number(key);
+        const level = Math.floor(data.swordStars[key]);
+        if (Number.isInteger(idx) && idx >= 0 && idx < SWORDS.length && Number.isFinite(level) && level > 0) {
+          swordStars[idx] = Math.min(ENHANCE_MAX_STARS, level);
+        }
+      }
+    }
   }
 
   function sumStudySecondsForDate(dateKey) {
@@ -227,6 +241,7 @@
     study: el('panel-study'),
     realm: el('panel-realm'),
     sword: el('panel-sword'),
+    enhance: el('panel-enhance'),
     codex: el('panel-codex'),
     epithet: el('panel-epithet'),
     profile: el('panel-profile'),
@@ -478,6 +493,22 @@
       lore: '마교 오대명검의 하나이자 광명좌사(光明左使)의 자리를 상징하던 신물. 어느 좌사가 진정한 마도(魔道)가 무엇인지 의문을 품고 교를 등지면서, 그 주인 또한 함께 강호를 떠났다고 전해진다.',
       desc: '검과 도로도 뚫지 못하는 몸을 내려주고, 마주한 자의 혼(魂)마저 거두어들인다는 무서운 신물. 정작 지금의 주인은 완전히 마(魔)에 잠식되는 것을 경계해, 이 검 대신 목검을 쥐고 처음부터 다시 수련한다는 이야기가 전해진다.' },
   ];
+
+  /* ---------------- 강화 (검 개별 강화) ----------------
+     Drawing a sword you've already discovered gives 별의 조각 instead of
+     nothing — the amount scales with the duplicate's own rarity. Spend
+     them in the 강화 tab to push an individually-owned sword's star level
+     up, 1★ at a time, capped at 10★. Each successful step is a flat +4%
+     on that sword's own income (stacking multiplicatively with nothing
+     else), and the odds get worse the higher the star level already is —
+     a failed attempt just burns the fragments spent, the star level never
+     drops. */
+  const STAR_FRAGMENTS_BY_RARITY = [1, 2, 5, 12, 40, 150];
+  const ENHANCE_MAX_STARS = 10;
+  const ENHANCE_BONUS_PER_STAR = 0.04;
+  // index = current star level before the attempt (0 -> level 1, ... 9 -> level 10)
+  const ENHANCE_COST_BY_LEVEL = [8, 14, 22, 34, 52, 80, 125, 200, 320, 520];
+  const ENHANCE_CHANCE_BY_LEVEL = [95, 90, 85, 78, 70, 60, 48, 35, 22, 12];
 
   const BASE_STUDY_MIN = 250;
 
@@ -786,6 +817,7 @@
     tabButtons.forEach((btn) => btn.classList.toggle('active', btn.dataset.tab === name));
     Object.entries(tabPanels).forEach(([key, panel]) => panel.classList.toggle('active', key === name));
     if (name === 'ranking') renderRanking(currentRankCategory);
+    if (name === 'enhance') renderEnhance();
     if (name === 'codex') renderCodex();
     if (name === 'epithet') renderEpithets();
     if (name === 'profile') renderProfile();
@@ -1284,7 +1316,8 @@
      far more than the guaranteed, grindable realm track for the same
      study time. */
   function swordIncomeAt(swordIdx) {
-    return niceGold(SWORDS[swordIdx].studyBonus * (1.5 / 5));
+    const stars = swordStars[swordIdx] || 0;
+    return niceGold(SWORDS[swordIdx].studyBonus * (1.5 / 5) * (1 + stars * ENHANCE_BONUS_PER_STAR));
   }
   function studyIncomeAt(realmIdx, swordIdx) {
     return realmIncomeAt(realmIdx) + swordIncomeAt(swordIdx);
@@ -1417,17 +1450,26 @@
     const results = [];
     let equippedChanged = false;
     let newlyDiscovered = 0;
+    let fragmentsGained = 0;
 
     for (let i = 0; i < count; i++) {
       const idx = rollSword();
       const isNew = !discovered.includes(idx);
-      if (isNew) { discovered.push(idx); newlyDiscovered++; }
+      if (isNew) {
+        discovered.push(idx);
+        newlyDiscovered++;
+      } else {
+        // Already own this one — it converts into 별의 조각 instead, scaled
+        // by how rare the duplicate itself is.
+        fragmentsGained += STAR_FRAGMENTS_BY_RARITY[SWORDS[idx].rarity];
+      }
       // Higher index is always the stronger blade, so this is the whole
       // "better sword auto-equips, weaker one is kept but not worn" rule.
       const upgraded = idx > swordLevel;
       if (upgraded) { swordLevel = idx; equippedChanged = true; }
       results.push({ idx, isNew, upgraded });
     }
+    starFragments += fragmentsGained;
 
     queueSave();
     renderGold();
@@ -1436,13 +1478,17 @@
     renderCodex();
     renderStudyHint();
     renderHeader();
+    if (tabPanels.enhance.classList.contains('active')) renderEnhance();
 
     const best = results.reduce((a, b) => (b.idx > a.idx ? b : a));
     const bestSword = SWORDS[best.idx];
+    const fragText = fragmentsGained > 0 ? ` (💎 별의 조각 +${fragmentsGained.toLocaleString('ko-KR')})` : '';
     if (equippedChanged) {
-      showToast(`⚔️ ${RARITIES[bestSword.rarity].name} ${bestSword.name}(${bestSword.hanja}) 획득! 자동으로 장착했습니다.`);
+      showToast(`⚔️ ${RARITIES[bestSword.rarity].name} ${bestSword.name}(${bestSword.hanja}) 획득! 자동으로 장착했습니다.${fragText}`);
     } else if (newlyDiscovered > 0) {
-      showToast(`📖 새로운 검 ${newlyDiscovered}자루를 도감에 기록했습니다.`);
+      showToast(`📖 새로운 검 ${newlyDiscovered}자루를 도감에 기록했습니다.${fragText}`);
+    } else if (fragmentsGained > 0) {
+      showToast(`💎 이미 가진 검이라 별의 조각 ${fragmentsGained.toLocaleString('ko-KR')}개로 바뀌었어요.`);
     } else {
       showToast('🌀 이번엔 더 좋은 검이 나오지 않았어요. 현재 검을 그대로 유지합니다.');
     }
@@ -1464,10 +1510,20 @@
   const epithetCardTpl = el('epithetCardTemplate');
 
   const equippedEls = {
-    name: el('swordName'), hanja: el('swordHanja'), grade: el('swordGrade'),
-    epithet: el('swordEpithet'),
+    name: el('swordName'), nameText: el('swordNameText'), hanja: el('swordHanja'), grade: el('swordGrade'),
+    epithet: el('swordEpithet'), enhanceBadge: el('swordEnhanceBadge'),
     lore: el('swordLore'), desc: el('swordDesc'), studyRange: el('swordStudyRange'),
   };
+
+  /* Shared "+N" 강화 badge, reused wherever a sword's name is shown. */
+  function setEnhanceBadge(el, stars) {
+    if (stars > 0) {
+      el.textContent = `+${stars}`;
+      el.hidden = false;
+    } else {
+      el.hidden = true;
+    }
+  }
 
   function clampDrawCount() {
     let n = parseInt(gachaCountInput.value, 10);
@@ -1482,8 +1538,9 @@
     const cur = SWORDS[swordLevel];
     const rar = RARITIES[cur.rarity];
 
-    equippedEls.name.textContent = cur.name;
+    equippedEls.nameText.textContent = cur.name;
     equippedEls.name.className = `cultivation-name rar-${cur.rarity}`;
+    setEnhanceBadge(equippedEls.enhanceBadge, swordStars[swordLevel] || 0);
     equippedEls.hanja.textContent = `(${cur.hanja})`;
     equippedEls.grade.textContent = `${rar.name} · ${rar.hanja}`;
     equippedEls.grade.className = `sword-grade rar-chip rar-${cur.rarity}`;
@@ -1569,6 +1626,149 @@
     });
   }
 
+  /* ---------------- 강화 ---------------- */
+  const enhanceFragmentBadge = el('enhanceFragmentBadge');
+  const enhanceSwordSelect = el('enhanceSwordSelect');
+  const enhanceGrade = el('enhanceGrade');
+  const enhanceSwordNameText = el('enhanceSwordNameText');
+  const enhanceBadge = el('enhanceBadge');
+  const enhanceStars = el('enhanceStars');
+  const enhanceIncome = el('enhanceIncome');
+  const enhanceNextInfo = el('enhanceNextInfo');
+  const enhanceBtn = el('enhanceBtn');
+  const enhanceEmpty = el('enhanceEmpty');
+  const enhanceDisplay = el('enhanceDisplay');
+  const enhanceCardWrap = el('enhanceCardWrap');
+  const ENHANCE_BURST_CLASSES = ['enhance-burst-low', 'enhance-burst-high', 'enhance-burst-rainbow'];
+
+  // 0 stars -> no flair, 1-5 -> a modest gold shimmer, 6-9 -> a brighter
+  // multicolor glow, 10 -> full rainbow treatment.
+  function enhanceTierOf(stars) {
+    if (stars >= 10) return 'rainbow';
+    if (stars >= 6) return 'high';
+    if (stars >= 1) return 'low';
+    return 'none';
+  }
+
+  function renderEnhanceStars(stars) {
+    enhanceStars.innerHTML = '';
+    for (let i = 1; i <= ENHANCE_MAX_STARS; i++) {
+      const span = document.createElement('span');
+      const filled = i <= stars;
+      span.className = 'enhance-star';
+      if (filled) {
+        span.classList.add('filled');
+        if (i >= 10) span.classList.add('star-rainbow');
+        else if (i >= 6) span.classList.add('star-high');
+      }
+      span.textContent = filled ? '★' : '☆';
+      enhanceStars.appendChild(span);
+    }
+  }
+
+  // Remembers the player's manual pick for the session; falls back to the
+  // equipped sword whenever nothing valid is selected yet.
+  let selectedEnhanceIdx = null;
+
+  function renderEnhance() {
+    enhanceFragmentBadge.textContent = `💎 ${starFragments.toLocaleString('ko-KR')}`;
+
+    if (!discovered.length) {
+      enhanceDisplay.style.display = 'none';
+      enhanceEmpty.style.display = 'block';
+      enhanceSwordSelect.innerHTML = '';
+      return;
+    }
+    enhanceEmpty.style.display = 'none';
+    enhanceDisplay.style.display = '';
+
+    if (selectedEnhanceIdx === null || !discovered.includes(selectedEnhanceIdx)) {
+      selectedEnhanceIdx = swordLevel;
+    }
+
+    const sorted = [...discovered].sort((a, b) => a - b);
+    enhanceSwordSelect.innerHTML = '';
+    sorted.forEach((idx) => {
+      const s = SWORDS[idx];
+      const opt = document.createElement('option');
+      opt.value = String(idx);
+      const starTag = swordStars[idx] ? ` +${swordStars[idx]}` : '';
+      opt.textContent = `[${RARITIES[s.rarity].name}] ${s.name}${starTag}`;
+      if (idx === selectedEnhanceIdx) opt.selected = true;
+      enhanceSwordSelect.appendChild(opt);
+    });
+
+    const idx = selectedEnhanceIdx;
+    const s = SWORDS[idx];
+    const stars = swordStars[idx] || 0;
+
+    enhanceGrade.textContent = `${RARITIES[s.rarity].name} · ${RARITIES[s.rarity].hanja}`;
+    enhanceGrade.className = `sword-grade rar-chip rar-${s.rarity}`;
+    enhanceSwordNameText.textContent = s.name;
+    setEnhanceBadge(enhanceBadge, stars);
+    renderEnhanceStars(stars);
+    enhanceIncome.textContent = `검 효율 분당 +${swordIncomeAt(idx).toLocaleString('ko-KR')}G`;
+
+    enhanceCardWrap.className = `card enhance-card-wrap sword-theme enhance-tier-${enhanceTierOf(stars)}`;
+
+    if (stars >= ENHANCE_MAX_STARS) {
+      enhanceNextInfo.textContent = '이미 최대 10성에 도달했어요.';
+      enhanceBtn.disabled = true;
+      enhanceBtn.textContent = '강화 완료';
+    } else {
+      const cost = ENHANCE_COST_BY_LEVEL[stars];
+      const chance = ENHANCE_CHANCE_BY_LEVEL[stars];
+      enhanceNextInfo.textContent = `${stars + 1}성 도전 · 💎 ${cost.toLocaleString('ko-KR')} · 성공 확률 ${chance}%`;
+      enhanceBtn.disabled = starFragments < cost;
+      enhanceBtn.textContent = `강화하기 (${stars}★ → ${stars + 1}★)`;
+    }
+  }
+
+  enhanceSwordSelect.addEventListener('change', () => {
+    selectedEnhanceIdx = Number(enhanceSwordSelect.value);
+    renderEnhance();
+  });
+
+  function triggerEnhanceEffect(newStars) {
+    const cls = `enhance-burst-${enhanceTierOf(newStars)}`;
+    enhanceCardWrap.classList.remove(...ENHANCE_BURST_CLASSES);
+    void enhanceCardWrap.offsetWidth; // force reflow so replaying the animation always restarts it
+    if (ENHANCE_BURST_CLASSES.includes(cls)) enhanceCardWrap.classList.add(cls);
+    setTimeout(() => enhanceCardWrap.classList.remove(cls), 1400);
+  }
+
+  enhanceBtn.addEventListener('click', () => {
+    const idx = selectedEnhanceIdx;
+    if (idx === null || !discovered.includes(idx)) return;
+    const stars = swordStars[idx] || 0;
+    if (stars >= ENHANCE_MAX_STARS) return;
+    const cost = ENHANCE_COST_BY_LEVEL[stars];
+    if (starFragments < cost) {
+      showToast(`💎 별의 조각이 부족해요. ${cost.toLocaleString('ko-KR')}개가 필요합니다.`);
+      return;
+    }
+    starFragments -= cost;
+    const chance = ENHANCE_CHANCE_BY_LEVEL[stars];
+    const success = Math.random() * 100 < chance;
+    const s = SWORDS[idx];
+
+    if (success) {
+      swordStars[idx] = stars + 1;
+      queueSave();
+      renderEnhance();
+      renderGachaPanel();
+      renderCodex();
+      renderStudyHint();
+      renderHeader();
+      triggerEnhanceEffect(stars + 1);
+      showToast(`✨ ${s.name} 강화 성공! ${stars + 1}★ 달성 (검 효율 +${ENHANCE_BONUS_PER_STAR * 100}%p)`);
+    } else {
+      queueSave();
+      renderEnhance();
+      showToast(`💔 강화에 실패했어요. 별의 조각만 소모됐어요. (${s.name})`);
+    }
+  });
+
   /* ---------------- 도감 ---------------- */
   function renderCodex() {
     codexGrid.innerHTML = '';
@@ -1583,7 +1783,8 @@
       if (i === swordLevel) card.classList.add('equipped');
 
       node.querySelector('.codex-grade').textContent = RARITIES[s.rarity].name;
-      node.querySelector('.codex-name').textContent = s.name;   // name is always shown
+      node.querySelector('.codex-name-text').textContent = s.name;   // name is always shown
+      setEnhanceBadge(node.querySelector('.codex-enhance-badge'), swordStars[i] || 0);
       node.querySelector('.codex-hanja').textContent = found ? `(${s.hanja})` : '(???)';
       const epithetEl = node.querySelector('.codex-epithet');
       if (s.epithet) {
