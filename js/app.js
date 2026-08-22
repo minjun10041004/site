@@ -1237,8 +1237,8 @@
     const seconds = adjustedSeconds();
     adjustValue.textContent = formatDuration(seconds);
     const reward = Math.floor(seconds / 60) * currentStudyIncome();
-    adjustReward.textContent = reward > 0
-      ? `이 시간으로 기록하면 ${reward.toLocaleString('ko-KR')} 골드를 받아요 🪙`
+    adjustReward.innerHTML = reward > 0
+      ? `이 시간으로 기록하면 ${reward.toLocaleString('ko-KR')} 골드를 받아요 <span class="gold-icon" aria-hidden="true"></span>`
       : '1분을 채우면 골드를 받을 수 있어요.';
   }
 
@@ -1341,7 +1341,7 @@
 
   function renderStudyHint() {
     const income = currentStudyIncome();
-    timerHint.textContent = `1분마다 ${income.toLocaleString('ko-KR')} 골드, 1시간이면 ${(income * 60).toLocaleString('ko-KR')} 골드를 획득해요 🪙`;
+    timerHint.innerHTML = `1분마다 ${income.toLocaleString('ko-KR')} 골드, 1시간이면 ${(income * 60).toLocaleString('ko-KR')} 골드를 획득해요 <span class="gold-icon" aria-hidden="true"></span>`;
   }
 
   /* ---------------- 경지 승급 (경지 트랙) ---------------- */
