@@ -1686,7 +1686,7 @@
   let selectedEnhanceIdx = null;
 
   function renderEnhance() {
-    enhanceFragmentBadge.innerHTML = `<span class="frag-icon">✳</span> ${starFragments.toLocaleString('ko-KR')}`;
+    enhanceFragmentBadge.innerHTML = `<img class="frag-icon" src="img/star-fragment.png" alt="✳"> ${starFragments.toLocaleString('ko-KR')}`;
 
     if (!discovered.length) {
       enhanceDisplay.style.display = 'none';
@@ -1733,7 +1733,7 @@
     } else {
       const cost = enhanceCostFor(idx, stars);
       const chance = enhanceChanceFor(idx, stars);
-      enhanceNextInfo.innerHTML = `${stars + 1}성 도전 · <span class="frag-icon">✳</span> ${cost.toLocaleString('ko-KR')} · 성공 확률 ${chance}%`;
+      enhanceNextInfo.innerHTML = `${stars + 1}성 도전 · <img class="frag-icon" src="img/star-fragment.png" alt="✳"> ${cost.toLocaleString('ko-KR')} · 성공 확률 ${chance}%`;
       enhanceBtn.disabled = starFragments < cost;
       enhanceBtn.textContent = `강화하기 (${stars}★ → ${stars + 1}★)`;
     }
