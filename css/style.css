@@ -2406,20 +2406,20 @@ body {
   filter: grayscale(1) opacity(0.35);
 }
 /* Each star position has its own fixed color — reaching that star just
-   fills it in with its own designated shade. All 10 keep the star image's
-   own native blue/teal/green (no hue shift) and only get gradually more
-   saturated and brighter as the row climbs, rather than the whole set
-   recoloring together or jumping between hue families. */
-.enhance-star.filled.star-pos-1  { filter: hue-rotate(0deg) saturate(1)    brightness(1.08) drop-shadow(0 0 5px rgba(255, 255, 255, 0.5)); }
-.enhance-star.filled.star-pos-2  { filter: hue-rotate(0deg) saturate(1.17) brightness(1.08) drop-shadow(0 0 5px rgba(255, 255, 255, 0.52)); }
-.enhance-star.filled.star-pos-3  { filter: hue-rotate(0deg) saturate(1.33) brightness(1.1)  drop-shadow(0 0 6px rgba(255, 255, 255, 0.55)); }
-.enhance-star.filled.star-pos-4  { filter: hue-rotate(0deg) saturate(1.5)  brightness(1.1)  drop-shadow(0 0 6px rgba(255, 255, 255, 0.58)); }
-.enhance-star.filled.star-pos-5  { filter: hue-rotate(0deg) saturate(1.67) brightness(1.1)  drop-shadow(0 0 7px rgba(255, 255, 255, 0.6)); }
-.enhance-star.filled.star-pos-6  { filter: hue-rotate(0deg) saturate(1.83) brightness(1.12) drop-shadow(0 0 7px rgba(255, 255, 255, 0.62)); }
-.enhance-star.filled.star-pos-7  { filter: hue-rotate(0deg) saturate(2)    brightness(1.12) drop-shadow(0 0 8px rgba(255, 255, 255, 0.65)); }
-.enhance-star.filled.star-pos-8  { filter: hue-rotate(0deg) saturate(2.17) brightness(1.14) drop-shadow(0 0 8px rgba(255, 255, 255, 0.68)); }
-.enhance-star.filled.star-pos-9  { filter: hue-rotate(0deg) saturate(2.33) brightness(1.16) drop-shadow(0 0 9px rgba(255, 255, 255, 0.72)); }
-.enhance-star.filled.star-pos-10 { filter: hue-rotate(0deg) saturate(2.5)  brightness(1.18) drop-shadow(0 0 10px rgba(255, 255, 255, 0.78)); }
+   fills it in with its own designated shade. All 10 stay green-led with a
+   touch of the star image's native blue mixed into the facets (hue-rotate
+   -40deg) and only get gradually more saturated and brighter as the row
+   climbs, rather than the whole set recoloring together. */
+.enhance-star.filled.star-pos-1  { filter: hue-rotate(-40deg) saturate(1)    brightness(1.08) drop-shadow(0 0 5px rgba(255, 255, 255, 0.5)); }
+.enhance-star.filled.star-pos-2  { filter: hue-rotate(-40deg) saturate(1.17) brightness(1.08) drop-shadow(0 0 5px rgba(255, 255, 255, 0.52)); }
+.enhance-star.filled.star-pos-3  { filter: hue-rotate(-40deg) saturate(1.33) brightness(1.1)  drop-shadow(0 0 6px rgba(255, 255, 255, 0.55)); }
+.enhance-star.filled.star-pos-4  { filter: hue-rotate(-40deg) saturate(1.5)  brightness(1.1)  drop-shadow(0 0 6px rgba(255, 255, 255, 0.58)); }
+.enhance-star.filled.star-pos-5  { filter: hue-rotate(-40deg) saturate(1.67) brightness(1.1)  drop-shadow(0 0 7px rgba(255, 255, 255, 0.6)); }
+.enhance-star.filled.star-pos-6  { filter: hue-rotate(-40deg) saturate(1.83) brightness(1.12) drop-shadow(0 0 7px rgba(255, 255, 255, 0.62)); }
+.enhance-star.filled.star-pos-7  { filter: hue-rotate(-40deg) saturate(2)    brightness(1.12) drop-shadow(0 0 8px rgba(255, 255, 255, 0.65)); }
+.enhance-star.filled.star-pos-8  { filter: hue-rotate(-40deg) saturate(2.17) brightness(1.14) drop-shadow(0 0 8px rgba(255, 255, 255, 0.68)); }
+.enhance-star.filled.star-pos-9  { filter: hue-rotate(-40deg) saturate(2.33) brightness(1.16) drop-shadow(0 0 9px rgba(255, 255, 255, 0.72)); }
+.enhance-star.filled.star-pos-10 { filter: hue-rotate(-40deg) saturate(2.5)  brightness(1.18) drop-shadow(0 0 10px rgba(255, 255, 255, 0.78)); }
 
 /* 별의 조각 currency icon — a small crystal-shard image with a soft glow. */
 .frag-icon {
