@@ -139,12 +139,13 @@
 
   async function loadUserState() {
     const { data } = await sb.from('app_data').select('data').eq('user_id', currentUserId).maybeSingle();
-    if (data && data.data) {
-      applyState(data.data);
-    } else {
-      applyState({});
-      await flushSave();
-    }
+    applyState(data && data.data ? data.data : {});
+    // Always resync the leaderboard row on load, not just for brand-new
+    // users: study_today/week/month are snapshots written by flushSave(),
+    // so a device that was closed across the 5am study-day boundary and
+    // reopened later would otherwise keep showing yesterday's number on
+    // every ranking tab until some unrelated action happened to save.
+    await flushSave();
   }
 
   /* ---------------- Date helpers ---------------- */
