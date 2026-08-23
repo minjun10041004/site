@@ -1962,7 +1962,16 @@
     codexGrid.innerHTML = '';
     codexProgress.textContent = `${discovered.length} / ${SWORDS.length}`;
 
-    SWORDS.forEach((s, i) => {
+    // Grade order rather than raw array position — later-appended grades
+    // (e.g. 용검) and homage swords tacked onto an earlier grade would
+    // otherwise show up out of order, since SWORDS only guarantees new
+    // entries are appended at the end (see the SWORDS comment above).
+    // A stable sort keeps each grade's own original relative order intact.
+    const bySwordGrade = SWORDS
+      .map((s, i) => ({ s, i }))
+      .sort((a, b) => a.s.rarity - b.s.rarity);
+
+    bySwordGrade.forEach(({ s, i }) => {
       const found = discovered.includes(i);
       const node = codexCardTpl.content.cloneNode(true);
       const card = node.querySelector('.codex-card');
