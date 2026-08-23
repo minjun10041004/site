@@ -19,6 +19,20 @@
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const usernameToEmail = (username) => `${username.trim().toLowerCase()}@momentum.local`;
 
+  /* Supabase RLS only restricts a row to its owner — it says nothing about
+     what's INSIDE the row, so any field a user can write is really just
+     "whatever that user's browser (or a raw API call, bypassing this app
+     entirely) chose to send". avatar rides into every other viewer's
+     leaderboard render and gets spliced into a CSS url(...), so an
+     unvalidated value there is a stored injection point (CSS injection,
+     tracking-pixel beacons via background-image) affecting everyone who
+     opens the 랭킹 tab, not just its owner. This client-side check can't
+     stop a determined attacker from writing garbage to their own row
+     (only a DB-side constraint can), but it does stop that garbage from
+     ever being trusted and rendered back out to other users. */
+  const AVATAR_DATA_URL_RE = /^data:image\/(png|jpe?g|gif|webp);base64,[A-Za-z0-9+/]+=*$/;
+  const isSafeAvatarUrl = (v) => typeof v === 'string' && v.length <= 40000 && AVATAR_DATA_URL_RE.test(v);
+
   let currentUserId = null;
   let currentUsername = null;
 
@@ -51,11 +65,11 @@
   function applyState(data) {
     schedules = data.schedules ?? [];
     todosByDate = data.todosByDate ?? {};
-    gold = data.gold ?? 1000;
     subjects = data.subjects ?? [];
     studyByDate = data.studyByDate ?? {};
     activeSession = data.activeSession ?? null;
-    realmLevel = data.realmLevel ?? 0;
+    realmLevel = Number.isFinite(data.realmLevel) ? Math.floor(data.realmLevel) : 0;
+    realmLevel = Math.min(Math.max(realmLevel, 0), REALMS.length - 1);
 
     if (data.swordTableVersion === SWORD_TABLE_VERSION) {
       swordLevel = data.swordLevel ?? 0;
@@ -69,9 +83,10 @@
     discovered = [...new Set(discovered.filter((i) => i >= 0 && i < SWORDS.length))];
     if (!discovered.includes(swordLevel)) discovered.push(swordLevel);
 
-    nickname = typeof data.nickname === 'string' ? data.nickname : '';
-    avatar = typeof data.avatar === 'string' ? data.avatar : null;
+    nickname = typeof data.nickname === 'string' ? data.nickname.slice(0, 16) : '';
+    avatar = isSafeAvatarUrl(data.avatar) ? data.avatar : null;
 
+    gold = Number.isFinite(data.gold) ? Math.max(0, Math.floor(data.gold)) : 1000;
     starFragments = Number.isFinite(data.starFragments) ? Math.max(0, Math.floor(data.starFragments)) : 0;
     swordStars = {};
     if (data.swordStars && typeof data.swordStars === 'object') {
@@ -972,9 +987,14 @@
       if (row.user_id === currentUserId) li.classList.add('me');
       // A user who has set a nickname shows only their photo + nickname on
       // the board, never their login id; without one it falls back to id.
-      node.querySelector('.rank-username').textContent = row.nickname || row.username || '익명';
+      // Every field here comes straight from someone else's row, which
+      // this app never fully controls (see isSafeAvatarUrl above) — the
+      // nickname is safe as plain text via textContent, but still capped
+      // here so a bypassed-client oversized string can't blow out the
+      // row layout for everyone looking at the board.
+      node.querySelector('.rank-username').textContent = (row.nickname || row.username || '익명').slice(0, 24);
       const avatarEl = node.querySelector('.rank-avatar');
-      if (row.avatar) {
+      if (isSafeAvatarUrl(row.avatar)) {
         avatarEl.style.backgroundImage = `url(${row.avatar})`;
       } else {
         avatarEl.textContent = (row.nickname || row.username || '?').trim().charAt(0).toUpperCase();
