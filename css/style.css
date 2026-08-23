@@ -982,16 +982,10 @@ body {
   0% { background-position: 0% 50%; }
   100% { background-position: 460% 50%; }
 }
-/* 설화검 전용 흐름: 등속이 아니라 실제 빛이 검신 굴곡을 스치듯 천천히
-   다가오다 훅 지나가고, 다시 느려지길 반복하는 불규칙한 리듬을 준다.
-   구간마다 다른 easing을 얹어 각 구간 안에서도 가속/감속이 느껴지게 함. */
+/* 설화검 전용 흐름: 등속으로 천천히 흐른다 (rainbowShift와 동일한 모양이지만
+   재생 시간을 각 용도에서 더 느리게 준다) */
 @keyframes seolhwaGlint {
-  0%   { background-position: -30% 50%; animation-timing-function: ease-in; }
-  30%  { background-position: 40% 50%; animation-timing-function: ease-in; }
-  42%  { background-position: 130% 50%; animation-timing-function: ease-out; }
-  50%  { background-position: 170% 50%; animation-timing-function: ease-in; }
-  68%  { background-position: 210% 50%; animation-timing-function: ease-in-out; }
-  82%  { background-position: 340% 50%; animation-timing-function: ease-out; }
+  0%   { background-position: 0% 50%; }
   100% { background-position: 460% 50%; }
 }
 @keyframes twinkle {
@@ -1842,32 +1836,31 @@ body {
    glint bands are kept narrow so black reads as the dominant color. */
 .cultivation-name.rar-6 {
   background-image: linear-gradient(100deg,
-    #000000 0%, #000000 38%,
-    #d4d4d8 44%, #ffffff 48%, #d4d4d8 52%,
-    #000000 58%, #000000 78%,
-    #e4e4e7 83%, #ffffff 86%, #e4e4e7 89%,
+    #000000 0%, #000000 36%,
+    #d4d4d8 41%, #ffffff 48%, #d4d4d8 55%,
+    #000000 60%, #000000 76%,
+    #e4e4e7 80%, #ffffff 86%, #e4e4e7 92%,
     #000000 100%);
   background-size: 320% auto;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   filter: drop-shadow(0 0 16px rgba(226, 232, 240, 0.4));
-  animation: seolhwaGlint 5.2s infinite, glowPulse 1.3s ease-in-out infinite;
+  animation: seolhwaGlint 8s linear infinite, glowPulse 1.3s ease-in-out infinite;
 }
 [data-theme="dark"] .cultivation-name.rar-6 {
   background-image: linear-gradient(100deg,
-    #000000 0%, #000000 38%,
-    #71717a 44%, #ffffff 48%, #71717a 52%,
-    #000000 58%, #000000 78%,
-    #a1a1aa 83%, #ffffff 86%, #a1a1aa 89%,
+    #000000 0%, #000000 36%,
+    #71717a 41%, #ffffff 48%, #71717a 55%,
+    #000000 60%, #000000 76%,
+    #a1a1aa 80%, #ffffff 86%, #a1a1aa 92%,
     #000000 100%);
   filter: drop-shadow(0 0 22px rgba(255, 255, 255, 0.5)) drop-shadow(0 0 16px rgba(0, 0, 0, 0.7));
 }
 
-/* 설화검 등급 라벨(등급별 확률 행, 도감 카드, 별호 카드 등): 테두리·배경은
-   검정이지만 등급명 같은 작은 글자까지 검정으로 지우면 안 읽히므로, 글자는
-   옅은 은빛으로 고정해 가독성을 지키고, 움직이는 광택은 카드/행 표면
-   자체에 흐르게 한다(아래 .rarity-row.rar-6::after 등 참고). */
+/* 설화검 등급 라벨(등급별 확률 행, 도감 카드, 별호 카드 등): 글자는 아예
+   검정으로 채우고, 대신 윤곽에 하얀 글로우를 여러 겹 둘러 검정 배경 위에서도
+   또렷이 읽히게 한다. */
 .rarity-row.rar-6 .rarity-name,
 .rarity-row.rar-6 .rarity-caret,
 .codex-card.rar-6 .codex-grade,
@@ -1876,17 +1869,12 @@ body {
 .epithet-card.rar-6 .epithet-grade,
 .sword-result.rar-6 .sword-result-grade,
 .sword-epithet.rar-6 {
-  color: #d4d4d8;
-}
-[data-theme="dark"] .rarity-row.rar-6 .rarity-name,
-[data-theme="dark"] .rarity-row.rar-6 .rarity-caret,
-[data-theme="dark"] .codex-card.rar-6 .codex-grade,
-[data-theme="dark"] .codex-card.rar-6 .codex-bonus,
-[data-theme="dark"] .codex-card.rar-6 .codex-epithet,
-[data-theme="dark"] .epithet-card.rar-6 .epithet-grade,
-[data-theme="dark"] .sword-result.rar-6 .sword-result-grade,
-[data-theme="dark"] .sword-epithet.rar-6 {
-  color: #e4e4e7;
+  color: #000000;
+  text-shadow:
+    0 0 2px #fff,
+    0 0 5px #fff,
+    0 0 10px rgba(255, 255, 255, 0.85),
+    0 0 16px rgba(255, 255, 255, 0.6);
 }
 
 /* 위 라벨들이 놓인 표면(행/카드) 자체에 좁은 흰 광택 띠가 가로질러
@@ -1902,9 +1890,9 @@ body {
   inset: 0;
   height: auto;
   background: linear-gradient(100deg,
-    transparent 0%, transparent 44%, rgba(255, 255, 255, 0.38) 50%, transparent 56%, transparent 100%);
+    transparent 0%, transparent 40%, rgba(255, 255, 255, 0.38) 50%, transparent 60%, transparent 100%);
   background-size: 280% auto;
-  animation: seolhwaGlint 6s infinite;
+  animation: seolhwaGlint 9s linear infinite;
   pointer-events: none;
 }
 .sword-result.rar-6 { overflow: hidden; }
@@ -1931,9 +1919,9 @@ body {
   position: absolute;
   inset: 0;
   background-image: linear-gradient(100deg,
-    transparent 0%, transparent 42%, rgba(255, 255, 255, 0.7) 50%, transparent 58%, transparent 100%);
+    transparent 0%, transparent 38%, rgba(255, 255, 255, 0.7) 50%, transparent 62%, transparent 100%);
   background-size: 280% auto;
-  animation: seolhwaGlint 4.6s infinite;
+  animation: seolhwaGlint 7.5s linear infinite;
   pointer-events: none;
 }
 
@@ -2126,8 +2114,14 @@ body {
 .rarity-row.rar-3 .rarity-chance { text-shadow: 0 0 12px var(--rar-glow); }
 .rarity-row.rar-4 .rarity-chance { text-shadow: 0 0 16px var(--rar-glow); }
 .rarity-row.rar-5 .rarity-chance { text-shadow: 0 0 20px var(--rar-glow); }
-.rarity-row.rar-6 .rarity-chance { color: #d4d4d8; text-shadow: 0 0 22px var(--rar-glow); }
-[data-theme="dark"] .rarity-row.rar-6 .rarity-chance { color: #e4e4e7; }
+.rarity-row.rar-6 .rarity-chance {
+  color: #000000;
+  text-shadow:
+    0 0 2px #fff,
+    0 0 5px #fff,
+    0 0 10px rgba(255, 255, 255, 0.85),
+    0 0 16px rgba(255, 255, 255, 0.6);
+}
 .rarity-count { font-size: 0.72rem; color: var(--text-faint); font-weight: 700; }
 .rarity-caret {
   font-size: 0.8rem;
