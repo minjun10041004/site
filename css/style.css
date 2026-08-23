@@ -1769,14 +1769,14 @@ body {
 .rar-3 { --rar-a: #a855f7; --rar-b: #e9d5ff; --rar-solid: #9333ea; --rar-deep: #581c87; --rar-glow: rgba(168, 85, 247, 0.65); }
 .rar-4 { --rar-a: #f59e0b; --rar-b: #fde68a; --rar-solid: #d97706; --rar-deep: #7c2d12; --rar-glow: rgba(245, 158, 11, 0.7); }
 .rar-5 { --rar-a: #ff2d55; --rar-b: #7cf5ff; --rar-solid: #e11d48; --rar-deep: #701a3a; --rar-glow: rgba(255, 77, 109, 0.75); }
-.rar-6 { --rar-a: #f1f5f9; --rar-b: #cbd5e1; --rar-solid: #3f3f46; --rar-deep: #000000; --rar-glow: rgba(226, 232, 240, 0.6); }
+.rar-6 { --rar-a: #18181b; --rar-b: #3f3f46; --rar-solid: #000000; --rar-deep: #000000; --rar-glow: rgba(226, 232, 240, 0.55); }
 [data-theme="dark"] .rar-0 { --rar-solid: #94a3b8; }
 [data-theme="dark"] .rar-1 { --rar-solid: #22c55e; }
 [data-theme="dark"] .rar-2 { --rar-solid: #3b82f6; }
 [data-theme="dark"] .rar-3 { --rar-solid: #a855f7; }
 [data-theme="dark"] .rar-4 { --rar-solid: #f59e0b; }
 [data-theme="dark"] .rar-5 { --rar-solid: #ff4d6d; }
-[data-theme="dark"] .rar-6 { --rar-solid: #a1a1aa; }
+[data-theme="dark"] .rar-6 { --rar-solid: #000000; }
 
 /* The gloss band that sweeps a sword's name has to be lighter than the
    letters in dark mode and darker than them in light mode, otherwise the
@@ -1852,6 +1852,52 @@ body {
   filter: drop-shadow(0 0 22px rgba(255, 255, 255, 0.5)) drop-shadow(0 0 16px rgba(0, 0, 0, 0.7));
 }
 
+/* 설화검 등급 라벨(등급별 확률 행, 도감 카드, 별호 카드 등): 테두리·배경은
+   검정이지만 등급명 같은 작은 글자까지 검정으로 지우면 안 읽히므로, 글자는
+   옅은 은빛으로 고정해 가독성을 지키고, 움직이는 광택은 카드/행 표면
+   자체에 흐르게 한다(아래 .rarity-row.rar-6::after 등 참고). */
+.rarity-row.rar-6 .rarity-name,
+.rarity-row.rar-6 .rarity-caret,
+.codex-card.rar-6 .codex-grade,
+.codex-card.rar-6 .codex-bonus,
+.codex-card.rar-6 .codex-epithet,
+.epithet-card.rar-6 .epithet-grade,
+.sword-result.rar-6 .sword-result-grade,
+.sword-epithet.rar-6 {
+  color: #d4d4d8;
+}
+[data-theme="dark"] .rarity-row.rar-6 .rarity-name,
+[data-theme="dark"] .rarity-row.rar-6 .rarity-caret,
+[data-theme="dark"] .codex-card.rar-6 .codex-grade,
+[data-theme="dark"] .codex-card.rar-6 .codex-bonus,
+[data-theme="dark"] .codex-card.rar-6 .codex-epithet,
+[data-theme="dark"] .epithet-card.rar-6 .epithet-grade,
+[data-theme="dark"] .sword-result.rar-6 .sword-result-grade,
+[data-theme="dark"] .sword-epithet.rar-6 {
+  color: #e4e4e7;
+}
+
+/* 위 라벨들이 놓인 표면(행/카드) 자체에 좁은 흰 광택 띠가 가로질러
+   흐르도록 — 이미 다른 용도로 쓰이는 ::before/::after는 rar-6 한정으로
+   덮어써서 새 요소를 추가하지 않고 재사용한다. */
+.rarity-row.rar-6 { position: relative; overflow: hidden; }
+.rarity-row.rar-6::after,
+.codex-card.rar-6::after,
+.epithet-card.rar-6::after,
+.sword-result.rar-6::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  height: auto;
+  background: linear-gradient(100deg,
+    transparent 0%, transparent 44%, rgba(255, 255, 255, 0.38) 50%, transparent 56%, transparent 100%);
+  background-size: 280% auto;
+  animation: rainbowShift 4.5s linear infinite;
+  pointer-events: none;
+}
+.sword-result.rar-6 { overflow: hidden; }
+.sword-result.rar-6::after { border-radius: inherit; }
+
 /* Grade chip */
 .rar-chip {
   display: inline-block;
@@ -1867,6 +1913,17 @@ body {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 .rar-chip small { margin-left: 6px; opacity: 0.8; font-weight: 700; }
+.rar-chip.rar-6 { position: relative; overflow: hidden; }
+.rar-chip.rar-6::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(100deg,
+    transparent 0%, transparent 42%, rgba(255, 255, 255, 0.7) 50%, transparent 58%, transparent 100%);
+  background-size: 280% auto;
+  animation: rainbowShift 4s linear infinite;
+  pointer-events: none;
+}
 
 /* ============ Gacha ============ */
 .gacha-grid {
