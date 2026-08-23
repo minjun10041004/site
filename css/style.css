@@ -982,6 +982,18 @@ body {
   0% { background-position: 0% 50%; }
   100% { background-position: 460% 50%; }
 }
+/* 설화검 전용 흐름: 등속이 아니라 실제 빛이 검신 굴곡을 스치듯 천천히
+   다가오다 훅 지나가고, 다시 느려지길 반복하는 불규칙한 리듬을 준다.
+   구간마다 다른 easing을 얹어 각 구간 안에서도 가속/감속이 느껴지게 함. */
+@keyframes seolhwaGlint {
+  0%   { background-position: -30% 50%; animation-timing-function: ease-in; }
+  30%  { background-position: 40% 50%; animation-timing-function: ease-in; }
+  42%  { background-position: 130% 50%; animation-timing-function: ease-out; }
+  50%  { background-position: 170% 50%; animation-timing-function: ease-in; }
+  68%  { background-position: 210% 50%; animation-timing-function: ease-in-out; }
+  82%  { background-position: 340% 50%; animation-timing-function: ease-out; }
+  100% { background-position: 460% 50%; }
+}
 @keyframes twinkle {
   0%, 100% {
     filter: drop-shadow(0 0 20px rgba(106, 79, 255, 0.6)) drop-shadow(0 0 26px rgba(20, 8, 50, 0.6)) drop-shadow(0 0 14px rgba(255, 255, 255, 0.5)) brightness(1);
@@ -1840,7 +1852,7 @@ body {
   background-clip: text;
   color: transparent;
   filter: drop-shadow(0 0 16px rgba(226, 232, 240, 0.4));
-  animation: rainbowShift 4.5s linear infinite, glowPulse 1.3s ease-in-out infinite;
+  animation: seolhwaGlint 5.2s infinite, glowPulse 1.3s ease-in-out infinite;
 }
 [data-theme="dark"] .cultivation-name.rar-6 {
   background-image: linear-gradient(100deg,
@@ -1892,7 +1904,7 @@ body {
   background: linear-gradient(100deg,
     transparent 0%, transparent 44%, rgba(255, 255, 255, 0.38) 50%, transparent 56%, transparent 100%);
   background-size: 280% auto;
-  animation: rainbowShift 4.5s linear infinite;
+  animation: seolhwaGlint 6s infinite;
   pointer-events: none;
 }
 .sword-result.rar-6 { overflow: hidden; }
@@ -1921,7 +1933,7 @@ body {
   background-image: linear-gradient(100deg,
     transparent 0%, transparent 42%, rgba(255, 255, 255, 0.7) 50%, transparent 58%, transparent 100%);
   background-size: 280% auto;
-  animation: rainbowShift 4s linear infinite;
+  animation: seolhwaGlint 4.6s infinite;
   pointer-events: none;
 }
 
