@@ -370,27 +370,35 @@
   ];
 
   /* ---------------- Sword grades (검 등급) ----------------
-     7 grades, probabilities fixed per grade — every sword inside a grade
-     shares the exact same draw chance. Grade odds sum to 100 (신병이기's
-     0.005 cut funds 설화검's new slice exactly, so nothing else moved).
+     8 grades, probabilities fixed per grade — every sword inside a grade
+     shares the exact same draw chance. Grade odds sum to 100 (범품's 0.5
+     cut funds 용검's slice exactly, so nothing else moved).
      Naming follows a deliberate length ladder: 2 chars at 범품, 3 through
-     the middle, back down to 2 for the historical 신병이기, 선검 breaks the
-     ladder with a long name, and 설화검 — the final grade — returns to a
-     short, weighty 3-character name befitting a closing legend. */
+     the middle, back down to 2 for 용검 and the historical 신병이기, 선검
+     breaks the ladder with a long name, and 설화검 — the final grade —
+     returns to a short, weighty 3-character name befitting a closing
+     legend. */
   const RARITIES = [
-    { key: 'beompum',  name: '범품', hanja: '凡品', chance: 65 },
+    { key: 'beompum',  name: '범품', hanja: '凡品', chance: 64.5 },
     { key: 'jeongpum', name: '정품', hanja: '精品', chance: 20 },
     { key: 'bogeom',   name: '보검', hanja: '寶劍', chance: 10 },
     { key: 'yeonggeom',name: '영검', hanja: '靈劍', chance: 4.8 },
+    { key: 'yonggeom', name: '용검', hanja: '龍劍', chance: 0.5 },
     { key: 'sinbyeong',name: '신병이기', hanja: '神兵利器', chance: 0.175 },
     { key: 'seongeom', name: '선검', hanja: '仙劍', chance: 0.02 },
     { key: 'seolhwa',  name: '설화검', hanja: '說話劍', chance: 0.005 },
   ];
 
   /* ---------------- Sword pool (검 도감) ----------------
-     Ordered weakest -> strongest, so a higher index is always the better
-     blade. Within one grade the spread is kept inside 20%; between grades
-     it is ~4.2x through 보검/영검, then a bigger but still capped ~8x into
+     Roughly weakest -> strongest by array position, but "which sword is
+     the better blade" is decided by swordPower() (rarity first, then
+     studyBonus) rather than raw array index — new entries for an
+     already-shipped grade always get appended at the very end so an
+     existing player's discovered/swordLevel indices never point at a
+     different sword after an update, even when (as with 용검 below) the
+     new grade sits lower in power than grades that were appended earlier.
+     Within one grade the spread is kept inside 20%; between grades it is
+     ~4.2x through 보검/영검, then a bigger but still capped ~8x into
      신병이기 and ~9x into 선검 — noticeably above the lower steps without
      ever handing a single pull more than roughly a 10x income multiplier. */
   const SWORDS = [
@@ -451,39 +459,39 @@
       desc: '탐욕과 오만, 잔혹과 어리석음이 번갈아 주인을 부른다. 검을 이긴 자만이 검을 쓸 수 있다. 네 흉수의 목소리가 번갈아 속삭이니, 이 검의 진짜 주인은 검을 든 자가 아니라 그 속삭임에 굴복하지 않은 의지뿐이다.' },
 
     /* ---- 신병이기(神兵利器) — 2자, 구야자·간장의 신화 ---- */
-    { name: '순구', hanja: '純鈞', rarity: 4, studyBonus: 119000, epithet: '무가지보',
+    { name: '순구', hanja: '純鈞', rarity: 5, studyBonus: 119000, epithet: '무가지보',
       lore: '구야자(歐冶子)가 벼린 명검. 상감(相劍)의 명인 설촉은 이 검을 보고 「값을 매길 수 없다(無價之寶)」 하였다. 월왕은 이 검 하나를 위해 성 두 곳과 명마 천 필을 내놓겠다는 제안까지 받았으나, 끝내 손에서 놓지 않았다는 이야기가 전한다.',
       desc: '티 하나 없이 순수한 검. 화려한 기예가 없어도, 검 그 자체로 이미 완성되어 있다. 꾸밈으로 승부하는 검들 사이에서, 이 검만은 아무 수식 없이도 스스로 명검임을 증명한다.' },
-    { name: '승사', hanja: '勝邪', rarity: 4, studyBonus: 122000, epithet: '벽사검혼',
+    { name: '승사', hanja: '勝邪', rarity: 5, studyBonus: 122000, epithet: '벽사검혼',
       lore: '이름 그대로 사악함을 이긴다(勝邪)는 뜻을 얻은 구야자의 검. 완성되던 날 하늘에서 때아닌 우박이 쏟아졌는데, 사람들은 이를 사악한 것들이 검의 탄생을 두려워해 울부짖은 흔적이라 여겼다.',
       desc: '요사한 기운을 정면으로 눌러 없앤다. 베는 것이 아니라 굴복시키는 종류의 검. 다섯 자루 구야자의 명검 중에서도 유독 사악한 것들을 가려내는 눈이 밝다 하여, 오랫동안 사문(邪門) 색출에 쓰였다.' },
-    { name: '어장', hanja: '魚腸', rarity: 4, studyBonus: 125000, epithet: '전제의 비수',
+    { name: '어장', hanja: '魚腸', rarity: 5, studyBonus: 125000, epithet: '전제의 비수',
       lore: '물고기 뱃속에 감출 만큼 짧게 벼려진 비수. 전제(專諸)가 구운 생선 속에 숨겨 오왕 요(僚)를 시해한 그 검이다. 그날 이후 오나라 왕실은 생선 요리를 통째로 상에 올리는 것을 금했다 하며, 그 금기는 수백 년이 지나도록 이어졌다는 이야기가 전한다.',
       desc: '천하를 뒤집는 데 필요한 길이는 한 뼘이면 족했다. 짧기에 아무도 오는 것을 보지 못한다. 가장 짧은 검이 가장 큰 왕조의 운명을 갈랐다는 사실은, 강호에 병기의 크기와 위력이 무관함을 새삼 증명한다.' },
-    { name: '거궐', hanja: '巨闕', rarity: 4, studyBonus: 128000, epithet: '파성패도',
+    { name: '거궐', hanja: '巨闕', rarity: 5, studyBonus: 128000, epithet: '파성패도',
       lore: '월왕 구천이 지녔다는 구야자의 검. 큰 궁궐(巨闕)의 문마저 갈라낸다 하여 그 이름을 얻었다. 실제로 궁궐 문을 벤 일화는 과장이라는 이들도 있으나, 이 검이 지나간 자리에 성한 병장기가 없었다는 기록만은 여러 문헌에서 공통된다.',
       desc: '섬세함을 논하지 않는다. 가로막은 것이 무엇이든, 그저 잘려 있을 뿐이다. 기교로 맞서려는 자들은 하나같이 병기가 먼저 두 동강 나는 것을 보고서야 이 검의 이름값을 이해했다.' },
-    { name: '담로', hanja: '湛盧', rarity: 4, studyBonus: 131000, epithet: '택군이거',
+    { name: '담로', hanja: '湛盧', rarity: 5, studyBonus: 131000, epithet: '택군이거',
       lore: '무도한 주인을 스스로 떠나 다른 나라의 어진 임금에게 갔다는 인의(仁義)의 검. 오왕 합려가 무도해지자 하룻밤 사이에 칼집에서 자취를 감추었고, 이후 초나라의 어진 임금 궁궐에서 다시 발견되었다는 전설이 전해진다.',
       desc: '이 검은 쥐는 자를 고른다. 자격이 없다고 판단되면, 어느 날 칼집만 남아 있다. 재물로도, 힘으로도 붙잡아 둘 수 없는 검이라, 강호인들은 이 검을 손에 넣기보다 이 검에게 선택받기를 바랐다.' },
-    { name: '태아', hanja: '太阿', rarity: 4, studyBonus: 134000, epithet: '발검파군',
+    { name: '태아', hanja: '太阿', rarity: 5, studyBonus: 134000, epithet: '발검파군',
       lore: '구야자와 간장이 함께 벼린 위도(威道)의 검. 초나라가 포위되던 날, 성루에서 뽑아 든 것만으로 진나라 대군이 무너졌다 한다. 정작 칼날이 진나라 병사의 몸에 닿은 일은 단 한 번도 없었다고 하니, 그 위세만으로 전쟁의 승패를 가른 유일한 병기로 꼽힌다.',
       desc: '휘두르지 않아도 이긴다. 검을 뽑는 소리 하나가 이미 만 명의 전의를 꺾는다. 무인들 사이에서는 이 검을 두고 「싸우기 위해서가 아니라 싸움을 끝내기 위해 존재하는 검」이라 부른다.' },
-    { name: '용천', hanja: '龍泉', rarity: 4, studyBonus: 137000, epithet: '잠룡승천',
+    { name: '용천', hanja: '龍泉', rarity: 5, studyBonus: 137000, epithet: '잠룡승천',
       lore: '본래 이름은 용연(龍淵). 훗날 임금의 휘(諱)를 피해 용천으로 고쳐 부르게 되었다. 일곱 별의 형상이 검신에 어렸다 한다. 검신을 오래 들여다본 이들은 하나같이 그 안에서 승천을 기다리는 용의 눈을 보았다고 증언하나, 정작 그 용이 승천하는 것을 본 이는 아무도 없다.',
       desc: '들여다보면 깊은 못 속에 엎드린 용이 비친다. 물처럼 고요하다가, 한순간 승천한다. 평소엔 잔잔한 연못처럼 고요하지만, 일단 뽑히면 그 고요함이 곧 폭풍전야였음을 증명한다.' },
-    { name: '막야', hanja: '莫邪', rarity: 4, studyBonus: 140000, epithet: '자검의 넋',
+    { name: '막야', hanja: '莫邪', rarity: 5, studyBonus: 140000, epithet: '자검의 넋',
       lore: '쇠가 끝내 녹지 않자, 간장의 아내 막야가 스스로 화로에 몸을 던져 완성했다는 자검(雌劍). 완성된 검신에는 옅은 여인의 형상이 비친다는 소문이 돌았고, 강호인들은 차마 이 검을 함부로 매매하지 못했다 전해진다.',
       desc: '사람의 목숨 하나가 검이 되었다. 이 검이 우는 날은, 짝인 웅검이 가까이 있다는 뜻이다. 짝을 찾는 검명(劍鳴)이 구슬프다 하여, 이 검을 지닌 자는 밤마다 낮게 우는 소리를 들으며 잠들었다고 한다.' },
-    { name: '간장', hanja: '干將', rarity: 4, studyBonus: 143000, epithet: '적자의 복수',
+    { name: '간장', hanja: '干將', rarity: 5, studyBonus: 143000, epithet: '적자의 복수',
       lore: '명장 간장이 삼 년에 걸쳐 벼려낸 웅검(雄劍). 그는 이 검을 감추고 자검만을 왕에게 바쳤다가 목숨을 잃었다. 훗날 그의 아들이 장성하여 아비의 유언대로 감춰둔 이 검을 찾아내 원수를 갚았다는 이야기가, 강호에서 가장 널리 불리는 복수담으로 남아 있다.',
       desc: '주인의 원한을 대신 기억하는 검. 짝을 잃은 뒤로 늘 한쪽으로 조금 기울어 운다. 명검이 완성으로 끝나지 않고 대를 이어 원한을 완성했다는 점에서, 이 검은 병기이자 하나의 서사(敍事)로 통한다.' },
 
     /* ---- 선검(仙劍) ---- */
-    { name: '천주멸신검', hanja: '天誅滅神劍', rarity: 5, studyBonus: 1070000, epithet: '신살의 뇌명',
+    { name: '천주멸신검', hanja: '天誅滅神劍', rarity: 6, studyBonus: 1070000, epithet: '신살의 뇌명',
       lore: '하늘이 직접 내리는 벌(天誅)을 형체로 굳힌 검. 사람을 베기 위한 물건이 아니라, 신을 멸(滅神)하기 위해 벼려졌다. 이 검이 처음 뽑힌 날 하늘이 사흘간 붉게 물들었다는 기록이 전해지며, 그 뒤로는 이 검을 논할 때 「누구를 벨 것인가」가 아니라 「무엇을 벨 자격이 있는가」를 먼저 물었다.',
       desc: '이 검 앞에서는 신위(神位)조차 필멸의 살덩이가 된다. 하늘의 이치로도 이 검날은 막지 못한다. 인세의 무공으로는 그 존재조차 가늠할 수 없어, 강호인들은 이 검을 두고 사람이 다룰 물건이 아니라고 입을 모은다.' },
-    { name: '개벽조화검', hanja: '開闢造化劍', rarity: 5, studyBonus: 1280000, epithet: '창세의 검신',
+    { name: '개벽조화검', hanja: '開闢造化劍', rarity: 6, studyBonus: 1280000, epithet: '창세의 검신',
       lore: '혼돈을 갈라 천지를 연(開闢) 그 최초의 일격이, 식지 않고 검의 형상으로 남은 것이라 전해진다. 세상에 아직 이름조차 없던 때의 검이라 하여, 이 검을 논하는 이들은 하나같이 「병기」가 아니라 「천지가 스스로를 새긴 흔적」이라 부른다.',
       desc: '베는 것이 아니라 짓는다(造化). 이 검이 그은 자리에는 없던 하늘과 없던 땅이 생겨난다. 파괴와 창조가 한 몸이라는 이치를 증명하듯, 이 검의 흔적이 지나간 자리는 폐허가 아니라 새로운 시작으로 남는다.' },
 
@@ -505,30 +513,49 @@
        칠흑처럼 검되, 그 위로 흰빛과 잿빛 사이의 광택이 물결치듯 흐른다
        (.rar-6 참고) — 다마스커스 강처럼, 검이 아니라 그 자체로 하나의
        전설임을 새긴 무늬다. ---- */
-    { name: '파천검', hanja: '破天劍', rarity: 6, studyBonus: 2333333, epithet: '천 번의 결말',
+    { name: '파천검', hanja: '破天劍', rarity: 7, studyBonus: 2333333, epithet: '천 번의 결말',
       lore: '몇 번이고 되풀이된 세계의 끝에서, 단 한 사람만이 매번 다른 검을 들고 살아 돌아왔다는 이야기가 전해진다. 그가 마지막 회차에 이르러서야 완성했다는 이 검은, 하늘이 정해둔 결말(結末)조차 그은 자리대로 다시 쓴다 하여 파천(破天)이라는 이름을 얻었다.',
       desc: '이 검 앞에서는 「이미 정해진 미래」라는 말이 무의미해진다. 몇 번을 다시 살아도 바뀌지 않던 결말을, 단 한 번의 발검으로 부숴버린다는 전설의 검.' },
-    { name: '진천패도', hanja: '震天覇刀', rarity: 6, studyBonus: 2466667, epithet: '패왕의 진노',
+    { name: '진천패도', hanja: '震天覇刀', rarity: 7, studyBonus: 2466667, epithet: '패왕의 진노',
       lore: '패도(覇道)를 논하는 자들 사이에서 정점으로 꼽히던 무인이 지녔다는 도(刀). 휘두를 때마다 뇌성이 울려 하늘을 뒤흔들었다 하여 진천(震天)이라는 이름이 붙었으며, 그가 세상을 등진 뒤로는 아무도 그 무게를 온전히 감당하지 못했다고 전해진다.',
       desc: '패기(覇氣) 하나만으로 산을 가르고 강을 뒤집는다는 도. 정교한 초식보다 압도적인 힘으로 모든 것을 짓누르는, 패도 무공의 정수를 담은 병기다.' },
-    { name: '송문고검', hanja: '松紋古劍', rarity: 6, studyBonus: 2600000, epithet: '태극의 근본',
+    { name: '송문고검', hanja: '松紋古劍', rarity: 7, studyBonus: 2600000, epithet: '태극의 근본',
       lore: '무당파 개파조사가 무당산 소나무 아래에서 도를 깨우친 뒤, 그 소나무의 결(松紋)을 그대로 검신에 새겨 벼렸다는 전설의 고검. 몇 대에 걸쳐 장문인에게만 전해지다, 어느 대에 이르러 홀연히 자취를 감췄다고 전한다.',
       desc: '부드러움으로 강함을 이기는 태극(太極)의 이치를 그대로 담은 검. 검신을 타고 흐르는 물결무늬가 유(柔)와 강(剛)이 본디 하나임을 말없이 증명한다.' },
-    { name: '암향매화검', hanja: '暗香梅花劍', rarity: 6, studyBonus: 2733333, epithet: '그윽한 향, 소리없는 참격',
+    { name: '암향매화검', hanja: '暗香梅花劍', rarity: 7, studyBonus: 2733333, epithet: '그윽한 향, 소리없는 참격',
       lore: '매화검존(梅花劍尊)이 생애 마지막으로 완성했다는 검. 향(香)이 먼저 스미고 검은 그 뒤에 닿는다 하여 암향(暗香)이라는 이름이 붙었으며, 검존이 스러진 뒤로는 그 진전을 온전히 이은 자가 다시 나타나기까지 백 년이 걸렸다고 전해진다.',
       desc: '매화 향이 코끝에 닿는 순간이면 이미 승부는 끝나 있다. 보이지 않고 들리지 않는 참격이야말로 검존이 다다른 마지막 경지였다는 이야기가 강호에 전한다.' },
-    { name: '창천검', hanja: '蒼天劍', rarity: 6, studyBonus: 2866667, epithet: '푸른 하늘의 검',
+    { name: '창천검', hanja: '蒼天劍', rarity: 7, studyBonus: 2866667, epithet: '푸른 하늘의 검',
       lore: '오대세가 중 검으로 이름난 남궁세가에서 대대로 가주에게만 전해진다는 보검. 창천(蒼天)이라는 이름은 이 검을 뽑아 든 가주의 검기가 맑은 날의 하늘빛을 닮았다는 데서 왔다고 전해진다.',
       desc: '제왕검형(帝王劍形)의 정수를 담아, 한 초식 한 초식에 창공을 가르는 듯한 웅혼함이 서려 있다. 세가의 위엄이 검 한 자루에 고스란히 응축되어 있다는 평을 듣는다.' },
-    { name: '사일검', hanja: '射日劍', rarity: 6, studyBonus: 3000000, epithet: '태양을 쏘아 떨어뜨리다',
+    { name: '사일검', hanja: '射日劍', rarity: 7, studyBonus: 3000000, epithet: '태양을 쏘아 떨어뜨리다',
       lore: '아홉 개의 태양을 활로 쏘아 떨어뜨렸다는 전설의 궁사(弓射)를 검으로 옮겼다는 점창파의 신검. 검 끝에서 뻗어나가는 검기가 마치 화살처럼 곧게 쏘아진다 하여 사일(射日)이라는 이름을 얻었다.',
       desc: '곧고 빠르기가 화살과 같아, 한 번 뻗은 검기는 거두어들일 수 없다. 점창파 검법의 정화(精華)로 꼽히며, 이 검을 완성한 자는 강호에 손에 꼽힐 정도라고 전한다.' },
-    { name: '반야멸마검', hanja: '般若滅魔劍', rarity: 6, studyBonus: 3166667, epithet: '지혜로 마를 베다',
+    { name: '반야멸마검', hanja: '般若滅魔劍', rarity: 7, studyBonus: 3166667, epithet: '지혜로 마를 베다',
       lore: '속세를 떠난 노승이 평생의 깨달음을 검 한 자루에 담아 냈다는 신검. 반야(般若)의 지혜로 마성(魔性)을 벤다 하여 반야멸마(般若滅魔)라는 이름이 붙었으며, 완성된 뒤로 그 노승은 검을 남기고 홀연히 열반(涅槃)에 들었다고 전해진다.',
       desc: '칼날보다 먼저 마음을 벤다는 검. 사특한 기운을 품은 자는 이 검 앞에 서는 것만으로 스스로 무너진다고 하여, 마(魔)를 다루는 자들이 가장 두려워하는 신검으로 꼽힌다.' },
-    { name: '패왕단혼검', hanja: '霸王斷魂劍', rarity: 6, studyBonus: 3333333, epithet: '혼을 끊는 패왕의 검',
+    { name: '패왕단혼검', hanja: '霸王斷魂劍', rarity: 7, studyBonus: 3333333, epithet: '혼을 끊는 패왕의 검',
       lore: '오대세가 중 가장 오랜 역사를 자랑하는 황보세가의 진산지보(鎭山之寶). 역대 최강으로 꼽히던 가주가 필생의 공력을 쏟아 완성했다는 이 검은, 닿는 순간 육신이 아니라 혼(魂)을 끊어놓는다 하여 단혼(斷魂)이라는 이름이 붙었다.',
       desc: '패왕(霸王)의 이름에 걸맞게, 이 검 앞에서는 어떤 방어도 무의미하다는 말이 전해진다. 오대세가 최후의 병기이자, 강호 전체를 통틀어도 손에 꼽히는 신위(神威)를 지녔다고 알려져 있다.' },
+
+    /* ---- 용검(龍劍) — 영검과 신병이기 사이에 새로 생긴 등급. 동서남북중
+       오방(五方)을 지킨다는 오방신룡(五方神龍) 전설을 그대로 검 다섯 자루에
+       옮겨, 각 검신에 그 방위를 지키는 용의 빛깔과 숨결을 담았다. ---- */
+    { name: '청룡검', hanja: '靑龍劍', rarity: 4, studyBonus: 33333, epithet: '동녘을 여는 첫 울음',
+      lore: '동해 깊은 곳에서 천 년을 몸을 사린 끝에 여의주를 얻어 승천했다는 청룡의 발톱을 본떠 벼린 검. 검을 벼리던 날 동쪽 하늘이 사흘 밤낮 푸르게 밝았다 하여, 그 빛을 그대로 검신에 새겨 넣었다고 전해진다.',
+      desc: '검을 뽑으면 봄바람과 함께 옅은 물비린내가 실려 온다는 검. 베는 순간 검신을 타고 오르는 푸른 기운이, 마치 용이 다시 한번 승천하려는 것처럼 요동친다.' },
+    { name: '백룡검', hanja: '白龍劍', rarity: 4, studyBonus: 36667, epithet: '서쪽 하늘의 서릿발',
+      lore: '만년설산 정상에서 눈보라만 먹고 산다는 백룡의 비늘 한 조각을 심(心)으로 삼아 벼린 검. 백룡은 좀처럼 인세에 모습을 드러내지 않아, 이 비늘을 얻은 대장장이조차 끝내 그 실체를 보지 못했다고 전한다.',
+      desc: '칼날이 지나간 자리엔 옅은 서릿발이 맺힌다. 소리 없이 다가와 숨통을 끊는다는, 가을 서풍처럼 조용하고 차가운 검.' },
+    { name: '적룡검', hanja: '赤龍劍', rarity: 4, studyBonus: 40000, epithet: '타오르는 남쪽의 심장',
+      lore: '화산 심연에서 억겁의 세월 마그마를 삼키며 몸을 불린 적룡의 심장 한 조각을 벼려낸 검. 완성되던 순간 대장간 전체가 불길에 휩싸였으나, 정작 검신은 조금도 그을리지 않았다고 전해진다.',
+      desc: '쥐는 순간 손끝부터 열기가 차오른다. 벤 자리에서 불길이 솟는다는 소문 때문에, 이 검을 상대한 이들은 상처보다 화상을 먼저 두려워했다.' },
+    { name: '흑룡검', hanja: '黑龍劍', rarity: 4, studyBonus: 43333, epithet: '심연을 삼킨 어둠',
+      lore: '빛조차 닿지 않는 북해 심연에 똬리를 틀고 있다는 흑룡의 발톱으로 벼린 검. 흑룡을 본 자는 살아 돌아오지 못한다는 오랜 금기 때문에, 이 검이 어떻게 세상에 나왔는지는 아무도 알지 못한다.',
+      desc: '검신이 빛을 삼켜, 뽑아도 번뜩임이 없다. 상대는 검이 다가오는 것을 보지 못한 채, 이미 베인 뒤에야 그 존재를 깨닫는다.' },
+    { name: '황룡검', hanja: '黃龍劍', rarity: 4, studyBonus: 46667, epithet: '천하를 굽어보는 눈',
+      lore: '동서남북 네 용을 거느리고 천지의 중심에 좌정했다는 황룡의 뿔로 벼린 검. 옛 왕조들은 이 검을 지닌 자야말로 하늘의 뜻을 받든 진정한 주인이라 여겨, 서로 손에 넣으려 다투었다고 전해진다.',
+      desc: '이 검을 든 자 앞에서는 나머지 네 방위의 기운마저 숨을 죽인다. 다스리기 위한 검이지, 베기 위한 검이 아니다.' },
   ];
 
   /* ---------------- 강화 (검 개별 강화) ----------------
@@ -540,21 +567,30 @@
      else), and the odds get worse the higher the star level already is —
      a failed attempt just burns the fragments spent, the star level never
      drops. */
-  const STAR_FRAGMENTS_BY_RARITY = [1, 2, 5, 12, 40, 150, 500];
+  const STAR_FRAGMENTS_BY_RARITY = [1, 2, 5, 12, 22, 40, 150, 500];
   const ENHANCE_MAX_STARS = 10;
   const ENHANCE_BONUS_PER_STAR = 0.03;
   // index = current star level before the attempt (0 -> level 1, ... 9 -> level 10).
   // 범품~영검 (rarity 0-3) all share one flat, near-free cost table -- their
   // income is tiny, so the 별의 조각 cost has to stay tiny too, or the
-  // investment dwarfs the payoff ("배보다 배꼽이 커짐"). 신병이기/선검
-  // (rarity 4-5) keep the original scaled formula, since they're genuine
+  // investment dwarfs the payoff ("배보다 배꼽이 커짐"). 용검/신병이기/선검
+  // (rarity 4-6) keep the original scaled formula, since they're genuine
   // end-game gear where a bigger investment is expected.
   const ENHANCE_LOW_TIER_COST_BY_LEVEL = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2];
   const ENHANCE_COST_BY_LEVEL = [4, 7, 11, 17, 26, 40, 62, 100, 160, 260];
   const ENHANCE_CHANCE_BY_LEVEL = [95, 90, 85, 78, 70, 60, 48, 35, 22, 12];
-  const ENHANCE_RARITY_COST_MULT = [1, 1, 1, 1, 3, 4.5, 6.75]; // 0-3 unused, see enhanceCostFor
-  const ENHANCE_RARITY_CHANCE_MULT = [1, 0.96, 0.9, 0.82, 0.7, 0.55, 0.43];
+  const ENHANCE_RARITY_COST_MULT = [1, 1, 1, 1, 2, 3, 4.5, 6.75]; // 0-3 unused, see enhanceCostFor
+  const ENHANCE_RARITY_CHANCE_MULT = [1, 0.96, 0.9, 0.82, 0.78, 0.7, 0.55, 0.43];
   const ENHANCE_MIN_CHANCE = 5;
+
+  // Grade first, studyBonus as the tiebreaker within a grade — used instead
+  // of raw array index to decide "is this sword actually stronger", since
+  // grades appended later (용검, 설화검) don't sit at array positions that
+  // match their power (see the SWORDS comment above).
+  function swordPower(idx) {
+    const s = SWORDS[idx];
+    return s.rarity * 1e9 + s.studyBonus;
+  }
 
   function enhanceCostFor(swordIdx, stars) {
     const rarity = SWORDS[swordIdx].rarity;
@@ -1566,9 +1602,8 @@
         // by how rare the duplicate itself is.
         fragmentsGained += STAR_FRAGMENTS_BY_RARITY[SWORDS[idx].rarity];
       }
-      // Higher index is always the stronger blade, so this is the whole
-      // "better sword auto-equips, weaker one is kept but not worn" rule.
-      const upgraded = idx > swordLevel;
+      // Whole "better sword auto-equips, weaker one is kept but not worn" rule.
+      const upgraded = swordPower(idx) > swordPower(swordLevel);
       if (upgraded) { swordLevel = idx; equippedChanged = true; }
       results.push({ idx, isNew, upgraded });
     }
@@ -1583,7 +1618,7 @@
     renderHeader();
     if (tabPanels.enhance.classList.contains('active')) renderEnhance();
 
-    const best = results.reduce((a, b) => (b.idx > a.idx ? b : a));
+    const best = results.reduce((a, b) => (swordPower(b.idx) > swordPower(a.idx) ? b : a));
     const bestSword = SWORDS[best.idx];
     const fragText = fragmentsGained > 0 ? ` (✳ 별의 조각 +${fragmentsGained.toLocaleString('ko-KR')})` : '';
     if (equippedChanged) {
@@ -1611,6 +1646,9 @@
   const epithetGrid = el('epithetGrid');
   const epithetProgress = el('epithetProgress');
   const epithetCardTpl = el('epithetCardTemplate');
+  const ownedSwordList = el('ownedSwordList');
+  const ownedSwordsCount = el('ownedSwordsCount');
+  const ownedSwordEmpty = el('ownedSwordEmpty');
 
   const equippedEls = {
     name: el('swordName'), nameText: el('swordNameText'), hanja: el('swordHanja'), grade: el('swordGrade'),
@@ -1698,7 +1736,53 @@
 
       rarityTable.appendChild(group);
     });
+
+    renderOwnedSwords();
   }
+
+  /* 장착 검 직접 고르기 — 도감에 기록된 검 중 아무거나 골라 장착할 수 있다.
+     더 강한 검을 새로 뽑으면 여전히 자동으로 장착되지만(위 upgraded 로직),
+     이후 원하는 다른 보유 검으로 언제든 되돌릴 수 있다. */
+  function equipSword(idx) {
+    if (idx === swordLevel || !discovered.includes(idx)) return;
+    swordLevel = idx;
+    queueSave();
+    renderGachaPanel();
+    renderCodex();
+    renderStudyHint();
+    renderHeader();
+    if (tabPanels.enhance.classList.contains('active')) renderEnhance();
+    const s = SWORDS[idx];
+    showToast(`⚔️ ${RARITIES[s.rarity].name} ${s.name}(${s.hanja})을(를) 장착했습니다.`);
+  }
+
+  function renderOwnedSwords() {
+    const owned = discovered
+      .map((idx) => ({ idx, ...SWORDS[idx] }))
+      .sort((a, b) => swordPower(b.idx) - swordPower(a.idx));
+
+    ownedSwordsCount.textContent = `${discovered.length} / ${SWORDS.length}`;
+    ownedSwordEmpty.style.display = owned.length ? 'none' : 'block';
+
+    ownedSwordList.innerHTML = '';
+    owned.forEach((s) => {
+      const equipped = s.idx === swordLevel;
+      const item = document.createElement('li');
+      item.className = `owned-sword-item rar-${s.rarity}${equipped ? ' equipped' : ''}`;
+      item.innerHTML = `
+        <span class="owned-sword-grade rar-chip rar-${s.rarity}">${RARITIES[s.rarity].name}</span>
+        <span class="owned-sword-name">${s.name}<small>(${s.hanja})</small></span>
+        <span class="owned-sword-income">분당 +${swordIncomeAt(s.idx).toLocaleString('ko-KR')}G</span>
+        <button type="button" class="btn-equip" data-idx="${s.idx}" ${equipped ? 'disabled' : ''}>${equipped ? '장착 중' : '장착하기'}</button>`;
+      ownedSwordList.appendChild(item);
+    });
+  }
+
+  ownedSwordList.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-equip');
+    if (!btn) return;
+    equipSword(Number(btn.dataset.idx));
+  });
 
   rarityTable.addEventListener('click', (e) => {
     const btn = e.target.closest('.rarity-row');

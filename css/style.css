@@ -1765,24 +1765,27 @@ body {
   background-image: linear-gradient(100deg, var(--gold-2), var(--gold), #fff8e0, var(--gold), var(--gold-2));
 }
 
-/* ============ Sword rarity palette (7 grades) ============
-   일반 steel · 고급 jade · 희귀 azure · 영웅 amethyst · 전설 molten gold ·
-   신화 prismatic · 설화 blackened steel with a flowing chrome sheen.
-   Every grade gets a stronger glow and a busier sheen than the one below it. */
+/* ============ Sword rarity palette (8 grades) ============
+   일반 steel · 고급 jade · 희귀 azure · 영웅 amethyst · 용룡 teal ·
+   신병이기 molten gold · 신화 prismatic · 설화 blackened steel with a
+   flowing chrome sheen. Every grade gets a stronger glow and a busier
+   sheen than the one below it. */
 .rar-0 { --rar-a: #9aa4b5; --rar-b: #e8edf5; --rar-solid: #64748b; --rar-deep: #334155; --rar-glow: rgba(148, 163, 184, 0.5); }
 .rar-1 { --rar-a: #22c55e; --rar-b: #bbf7d0; --rar-solid: #16a34a; --rar-deep: #14532d; --rar-glow: rgba(34, 197, 94, 0.55); }
 .rar-2 { --rar-a: #3b82f6; --rar-b: #bfdbfe; --rar-solid: #2563eb; --rar-deep: #1e3a8a; --rar-glow: rgba(59, 130, 246, 0.6); }
 .rar-3 { --rar-a: #a855f7; --rar-b: #e9d5ff; --rar-solid: #9333ea; --rar-deep: #581c87; --rar-glow: rgba(168, 85, 247, 0.65); }
-.rar-4 { --rar-a: #f59e0b; --rar-b: #fde68a; --rar-solid: #d97706; --rar-deep: #7c2d12; --rar-glow: rgba(245, 158, 11, 0.7); }
-.rar-5 { --rar-a: #ff2d55; --rar-b: #7cf5ff; --rar-solid: #e11d48; --rar-deep: #701a3a; --rar-glow: rgba(255, 77, 109, 0.75); }
-.rar-6 { --rar-a: #18181b; --rar-b: #3f3f46; --rar-solid: #000000; --rar-deep: #000000; --rar-glow: rgba(226, 232, 240, 0.55); }
+.rar-4 { --rar-a: #2dd4bf; --rar-b: #99f6e4; --rar-solid: #0d9488; --rar-deep: #134e4a; --rar-glow: rgba(45, 212, 191, 0.65); }
+.rar-5 { --rar-a: #f59e0b; --rar-b: #fde68a; --rar-solid: #d97706; --rar-deep: #7c2d12; --rar-glow: rgba(245, 158, 11, 0.7); }
+.rar-6 { --rar-a: #ff2d55; --rar-b: #7cf5ff; --rar-solid: #e11d48; --rar-deep: #701a3a; --rar-glow: rgba(255, 77, 109, 0.75); }
+.rar-7 { --rar-a: #18181b; --rar-b: #3f3f46; --rar-solid: #000000; --rar-deep: #000000; --rar-glow: rgba(226, 232, 240, 0.55); }
 [data-theme="dark"] .rar-0 { --rar-solid: #94a3b8; }
 [data-theme="dark"] .rar-1 { --rar-solid: #22c55e; }
 [data-theme="dark"] .rar-2 { --rar-solid: #3b82f6; }
 [data-theme="dark"] .rar-3 { --rar-solid: #a855f7; }
-[data-theme="dark"] .rar-4 { --rar-solid: #f59e0b; }
-[data-theme="dark"] .rar-5 { --rar-solid: #ff4d6d; }
-[data-theme="dark"] .rar-6 { --rar-solid: #000000; }
+[data-theme="dark"] .rar-4 { --rar-solid: #2dd4bf; }
+[data-theme="dark"] .rar-5 { --rar-solid: #f59e0b; }
+[data-theme="dark"] .rar-6 { --rar-solid: #ff4d6d; }
+[data-theme="dark"] .rar-7 { --rar-solid: #000000; }
 
 /* The gloss band that sweeps a sword's name has to be lighter than the
    letters in dark mode and darker than them in light mode, otherwise the
@@ -1793,7 +1796,8 @@ body {
 .cultivation-name.rar-1,
 .cultivation-name.rar-2,
 .cultivation-name.rar-3,
-.cultivation-name.rar-4 {
+.cultivation-name.rar-4,
+.cultivation-name.rar-5 {
   background-image: linear-gradient(100deg,
     var(--rar-deep), var(--rar-solid), var(--rar-a), var(--rar-solid), var(--rar-deep));
   background-size: 260% auto;
@@ -1806,18 +1810,20 @@ body {
 [data-theme="dark"] .cultivation-name.rar-1,
 [data-theme="dark"] .cultivation-name.rar-2,
 [data-theme="dark"] .cultivation-name.rar-3,
-[data-theme="dark"] .cultivation-name.rar-4 {
+[data-theme="dark"] .cultivation-name.rar-4,
+[data-theme="dark"] .cultivation-name.rar-5 {
   background-image: linear-gradient(100deg,
     var(--rar-a), var(--rar-b), #ffffff, var(--rar-b), var(--rar-a));
 }
 .cultivation-name.rar-1 { filter: drop-shadow(0 0 10px var(--rar-glow)); }
 .cultivation-name.rar-2 { filter: drop-shadow(0 0 14px var(--rar-glow)); animation-duration: 3.8s; }
 .cultivation-name.rar-3 { filter: drop-shadow(0 0 18px var(--rar-glow)); animation-duration: 3.2s; }
-.cultivation-name.rar-4 {
+.cultivation-name.rar-4 { filter: drop-shadow(0 0 20px var(--rar-glow)); animation-duration: 2.9s; }
+.cultivation-name.rar-5 {
   filter: drop-shadow(0 0 22px var(--rar-glow)) drop-shadow(0 0 12px rgba(255, 200, 60, 0.4));
   animation-duration: 2.6s;
 }
-.cultivation-name.rar-5 {
+.cultivation-name.rar-6 {
   background-image: linear-gradient(100deg, #be123c, #b45309, #0e7490, #6b21a8, #be123c);
   background-size: 420% auto;
   -webkit-background-clip: text;
@@ -1826,7 +1832,7 @@ body {
   filter: drop-shadow(0 0 20px rgba(225, 29, 72, 0.45));
   animation: rainbowShift 3.4s linear infinite, glowPulse 1.1s ease-in-out infinite;
 }
-[data-theme="dark"] .cultivation-name.rar-5 {
+[data-theme="dark"] .cultivation-name.rar-6 {
   background-image: linear-gradient(100deg, #ff2d55, #ffd76a, #7cf5ff, #a855f7, #ffffff, #ff2d55);
   filter: drop-shadow(0 0 24px rgba(255, 45, 85, 0.6)) drop-shadow(0 0 24px rgba(124, 245, 255, 0.5));
 }
@@ -1834,7 +1840,7 @@ body {
    it as a whole, rather than the blade itself shifting color (unlike
    선검's full-hue rainbow). Most of the gradient stays pure black; the
    glint bands are kept narrow so black reads as the dominant color. */
-.cultivation-name.rar-6 {
+.cultivation-name.rar-7 {
   background-image: linear-gradient(100deg,
     #000000 0%, #000000 36%,
     #d4d4d8 41%, #ffffff 48%, #d4d4d8 55%,
@@ -1848,7 +1854,7 @@ body {
   filter: drop-shadow(0 0 16px rgba(226, 232, 240, 0.4));
   animation: seolhwaGlint 8s linear infinite, glowPulse 1.3s ease-in-out infinite;
 }
-[data-theme="dark"] .cultivation-name.rar-6 {
+[data-theme="dark"] .cultivation-name.rar-7 {
   background-image: linear-gradient(100deg,
     #000000 0%, #000000 36%,
     #71717a 41%, #ffffff 48%, #71717a 55%,
@@ -1861,14 +1867,14 @@ body {
 /* 설화검 등급 라벨(등급별 확률 행, 도감 카드, 별호 카드 등): 글자는 아예
    검정으로 채우고, 대신 윤곽에 하얀 글로우를 여러 겹 둘러 검정 배경 위에서도
    또렷이 읽히게 한다. */
-.rarity-row.rar-6 .rarity-name,
-.rarity-row.rar-6 .rarity-caret,
-.codex-card.rar-6 .codex-grade,
-.codex-card.rar-6 .codex-bonus,
-.codex-card.rar-6 .codex-epithet,
-.epithet-card.rar-6 .epithet-grade,
-.sword-result.rar-6 .sword-result-grade,
-.sword-epithet.rar-6 {
+.rarity-row.rar-7 .rarity-name,
+.rarity-row.rar-7 .rarity-caret,
+.codex-card.rar-7 .codex-grade,
+.codex-card.rar-7 .codex-bonus,
+.codex-card.rar-7 .codex-epithet,
+.epithet-card.rar-7 .epithet-grade,
+.sword-result.rar-7 .sword-result-grade,
+.sword-epithet.rar-7 {
   color: #000000;
   text-shadow:
     0 0 2px #fff,
@@ -1878,13 +1884,13 @@ body {
 }
 
 /* 위 라벨들이 놓인 표면(행/카드) 자체에 좁은 흰 광택 띠가 가로질러
-   흐르도록 — 이미 다른 용도로 쓰이는 ::before/::after는 rar-6 한정으로
+   흐르도록 — 이미 다른 용도로 쓰이는 ::before/::after는 rar-7 한정으로
    덮어써서 새 요소를 추가하지 않고 재사용한다. */
-.rarity-row.rar-6 { position: relative; overflow: hidden; }
-.rarity-row.rar-6::after,
-.codex-card.rar-6::after,
-.epithet-card.rar-6::after,
-.sword-result.rar-6::after {
+.rarity-row.rar-7 { position: relative; overflow: hidden; }
+.rarity-row.rar-7::after,
+.codex-card.rar-7::after,
+.epithet-card.rar-7::after,
+.sword-result.rar-7::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -1895,8 +1901,8 @@ body {
   animation: seolhwaGlint 9s linear infinite;
   pointer-events: none;
 }
-.sword-result.rar-6 { overflow: hidden; }
-.sword-result.rar-6::after { border-radius: inherit; }
+.sword-result.rar-7 { overflow: hidden; }
+.sword-result.rar-7::after { border-radius: inherit; }
 
 /* Grade chip */
 .rar-chip {
@@ -1913,8 +1919,8 @@ body {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 .rar-chip small { margin-left: 6px; opacity: 0.8; font-weight: 700; }
-.rar-chip.rar-6 { position: relative; overflow: hidden; }
-.rar-chip.rar-6::after {
+.rar-chip.rar-7 { position: relative; overflow: hidden; }
+.rar-chip.rar-7::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -2112,9 +2118,10 @@ body {
 .rarity-row.rar-1 .rarity-chance { text-shadow: 0 0 6px var(--rar-glow); }
 .rarity-row.rar-2 .rarity-chance { text-shadow: 0 0 9px var(--rar-glow); }
 .rarity-row.rar-3 .rarity-chance { text-shadow: 0 0 12px var(--rar-glow); }
-.rarity-row.rar-4 .rarity-chance { text-shadow: 0 0 16px var(--rar-glow); }
-.rarity-row.rar-5 .rarity-chance { text-shadow: 0 0 20px var(--rar-glow); }
-.rarity-row.rar-6 .rarity-chance {
+.rarity-row.rar-4 .rarity-chance { text-shadow: 0 0 14px var(--rar-glow); }
+.rarity-row.rar-5 .rarity-chance { text-shadow: 0 0 16px var(--rar-glow); }
+.rarity-row.rar-6 .rarity-chance { text-shadow: 0 0 20px var(--rar-glow); }
+.rarity-row.rar-7 .rarity-chance {
   color: #000000;
   text-shadow:
     0 0 2px #fff,
@@ -2184,6 +2191,71 @@ body {
   color: var(--text-faint);
   word-break: keep-all;
 }
+
+/* 보유 검 직접 장착 — rarity-card 아래 전체 폭으로 펼쳐진다 */
+.owned-swords-card { grid-column: 1 / -1; }
+.owned-sword-list {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 360px;
+  overflow-y: auto;
+}
+.owned-sword-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--rar-solid);
+  background: linear-gradient(100deg,
+    color-mix(in srgb, var(--rar-a) 14%, transparent), transparent 70%);
+}
+.owned-sword-item.equipped { box-shadow: 0 0 0 2px var(--rar-solid) inset; }
+.owned-sword-grade { padding: 3px 10px; font-size: 0.62rem; }
+.owned-sword-name {
+  font-family: 'Noto Serif KR', serif;
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.owned-sword-name small { margin-left: 4px; font-weight: 600; color: var(--text-faint); font-size: 0.72rem; }
+.owned-sword-income { font-size: 0.74rem; font-weight: 700; color: var(--gold); white-space: nowrap; }
+.btn-equip {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--rar-solid);
+  background: transparent;
+  color: var(--rar-solid);
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: filter 0.15s ease;
+}
+.btn-equip:hover:not(:disabled) { filter: brightness(1.2); }
+.btn-equip:disabled {
+  background: var(--rar-solid);
+  color: #fff;
+  cursor: default;
+}
+/* 설화검(rar-7)은 --rar-solid가 순검정이라, 이 목록의 테두리/버튼처럼
+   윤곽선으로 쓰는 곳은 옅은 은빛으로 바꿔줘야 다크 배경에서도 보인다. */
+.owned-sword-item.rar-7 { border-color: #d4d4d8; }
+.owned-sword-item.rar-7.equipped { box-shadow: 0 0 0 2px #d4d4d8 inset; }
+.owned-sword-item.rar-7 .btn-equip { border-color: #d4d4d8; color: #d4d4d8; }
+.owned-sword-item.rar-7 .btn-equip:disabled { color: #fff; }
+[data-theme="dark"] .owned-sword-item.rar-7 { border-color: #e4e4e7; }
+[data-theme="dark"] .owned-sword-item.rar-7.equipped { box-shadow: 0 0 0 2px #e4e4e7 inset; }
+[data-theme="dark"] .owned-sword-item.rar-7 .btn-equip { border-color: #e4e4e7; color: #e4e4e7; }
 
 /* ============ Codex (도감) ============ */
 .codex-note { margin: 0 0 16px; font-size: 0.8rem; color: var(--text-faint); font-weight: 600; }

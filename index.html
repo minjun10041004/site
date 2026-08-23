@@ -26,7 +26,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&family=Noto+Serif+KR:wght@500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260822p">
+<link rel="stylesheet" href="css/style.css?v=20260823a">
 </head>
 <body>
 
@@ -326,6 +326,16 @@
         <p class="rarity-note">같은 등급 안에서는 모든 검이 동일한 확률로 등장해요. 지금보다 좋은 검이 나오면 자동으로 장착됩니다.</p>
       </div>
 
+      <div class="card owned-swords-card">
+        <div class="card-head">
+          <h2><span class="card-icon">🗡️</span> 보유 검 · 장착 선택</h2>
+          <span class="badge" id="ownedSwordsCount">0 / 0</span>
+        </div>
+        <p class="rarity-note">원하는 검을 직접 골라 장착할 수 있어요. 더 강한 검을 새로 뽑으면 자동으로 장착됩니다.</p>
+        <ul class="owned-sword-list" id="ownedSwordList"></ul>
+        <p class="empty-state" id="ownedSwordEmpty">아직 뽑은 검이 없어요. 위에서 첫 검을 뽑아보세요 ⚔️</p>
+      </div>
+
     </div>
   </section>
 
@@ -588,6 +598,6 @@
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/app.js?v=20260822p"></script>
+<script src="js/app.js?v=20260823a"></script>
 </body>
 </html>
