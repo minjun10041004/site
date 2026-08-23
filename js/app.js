@@ -562,14 +562,22 @@
      Drawing a sword you've already discovered gives 별의 조각 instead of
      nothing — the amount scales with the duplicate's own rarity. Spend
      them in the 강화 tab to push an individually-owned sword's star level
-     up, 1★ at a time, capped at 10★. Each successful step is a flat +4%
-     on that sword's own income (stacking multiplicatively with nothing
-     else), and the odds get worse the higher the star level already is —
-     a failed attempt just burns the fragments spent, the star level never
-     drops. */
+     up, 1★ at a time, capped at 10★, and the odds get worse the higher
+     the star level already is — a failed attempt just burns the
+     fragments spent, the star level never drops. Each successful step
+     adds its own income bonus (stacking multiplicatively with nothing
+     else): a flat +3% for 1-5★, then a bigger jump per star from 6★
+     onward (+4/6/8/10/12%) so pushing into the top stars is a genuinely
+     stronger payoff, not just a flatter continuation of the early ones. */
   const STAR_FRAGMENTS_BY_RARITY = [1, 2, 5, 12, 22, 40, 150, 500];
   const ENHANCE_MAX_STARS = 10;
-  const ENHANCE_BONUS_PER_STAR = 0.03;
+  // index = star level being reached (0 -> 1★, ... 9 -> 10★).
+  const ENHANCE_BONUS_BY_STAR = [0.03, 0.03, 0.03, 0.03, 0.03, 0.04, 0.06, 0.08, 0.10, 0.12];
+  // index = current star count (0-10) -> total multiplier bonus at that level.
+  const ENHANCE_TOTAL_BONUS_BY_STAR = ENHANCE_BONUS_BY_STAR.reduce(
+    (acc, bonus) => [...acc, acc[acc.length - 1] + bonus],
+    [0],
+  );
   // index = current star level before the attempt (0 -> level 1, ... 9 -> level 10).
   // 범품~영검 (rarity 0-3) all share one flat, near-free cost table -- their
   // income is tiny, so the 별의 조각 cost has to stay tiny too, or the
@@ -1456,7 +1464,7 @@
      study time. */
   function swordIncomeAt(swordIdx) {
     const stars = swordStars[swordIdx] || 0;
-    return niceGold(SWORDS[swordIdx].studyBonus * (1.5 / 5) * (1 + stars * ENHANCE_BONUS_PER_STAR));
+    return niceGold(SWORDS[swordIdx].studyBonus * (1.5 / 5) * (1 + ENHANCE_TOTAL_BONUS_BY_STAR[stars]));
   }
   function studyIncomeAt(realmIdx, swordIdx) {
     return realmIncomeAt(realmIdx) + swordIncomeAt(swordIdx);
@@ -1949,7 +1957,7 @@
       renderStudyHint();
       renderHeader();
       triggerEnhanceEffect(stars + 1);
-      showToast(`✨ ${s.name} 강화 성공! ${stars + 1}★ 달성 (검 효율 +${ENHANCE_BONUS_PER_STAR * 100}%p)`);
+      showToast(`✨ ${s.name} 강화 성공! ${stars + 1}★ 달성 (검 효율 +${ENHANCE_BONUS_BY_STAR[stars] * 100}%p)`);
     } else {
       queueSave();
       renderEnhance();
