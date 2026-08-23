@@ -1759,22 +1759,24 @@ body {
   background-image: linear-gradient(100deg, var(--gold-2), var(--gold), #fff8e0, var(--gold), var(--gold-2));
 }
 
-/* ============ Sword rarity palette (6 grades) ============
-   일반 steel · 고급 jade · 희귀 azure · 영웅 amethyst ·
-   전설 molten gold · 신화 prismatic. Every grade gets a stronger
-   glow and a busier sheen than the one below it. */
+/* ============ Sword rarity palette (7 grades) ============
+   일반 steel · 고급 jade · 희귀 azure · 영웅 amethyst · 전설 molten gold ·
+   신화 prismatic · 설화 blackened steel with a flowing chrome sheen.
+   Every grade gets a stronger glow and a busier sheen than the one below it. */
 .rar-0 { --rar-a: #9aa4b5; --rar-b: #e8edf5; --rar-solid: #64748b; --rar-deep: #334155; --rar-glow: rgba(148, 163, 184, 0.5); }
 .rar-1 { --rar-a: #22c55e; --rar-b: #bbf7d0; --rar-solid: #16a34a; --rar-deep: #14532d; --rar-glow: rgba(34, 197, 94, 0.55); }
 .rar-2 { --rar-a: #3b82f6; --rar-b: #bfdbfe; --rar-solid: #2563eb; --rar-deep: #1e3a8a; --rar-glow: rgba(59, 130, 246, 0.6); }
 .rar-3 { --rar-a: #a855f7; --rar-b: #e9d5ff; --rar-solid: #9333ea; --rar-deep: #581c87; --rar-glow: rgba(168, 85, 247, 0.65); }
 .rar-4 { --rar-a: #f59e0b; --rar-b: #fde68a; --rar-solid: #d97706; --rar-deep: #7c2d12; --rar-glow: rgba(245, 158, 11, 0.7); }
 .rar-5 { --rar-a: #ff2d55; --rar-b: #7cf5ff; --rar-solid: #e11d48; --rar-deep: #701a3a; --rar-glow: rgba(255, 77, 109, 0.75); }
+.rar-6 { --rar-a: #f1f5f9; --rar-b: #cbd5e1; --rar-solid: #3f3f46; --rar-deep: #000000; --rar-glow: rgba(226, 232, 240, 0.6); }
 [data-theme="dark"] .rar-0 { --rar-solid: #94a3b8; }
 [data-theme="dark"] .rar-1 { --rar-solid: #22c55e; }
 [data-theme="dark"] .rar-2 { --rar-solid: #3b82f6; }
 [data-theme="dark"] .rar-3 { --rar-solid: #a855f7; }
 [data-theme="dark"] .rar-4 { --rar-solid: #f59e0b; }
 [data-theme="dark"] .rar-5 { --rar-solid: #ff4d6d; }
+[data-theme="dark"] .rar-6 { --rar-solid: #a1a1aa; }
 
 /* The gloss band that sweeps a sword's name has to be lighter than the
    letters in dark mode and darker than them in light mode, otherwise the
@@ -1821,6 +1823,21 @@ body {
 [data-theme="dark"] .cultivation-name.rar-5 {
   background-image: linear-gradient(100deg, #ff2d55, #ffd76a, #7cf5ff, #a855f7, #ffffff, #ff2d55);
   filter: drop-shadow(0 0 24px rgba(255, 45, 85, 0.6)) drop-shadow(0 0 24px rgba(124, 245, 255, 0.5));
+}
+/* 설화검: a black blade with a chrome/Damascus-steel sheen rippling across
+   it, rather than a color-hue shift like 선검's rainbow. */
+.cultivation-name.rar-6 {
+  background-image: linear-gradient(100deg, #000000, #3f3f46, #e2e8f0, #71717a, #000000);
+  background-size: 420% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 20px rgba(226, 232, 240, 0.5));
+  animation: rainbowShift 4s linear infinite, glowPulse 1.3s ease-in-out infinite;
+}
+[data-theme="dark"] .cultivation-name.rar-6 {
+  background-image: linear-gradient(100deg, #000000, #52525b, #f8fafc, #a1a1aa, #18181b, #000000);
+  filter: drop-shadow(0 0 24px rgba(248, 250, 252, 0.55)) drop-shadow(0 0 20px rgba(0, 0, 0, 0.6));
 }
 
 /* Grade chip */
