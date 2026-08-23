@@ -1824,20 +1824,32 @@ body {
   background-image: linear-gradient(100deg, #ff2d55, #ffd76a, #7cf5ff, #a855f7, #ffffff, #ff2d55);
   filter: drop-shadow(0 0 24px rgba(255, 45, 85, 0.6)) drop-shadow(0 0 24px rgba(124, 245, 255, 0.5));
 }
-/* 설화검: a black blade with a chrome/Damascus-steel sheen rippling across
-   it, rather than a color-hue shift like 선검's rainbow. */
+/* 설화검: solid black blade — one or two thin white glints sweep across
+   it as a whole, rather than the blade itself shifting color (unlike
+   선검's full-hue rainbow). Most of the gradient stays pure black; the
+   glint bands are kept narrow so black reads as the dominant color. */
 .cultivation-name.rar-6 {
-  background-image: linear-gradient(100deg, #000000, #3f3f46, #e2e8f0, #71717a, #000000);
-  background-size: 420% auto;
+  background-image: linear-gradient(100deg,
+    #000000 0%, #000000 38%,
+    #d4d4d8 44%, #ffffff 48%, #d4d4d8 52%,
+    #000000 58%, #000000 78%,
+    #e4e4e7 83%, #ffffff 86%, #e4e4e7 89%,
+    #000000 100%);
+  background-size: 320% auto;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  filter: drop-shadow(0 0 20px rgba(226, 232, 240, 0.5));
-  animation: rainbowShift 4s linear infinite, glowPulse 1.3s ease-in-out infinite;
+  filter: drop-shadow(0 0 16px rgba(226, 232, 240, 0.4));
+  animation: rainbowShift 4.5s linear infinite, glowPulse 1.3s ease-in-out infinite;
 }
 [data-theme="dark"] .cultivation-name.rar-6 {
-  background-image: linear-gradient(100deg, #000000, #52525b, #f8fafc, #a1a1aa, #18181b, #000000);
-  filter: drop-shadow(0 0 24px rgba(248, 250, 252, 0.55)) drop-shadow(0 0 20px rgba(0, 0, 0, 0.6));
+  background-image: linear-gradient(100deg,
+    #000000 0%, #000000 38%,
+    #71717a 44%, #ffffff 48%, #71717a 52%,
+    #000000 58%, #000000 78%,
+    #a1a1aa 83%, #ffffff 86%, #a1a1aa 89%,
+    #000000 100%);
+  filter: drop-shadow(0 0 22px rgba(255, 255, 255, 0.5)) drop-shadow(0 0 16px rgba(0, 0, 0, 0.7));
 }
 
 /* Grade chip */
