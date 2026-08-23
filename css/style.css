@@ -2102,7 +2102,20 @@ body {
   text-align: left;
 }
 .rarity-name small { margin-left: 6px; font-size: 0.68rem; opacity: 0.7; font-weight: 600; }
-.rarity-chance { font-weight: 900; font-size: 1rem; font-variant-numeric: tabular-nums; }
+.rarity-chance {
+  font-weight: 400;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--rar-solid);
+}
+/* 등급이 높을수록 확률 숫자의 광채가 짙어지도록 단계적으로 키운다 */
+.rarity-row.rar-1 .rarity-chance { text-shadow: 0 0 6px var(--rar-glow); }
+.rarity-row.rar-2 .rarity-chance { text-shadow: 0 0 9px var(--rar-glow); }
+.rarity-row.rar-3 .rarity-chance { text-shadow: 0 0 12px var(--rar-glow); }
+.rarity-row.rar-4 .rarity-chance { text-shadow: 0 0 16px var(--rar-glow); }
+.rarity-row.rar-5 .rarity-chance { text-shadow: 0 0 20px var(--rar-glow); }
+.rarity-row.rar-6 .rarity-chance { color: #d4d4d8; text-shadow: 0 0 22px var(--rar-glow); }
+[data-theme="dark"] .rarity-row.rar-6 .rarity-chance { color: #e4e4e7; }
 .rarity-count { font-size: 0.72rem; color: var(--text-faint); font-weight: 700; }
 .rarity-caret {
   font-size: 0.8rem;
