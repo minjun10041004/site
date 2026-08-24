@@ -652,7 +652,13 @@
   const ENHANCE_LOW_TIER_COST_BY_LEVEL = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2];
   const ENHANCE_COST_BY_LEVEL = [4, 7, 11, 17, 26, 40, 62, 100, 160, 260];
   const ENHANCE_CHANCE_BY_LEVEL = [95, 90, 85, 78, 70, 60, 48, 35, 22, 12];
-  const ENHANCE_RARITY_COST_MULT = [1, 1, 1, 1, 2, 3, 4.5, 6.75]; // 0-3 unused, see enhanceCostFor
+  // 용검(4)은 1.5 -- 2였을 때는 별의 조각 수급(STAR_FRAGMENTS_BY_RARITY 22)
+  // 대비 비용 배율이 신병이기(수급 40, 배율 3)보다도 나쁜 조각당 효율을
+  // 내고 있었다 (11.0 vs 13.3) -- 용검이 더 쉬운 입문 등급인데도 더 손해인
+  // 구조였던 셈. 1.5로 낮추면 14.7로, 한 단계 위인 신병이기보다 살짝
+  // 나은 조각 효율이 되어 등급이 오를수록 조각당 효율이 나빠지는
+  // 자연스러운 순서로 돌아온다.
+  const ENHANCE_RARITY_COST_MULT = [1, 1, 1, 1, 1.5, 3, 4.5, 6.75]; // 0-3 unused, see enhanceCostFor
   const ENHANCE_RARITY_CHANCE_MULT = [1, 0.96, 0.9, 0.82, 0.78, 0.7, 0.55, 0.43];
   const ENHANCE_MIN_CHANCE = 5;
   // 11★/12★ cost, by rarity — flat regardless of current star level, and
