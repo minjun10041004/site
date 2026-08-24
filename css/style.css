@@ -1120,15 +1120,26 @@ body {
   overflow-y: auto;
   padding-right: 4px;
 }
-.ladder-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.ladder-item {
+  flex-shrink: 0;
   background: var(--surface-solid);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 11px 14px;
   transition: border-color 0.2s ease;
+  overflow: hidden;
+}
+.ladder-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 .ladder-rank {
   width: 26px;
@@ -1143,17 +1154,42 @@ body {
 .ladder-hanja { font-family: 'Noto Serif KR', serif; font-size: 0.76rem; color: var(--text-faint); }
 .ladder-range { flex-shrink: 0; font-size: 0.72rem; font-weight: 700; color: var(--gold); white-space: nowrap; }
 .ladder-status { flex-shrink: 0; font-size: 0.76rem; font-weight: 800; white-space: nowrap; min-width: 64px; text-align: right; }
+.ladder-caret { flex-shrink: 0; font-size: 0.7rem; color: var(--text-faint); transition: transform 0.2s ease; }
+.ladder-item.expanded .ladder-caret { transform: rotate(180deg); }
 
-.ladder-row.done { border-color: var(--accent-3); }
-.ladder-row.done .ladder-status { color: var(--accent-3); }
-.ladder-row.current {
+.ladder-item.done { border-color: var(--accent-3); }
+.ladder-item.done .ladder-status { color: var(--accent-3); }
+.ladder-item.current {
   border-color: var(--cult-a);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--cult-a) 18%, transparent);
   background: linear-gradient(120deg, color-mix(in srgb, var(--cult-a) 12%, var(--surface-solid)), var(--surface-solid));
 }
-.ladder-row.current .ladder-status { color: var(--cult-a); }
-.ladder-row.locked { opacity: 0.6; }
-.ladder-row.locked .ladder-status { color: var(--text-faint); }
+.ladder-item.current .ladder-status { color: var(--cult-a); }
+.ladder-item.locked { opacity: 0.6; }
+.ladder-item.locked .ladder-status { color: var(--text-faint); }
+
+.ladder-detail {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.25s ease;
+}
+.ladder-item.expanded .ladder-detail { max-height: 400px; }
+.ladder-detail-lore, .ladder-detail-desc {
+  margin: 0;
+  padding: 0 14px;
+  font-size: 0.8rem;
+  line-height: 1.65;
+  word-break: keep-all;
+}
+.ladder-detail-lore {
+  padding-top: 2px;
+  padding-bottom: 8px;
+  color: var(--text-faint);
+  font-style: italic;
+  border-top: 1px dashed var(--border);
+  margin-top: 2px;
+}
+.ladder-detail-desc { padding-bottom: 14px; color: var(--text-soft); }
 
 /* ============ Toast ============ */
 .toast {
@@ -1949,7 +1985,7 @@ body {
   overflow: hidden;
 }
 .equipped-block { width: 100%; }
-.sword-lore {
+.sword-lore, .realm-lore {
   margin: 14px auto 6px;
   max-width: 46ch;
   font-size: 0.84rem;

@@ -26,7 +26,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&family=Noto+Serif+KR:wght@500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260823e">
+<link rel="stylesheet" href="css/style.css?v=20260823g">
 </head>
 <body>
 
@@ -262,6 +262,7 @@
         <p class="cultivation-label">현재 경지</p>
         <h2 class="cultivation-name" id="realmName">삼류무사</h2>
         <p class="cultivation-hanja" id="realmHanja">(三流武士)</p>
+        <p class="realm-lore" id="realmLore"></p>
         <p class="cultivation-desc" id="realmDesc"></p>
         <div class="cultivation-stats">
           <div class="cultivation-stat">
@@ -281,6 +282,7 @@
           <h2><span class="card-icon">🧘</span> 경지 계보</h2>
           <span class="badge" id="realmBadge">1 / 1</span>
         </div>
+        <p class="rarity-note">각 경지를 눌러보면 그 경지에서 할 수 있는 일과 익히는 수법을 볼 수 있어요.</p>
         <ul class="ladder-list" id="realmLadderList"></ul>
       </div>
     </div>
@@ -549,14 +551,21 @@
 </template>
 
 <template id="ladderRowTemplate">
-  <li class="ladder-row">
-    <span class="ladder-rank"></span>
-    <div class="ladder-info">
-      <span class="ladder-name"></span>
-      <span class="ladder-hanja"></span>
+  <li class="ladder-item">
+    <button type="button" class="ladder-row">
+      <span class="ladder-rank"></span>
+      <div class="ladder-info">
+        <span class="ladder-name"></span>
+        <span class="ladder-hanja"></span>
+      </div>
+      <span class="ladder-range"></span>
+      <span class="ladder-status"></span>
+      <span class="ladder-caret">▾</span>
+    </button>
+    <div class="ladder-detail">
+      <p class="ladder-detail-lore"></p>
+      <p class="ladder-detail-desc"></p>
     </div>
-    <span class="ladder-range"></span>
-    <span class="ladder-status"></span>
   </li>
 </template>
 
@@ -599,6 +608,6 @@
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/app.js?v=20260823e"></script>
+<script src="js/app.js?v=20260823g"></script>
 </body>
 </html>
