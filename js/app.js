@@ -49,6 +49,7 @@
   let avatar = null;       // small data URL, or null for the placeholder icon
   let starFragments = 0;   // 별의 조각 — earned by drawing a sword you already own
   let swordStars = {};     // { [swordIdx]: 0-10 } — 강화 level per individually owned sword
+  let totalDraws = 0;      // lifetime count of swords drawn (검 뽑기 tab), for the 랭킹 tab
 
   /* Bumped whenever the sword table is reshaped, so stale sword indices
      from an older layout can't silently point at the wrong blade. */
@@ -58,7 +59,7 @@
     return {
       schedules, todosByDate, gold, subjects, studyByDate, activeSession,
       realmLevel, swordLevel, discovered, swordTableVersion: SWORD_TABLE_VERSION,
-      nickname, avatar, starFragments, swordStars,
+      nickname, avatar, starFragments, swordStars, totalDraws,
     };
   }
 
@@ -88,6 +89,7 @@
 
     gold = Number.isFinite(data.gold) ? Math.max(0, Math.floor(data.gold)) : 1000;
     starFragments = Number.isFinite(data.starFragments) ? Math.max(0, Math.floor(data.starFragments)) : 0;
+    totalDraws = Number.isFinite(data.totalDraws) ? Math.max(0, Math.floor(data.totalDraws)) : 0;
     swordStars = {};
     if (data.swordStars && typeof data.swordStars === 'object') {
       for (const key of Object.keys(data.swordStars)) {
@@ -119,28 +121,42 @@
     return total;
   }
 
+  function leaderboardRow() {
+    return {
+      user_id: currentUserId,
+      username: currentUsername,
+      nickname: nickname || null,
+      avatar,
+      realm_level: realmLevel,
+      sword_level: swordLevel,
+      gold,
+      study_today: sumStudySecondsForDate(studyDayKey()),
+      study_week: sumStudySecondsRolling(7),
+      study_month: sumStudySecondsRolling(30),
+      total_draws: totalDraws,
+      updated_at: new Date().toISOString(),
+    };
+  }
+
   async function flushSave() {
     if (!currentUserId) return;
-    await Promise.all([
+    const [, { error: rankError }] = await Promise.all([
       sb.from('app_data').upsert({
         user_id: currentUserId,
         data: collectState(),
         updated_at: new Date().toISOString(),
       }),
-      sb.from('leaderboard').upsert({
-        user_id: currentUserId,
-        username: currentUsername,
-        nickname: nickname || null,
-        avatar,
-        realm_level: realmLevel,
-        sword_level: swordLevel,
-        gold,
-        study_today: sumStudySecondsForDate(studyDayKey()),
-        study_week: sumStudySecondsRolling(7),
-        study_month: sumStudySecondsRolling(30),
-        updated_at: new Date().toISOString(),
-      }),
+      sb.from('leaderboard').upsert(leaderboardRow()),
     ]);
+    // total_draws is a new column — until the matching migration has been
+    // run, upserting it fails the whole row (not just that field), which
+    // would otherwise silently stop gold/study time from reaching the
+    // leaderboard too. Retry once without it so everything else still
+    // syncs in the meantime.
+    if (rankError) {
+      const { total_draws, ...withoutTotalDraws } = leaderboardRow();
+      await sb.from('leaderboard').upsert(withoutTotalDraws);
+    }
   }
 
   let saveTimer = null;
@@ -977,10 +993,12 @@
     study_today: { column: 'study_today', label: (v) => formatDurationLabel(v || 0) },
     study_week: { column: 'study_week', label: (v) => formatDurationLabel(v || 0) },
     study_month: { column: 'study_month', label: (v) => formatDurationLabel(v || 0) },
+    total_draws: { column: 'total_draws', label: (v) => `${(v || 0).toLocaleString('ko-KR')}회` },
   };
   const RANK_LABELS = {
     realm: '🧘 경지', sword: '⚔️ 검', gold: '🪙 골드',
     study_today: '☀️ 오늘 공부', study_week: '📅 최근 7일', study_month: '🗓️ 최근 30일',
+    total_draws: '🎲 총 뽑기',
   };
   let currentRankCategory = 'realm';
 
@@ -991,11 +1009,23 @@
 
     // Named columns, not '*' -- keeps updated_at and anything added later out
     // of a query that already runs often and carries an avatar per row.
-    const { data, error } = await sb
+    let { data, error } = await sb
       .from('leaderboard')
-      .select('user_id, username, nickname, avatar, realm_level, sword_level, gold, study_today, study_week, study_month')
+      .select('user_id, username, nickname, avatar, realm_level, sword_level, gold, study_today, study_week, study_month, total_draws')
       .order(cfg.column, { ascending: false })
       .limit(200);
+
+    // total_draws is a new column -- until its migration has run, asking
+    // for it errors the whole query (not just that field), which would
+    // otherwise blank out every ranking category, not just this one. Fall
+    // back to the older column list rather than showing nothing.
+    if (error) {
+      ({ data, error } = await sb
+        .from('leaderboard')
+        .select('user_id, username, nickname, avatar, realm_level, sword_level, gold, study_today, study_week, study_month')
+        .order(cfg.column, { ascending: false })
+        .limit(200));
+    }
 
     const rows = error ? [] : (data || []);
     rankList.innerHTML = '';
@@ -1659,6 +1689,7 @@
     }
 
     gold -= total;
+    totalDraws += count;
 
     const results = [];
     let equippedChanged = false;
