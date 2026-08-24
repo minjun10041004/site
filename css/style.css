@@ -2610,6 +2610,12 @@ body {
   position: relative;
   z-index: 1;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.enhance-stars-row {
+  display: flex;
   gap: 6px;
 }
 .enhance-star {
@@ -2633,6 +2639,13 @@ body {
 .enhance-star.filled.star-pos-8  { filter: hue-rotate(-40deg) saturate(2.17) brightness(1.14) drop-shadow(0 0 8px rgba(255, 255, 255, 0.68)); }
 .enhance-star.filled.star-pos-9  { filter: hue-rotate(-40deg) saturate(2.33) brightness(1.16) drop-shadow(0 0 9px rgba(255, 255, 255, 0.72)); }
 .enhance-star.filled.star-pos-10 { filter: hue-rotate(-40deg) saturate(2.5)  brightness(1.18) drop-shadow(0 0 10px rgba(255, 255, 255, 0.78)); }
+/* 11★/12★ (돌파강화) — a step apart from the green-led row above, so they
+   go back to the star image's own native blue (hue-rotate 0, the color
+   used before the whole set was shifted green) and a purple further
+   around the wheel, each with a much stronger glow of its own hue. */
+.enhance-star.filled.star-pos-11 { filter: hue-rotate(0deg)  saturate(1.7) brightness(1.2) drop-shadow(0 0 11px rgba(59, 130, 246, 0.9)); }
+.enhance-star.filled.star-pos-12 { filter: hue-rotate(55deg) saturate(2.6) brightness(1.05) drop-shadow(0 0 11px rgba(168, 85, 247, 0.9)); }
+.enhance-overcap-warning { color: var(--danger); font-weight: 800; }
 
 /* 별의 조각 currency icon — a small crystal-shard image with a soft glow. */
 .frag-icon {

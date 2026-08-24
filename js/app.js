@@ -626,12 +626,19 @@
      adds its own income bonus (stacking multiplicatively with nothing
      else): a flat +3% for 1-5★, then a bigger jump per star from 6★
      onward (+4/6/8/10/12%) so pushing into the top stars is a genuinely
-     stronger payoff, not just a flatter continuation of the early ones. */
+     stronger payoff, not just a flatter continuation of the early ones.
+
+     11★/12★ are a separate, much higher-stakes "돌파강화" tier past the
+     safe 10★ cap: every attempt is a flat 50/50, and failure doesn't just
+     burn the fragments — it destroys the whole run, resetting the sword
+     straight back to 0★. The income payoff (+30%p each) is sized to
+     match that risk. */
   const STAR_FRAGMENTS_BY_RARITY = [1, 2, 5, 12, 22, 40, 150, 500];
-  const ENHANCE_MAX_STARS = 10;
-  // index = star level being reached (0 -> 1★, ... 9 -> 10★).
-  const ENHANCE_BONUS_BY_STAR = [0.03, 0.03, 0.03, 0.03, 0.03, 0.04, 0.06, 0.08, 0.10, 0.12];
-  // index = current star count (0-10) -> total multiplier bonus at that level.
+  const ENHANCE_SAFE_MAX_STARS = 10;
+  const ENHANCE_MAX_STARS = 12;
+  // index = star level being reached (0 -> 1★, ... 11 -> 12★).
+  const ENHANCE_BONUS_BY_STAR = [0.03, 0.03, 0.03, 0.03, 0.03, 0.04, 0.06, 0.08, 0.10, 0.12, 0.30, 0.30];
+  // index = current star count (0-12) -> total multiplier bonus at that level.
   const ENHANCE_TOTAL_BONUS_BY_STAR = ENHANCE_BONUS_BY_STAR.reduce(
     (acc, bonus) => [...acc, acc[acc.length - 1] + bonus],
     [0],
@@ -648,6 +655,11 @@
   const ENHANCE_RARITY_COST_MULT = [1, 1, 1, 1, 2, 3, 4.5, 6.75]; // 0-3 unused, see enhanceCostFor
   const ENHANCE_RARITY_CHANCE_MULT = [1, 0.96, 0.9, 0.82, 0.78, 0.7, 0.55, 0.43];
   const ENHANCE_MIN_CHANCE = 5;
+  // 11★/12★ cost, by rarity — flat regardless of current star level, and
+  // steep enough that even the 별의 조각 income from 설화검 duplicates
+  // makes this a real grind, matching the size of the risk.
+  const ENHANCE_OVERCAP_COST_BY_RARITY = [50, 50, 50, 50, 100, 200, 400, 1000];
+  const ENHANCE_OVERCAP_CHANCE = 50;
 
   // Grade first, studyBonus as the tiebreaker within a grade — used instead
   // of raw array index to decide "is this sword actually stronger", since
@@ -660,13 +672,18 @@
 
   function enhanceCostFor(swordIdx, stars) {
     const rarity = SWORDS[swordIdx].rarity;
+    if (stars >= ENHANCE_SAFE_MAX_STARS) return ENHANCE_OVERCAP_COST_BY_RARITY[rarity];
     if (rarity <= 3) return ENHANCE_LOW_TIER_COST_BY_LEVEL[stars];
     return Math.round(ENHANCE_COST_BY_LEVEL[stars] * ENHANCE_RARITY_COST_MULT[rarity]);
   }
   function enhanceChanceFor(swordIdx, stars) {
+    if (stars >= ENHANCE_SAFE_MAX_STARS) return ENHANCE_OVERCAP_CHANCE;
     const raw = ENHANCE_CHANCE_BY_LEVEL[stars] * ENHANCE_RARITY_CHANCE_MULT[SWORDS[swordIdx].rarity];
     return Math.max(ENHANCE_MIN_CHANCE, Math.round(raw));
   }
+  // Past the safe cap, a failed attempt doesn't just waste the fragments —
+  // it destroys the run outright, straight back to 0★.
+  function enhanceIsOvercap(stars) { return stars >= ENHANCE_SAFE_MAX_STARS; }
 
   const BASE_STUDY_MIN = 250;
 
@@ -1946,17 +1963,37 @@
   // -> orange as the row climbs) — reaching that star just fills it in
   // with its own designated color, defined as CSS classes .star-pos-1
   // through .star-pos-10. Not a tier-based recolor of the whole set.
+  // 1-10★ render as the original single row; 11★/12★ (the 돌파강화
+  // over-cap tier) sit on their own centered row underneath, so the
+  // distinct blue/purple pair reads as a separate, higher-stakes step
+  // rather than just two more slots tacked onto the same line.
   function renderEnhanceStars(stars) {
     enhanceStars.innerHTML = '';
-    for (let i = 1; i <= ENHANCE_MAX_STARS; i++) {
+    const mainRow = document.createElement('div');
+    mainRow.className = 'enhance-stars-row';
+    for (let i = 1; i <= ENHANCE_SAFE_MAX_STARS; i++) {
       const img = document.createElement('img');
       const filled = i <= stars;
       img.src = 'img/enhance-star.png';
       img.alt = filled ? '★' : '☆';
       img.className = 'enhance-star';
       if (filled) img.classList.add('filled', `star-pos-${i}`);
-      enhanceStars.appendChild(img);
+      mainRow.appendChild(img);
     }
+    enhanceStars.appendChild(mainRow);
+
+    const overcapRow = document.createElement('div');
+    overcapRow.className = 'enhance-stars-row enhance-stars-row-overcap';
+    for (let i = ENHANCE_SAFE_MAX_STARS + 1; i <= ENHANCE_MAX_STARS; i++) {
+      const img = document.createElement('img');
+      const filled = i <= stars;
+      img.src = 'img/enhance-star.png';
+      img.alt = filled ? '★' : '☆';
+      img.className = 'enhance-star enhance-star-overcap';
+      if (filled) img.classList.add('filled', `star-pos-${i}`);
+      overcapRow.appendChild(img);
+    }
+    enhanceStars.appendChild(overcapRow);
   }
 
   // Remembers the player's manual pick for the session; falls back to the
@@ -2005,13 +2042,15 @@
     enhanceCardWrap.className = `card enhance-card-wrap sword-theme enhance-tier-${enhanceTierOf(stars)}`;
 
     if (stars >= ENHANCE_MAX_STARS) {
-      enhanceNextInfo.textContent = '이미 최대 10성에 도달했어요.';
+      enhanceNextInfo.textContent = '이미 최대 12성에 도달했어요.';
       enhanceBtn.disabled = true;
       enhanceBtn.textContent = '강화 완료';
     } else {
       const cost = enhanceCostFor(idx, stars);
       const chance = enhanceChanceFor(idx, stars);
-      enhanceNextInfo.innerHTML = `${stars + 1}성 도전 · <img class="frag-icon" src="img/star-fragment.png" alt="✳"> ${cost.toLocaleString('ko-KR')} · 성공 확률 ${chance}%`;
+      const overcap = enhanceIsOvercap(stars);
+      enhanceNextInfo.innerHTML = `${stars + 1}성 도전 · <img class="frag-icon" src="img/star-fragment.png" alt="✳"> ${cost.toLocaleString('ko-KR')} · 성공 확률 ${chance}%`
+        + (overcap ? ' · <span class="enhance-overcap-warning">⚠ 실패 시 0성으로 파괴</span>' : '');
       enhanceBtn.disabled = starFragments < cost;
       enhanceBtn.textContent = `강화하기 (${stars}★ → ${stars + 1}★)`;
     }
@@ -2043,6 +2082,7 @@
     starFragments -= cost;
     const chance = enhanceChanceFor(idx, stars);
     const success = Math.random() * 100 < chance;
+    const overcap = enhanceIsOvercap(stars);
     const s = SWORDS[idx];
 
     if (success) {
@@ -2055,6 +2095,17 @@
       renderHeader();
       triggerEnhanceEffect(stars + 1);
       showToast(`✨ ${s.name} 강화 성공! ${stars + 1}★ 달성 (검 효율 +${ENHANCE_BONUS_BY_STAR[stars] * 100}%p)`);
+    } else if (overcap) {
+      // Past the safe cap a failure isn't a harmless whiff — it destroys
+      // the whole run, straight back to 0★.
+      delete swordStars[idx];
+      queueSave();
+      renderEnhance();
+      renderGachaPanel();
+      renderCodex();
+      renderStudyHint();
+      renderHeader();
+      showToast(`💥 ${s.name} 강화 파괴! ${stars}★ → 0★로 초기화됐어요.`);
     } else {
       queueSave();
       renderEnhance();
