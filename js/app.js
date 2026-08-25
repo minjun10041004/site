@@ -676,6 +676,14 @@
     return s.rarity * 1e9 + s.studyBonus;
   }
 
+  // Same as swordPower(), but tolerant of a sword_level value that isn't a
+  // valid SWORDS[] index -- leaderboard rows come from other users' clients
+  // (see isSafeAvatarUrl above for why those fields aren't fully trusted),
+  // so an out-of-range value there should sink to the bottom, not throw.
+  function swordPowerSafe(idx) {
+    return SWORDS[idx] ? swordPower(idx) : -1;
+  }
+
   function enhanceCostFor(swordIdx, stars) {
     const rarity = SWORDS[swordIdx].rarity;
     if (stars >= ENHANCE_SAFE_MAX_STARS) return ENHANCE_OVERCAP_COST_BY_RARITY[rarity];
@@ -1029,28 +1037,35 @@
     currentRankCategory = category;
     rankCategoryButtons.forEach((b) => b.classList.toggle('active', b.dataset.cat === category));
     const cfg = RANK_CATEGORIES[category];
+    // sword_level is a raw SWORDS[] array index, not a power ranking -- new
+    // grades get appended at the array's end regardless of actual rarity
+    // (see swordPower() above), so a DB-level order by it would rank a
+    // higher-index-but-weaker 용검 sword above a lower-index 신병이기 one.
+    // Fetch unordered for this one category and rank by swordPower() below.
+    const orderBySql = category !== 'sword';
 
     // Named columns, not '*' -- keeps updated_at and anything added later out
     // of a query that already runs often and carries an avatar per row.
-    let { data, error } = await sb
-      .from('leaderboard')
-      .select('user_id, username, nickname, avatar, realm_level, sword_level, gold, study_today, study_week, study_month, total_draws')
-      .order(cfg.column, { ascending: false })
-      .limit(200);
+    const fullColumns = 'user_id, username, nickname, avatar, realm_level, sword_level, gold, study_today, study_week, study_month, total_draws';
+    const legacyColumns = 'user_id, username, nickname, avatar, realm_level, sword_level, gold, study_today, study_week, study_month';
+    let query = sb.from('leaderboard').select(fullColumns);
+    if (orderBySql) query = query.order(cfg.column, { ascending: false });
+    let { data, error } = await query.limit(200);
 
     // total_draws is a new column -- until its migration has run, asking
     // for it errors the whole query (not just that field), which would
     // otherwise blank out every ranking category, not just this one. Fall
     // back to the older column list rather than showing nothing.
     if (error) {
-      ({ data, error } = await sb
-        .from('leaderboard')
-        .select('user_id, username, nickname, avatar, realm_level, sword_level, gold, study_today, study_week, study_month')
-        .order(cfg.column, { ascending: false })
-        .limit(200));
+      let fallbackQuery = sb.from('leaderboard').select(legacyColumns);
+      if (orderBySql) fallbackQuery = fallbackQuery.order(cfg.column, { ascending: false });
+      ({ data, error } = await fallbackQuery.limit(200));
     }
 
-    const rows = error ? [] : (data || []);
+    let rows = error ? [] : (data || []);
+    if (category === 'sword') {
+      rows = rows.slice().sort((a, b) => swordPowerSafe(b.sword_level) - swordPowerSafe(a.sword_level));
+    }
     rankList.innerHTML = '';
     rankEmpty.style.display = rows.length ? 'none' : 'block';
 
@@ -1175,12 +1190,19 @@
 
     profileRankList.innerHTML = '';
     const entries = Object.entries(RANK_CATEGORIES);
-    const results = await Promise.all(entries.map(([, cfg]) =>
-      sb.from('leaderboard').select('user_id').order(cfg.column, { ascending: false }).limit(200)
-    ));
+    // 'sword' needs sword_level itself to rank by swordPower() client-side
+    // (see renderRanking() above) rather than a plain DB-side order.
+    const results = await Promise.all(entries.map(([key, cfg]) => (
+      key === 'sword'
+        ? sb.from('leaderboard').select('user_id, sword_level').limit(200)
+        : sb.from('leaderboard').select('user_id').order(cfg.column, { ascending: false }).limit(200)
+    )));
     entries.forEach(([key], i) => {
       const { data, error } = results[i];
-      const rows = error ? [] : (data || []);
+      let rows = error ? [] : (data || []);
+      if (key === 'sword') {
+        rows = rows.slice().sort((a, b) => swordPowerSafe(b.sword_level) - swordPowerSafe(a.sword_level));
+      }
       const idx = rows.findIndex((r) => r.user_id === currentUserId);
       const li = document.createElement('li');
       li.className = 'profile-rank-row';
