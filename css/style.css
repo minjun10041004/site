@@ -13,8 +13,8 @@
   --danger: #ef4577;
   --gold: #d69a1f;
   --gold-2: #ffd767;
-  --quote-color: #d8460f;
-  --quote-glow: rgba(216, 70, 15, 0.3);
+  --quote-color: #15803d;
+  --quote-glow: rgba(21, 128, 61, 0.3);
   --shadow: 0 20px 40px -20px rgba(76, 60, 140, 0.25);
   --shadow-sm: 0 8px 20px -12px rgba(76, 60, 140, 0.3);
   --radius-lg: 26px;
@@ -38,8 +38,8 @@
   --danger: #ff6b8b;
   --gold: #ffcc4d;
   --gold-2: #ffb020;
-  --quote-color: #ff9152;
-  --quote-glow: rgba(255, 145, 82, 0.55);
+  --quote-color: #4ade80;
+  --quote-glow: rgba(74, 222, 128, 0.55);
   --shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.6);
   --shadow-sm: 0 8px 20px -12px rgba(0, 0, 0, 0.5);
   color-scheme: dark;
