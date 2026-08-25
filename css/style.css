@@ -13,8 +13,8 @@
   --danger: #ef4577;
   --gold: #d69a1f;
   --gold-2: #ffd767;
-  --quote-color: #15803d;
-  --quote-glow: rgba(21, 128, 61, 0.3);
+  --quote-color: #ca8a04;
+  --quote-glow: rgba(202, 138, 4, 0.4);
   --shadow: 0 20px 40px -20px rgba(76, 60, 140, 0.25);
   --shadow-sm: 0 8px 20px -12px rgba(76, 60, 140, 0.3);
   --radius-lg: 26px;
@@ -38,8 +38,8 @@
   --danger: #ff6b8b;
   --gold: #ffcc4d;
   --gold-2: #ffb020;
-  --quote-color: #4ade80;
-  --quote-glow: rgba(74, 222, 128, 0.55);
+  --quote-color: #fef08a;
+  --quote-glow: rgba(254, 240, 138, 0.7);
   --shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.6);
   --shadow-sm: 0 8px 20px -12px rgba(0, 0, 0, 0.5);
   color-scheme: dark;
@@ -161,7 +161,7 @@ body {
      background. A single vivid, warm color (matching the 🔥 branding)
      plus a glow reads clearly against both. */
   color: var(--quote-color);
-  text-shadow: 0 0 18px var(--quote-glow), 0 1px 0 var(--bevel-light);
+  text-shadow: 0 0 6px var(--quote-glow), 0 0 22px var(--quote-glow), 0 1px 0 var(--bevel-light);
 }
 
 .hero-stats { display: flex; gap: 28px; flex-wrap: wrap; }
