@@ -1033,6 +1033,17 @@
   };
   let currentRankCategory = 'realm';
 
+  // hyojanom asked to see themself on the 랭킹 tab from their own screen
+  // while staying invisible to everyone else viewing the same shared rows.
+  // Purely a display-time filter applied after the same query everyone
+  // else runs -- their row is still fetched, just dropped before render
+  // for any viewer who isn't them.
+  const GHOST_RANK_USERNAME = 'hyojanom';
+  function applyGhostRankFilter(rows) {
+    if (currentUsername === GHOST_RANK_USERNAME) return rows;
+    return rows.filter((r) => r.username !== GHOST_RANK_USERNAME);
+  }
+
   async function renderRanking(category) {
     currentRankCategory = category;
     rankCategoryButtons.forEach((b) => b.classList.toggle('active', b.dataset.cat === category));
@@ -1063,6 +1074,7 @@
     }
 
     let rows = error ? [] : (data || []);
+    rows = applyGhostRankFilter(rows);
     if (category === 'sword') {
       rows = rows.slice().sort((a, b) => swordPowerSafe(b.sword_level) - swordPowerSafe(a.sword_level));
     }
@@ -1192,14 +1204,17 @@
     const entries = Object.entries(RANK_CATEGORIES);
     // 'sword' needs sword_level itself to rank by swordPower() client-side
     // (see renderRanking() above) rather than a plain DB-side order.
+    // username rides along on every category so applyGhostRankFilter() can
+    // drop hyojanom's row the same way renderRanking() does.
     const results = await Promise.all(entries.map(([key, cfg]) => (
       key === 'sword'
-        ? sb.from('leaderboard').select('user_id, sword_level').limit(200)
-        : sb.from('leaderboard').select('user_id').order(cfg.column, { ascending: false }).limit(200)
+        ? sb.from('leaderboard').select('user_id, username, sword_level').limit(200)
+        : sb.from('leaderboard').select('user_id, username').order(cfg.column, { ascending: false }).limit(200)
     )));
     entries.forEach(([key], i) => {
       const { data, error } = results[i];
       let rows = error ? [] : (data || []);
+      rows = applyGhostRankFilter(rows);
       if (key === 'sword') {
         rows = rows.slice().sort((a, b) => swordPowerSafe(b.sword_level) - swordPowerSafe(a.sword_level));
       }
