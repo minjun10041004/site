@@ -50,16 +50,21 @@
   let starFragments = 0;   // 별의 조각 — earned by drawing a sword you already own
   let swordStars = {};     // { [swordIdx]: 0-10 } — 강화 level per individually owned sword
   let totalDraws = 0;      // lifetime count of swords drawn (검 뽑기 tab), for the 랭킹 tab
+  let gearLevel = 0;       // index of the equipped item in GEAR_ITEMS (장비 뽑기 tab)
+  let gearDiscovered = [0]; // GEAR_ITEMS indices ever drawn
 
   /* Bumped whenever the sword table is reshaped, so stale sword indices
      from an older layout can't silently point at the wrong blade. */
   const SWORD_TABLE_VERSION = 3;
+  // Same guard, for GEAR_ITEMS (장비 뽑기 tab).
+  const GEAR_TABLE_VERSION = 1;
 
   function collectState() {
     return {
       schedules, todosByDate, gold, subjects, studyByDate, activeSession,
       realmLevel, swordLevel, discovered, swordTableVersion: SWORD_TABLE_VERSION,
       nickname, avatar, starFragments, swordStars, totalDraws,
+      gearLevel, gearDiscovered, gearTableVersion: GEAR_TABLE_VERSION,
     };
   }
 
@@ -83,6 +88,17 @@
     swordLevel = Math.min(Math.max(swordLevel, 0), SWORDS.length - 1);
     discovered = [...new Set(discovered.filter((i) => i >= 0 && i < SWORDS.length))];
     if (!discovered.includes(swordLevel)) discovered.push(swordLevel);
+
+    if (data.gearTableVersion === GEAR_TABLE_VERSION) {
+      gearLevel = data.gearLevel ?? 0;
+      gearDiscovered = Array.isArray(data.gearDiscovered) && data.gearDiscovered.length ? data.gearDiscovered : [0];
+    } else {
+      gearLevel = 0;
+      gearDiscovered = [0];
+    }
+    gearLevel = Math.min(Math.max(gearLevel, 0), GEAR_ITEMS.length - 1);
+    gearDiscovered = [...new Set(gearDiscovered.filter((i) => i >= 0 && i < GEAR_ITEMS.length))];
+    if (!gearDiscovered.includes(gearLevel)) gearDiscovered.push(gearLevel);
 
     nickname = typeof data.nickname === 'string' ? data.nickname.slice(0, 16) : '';
     avatar = isSafeAvatarUrl(data.avatar) ? data.avatar : null;
@@ -273,6 +289,7 @@
     study: el('panel-study'),
     realm: el('panel-realm'),
     sword: el('panel-sword'),
+    gear: el('panel-gear'),
     enhance: el('panel-enhance'),
     codex: el('panel-codex'),
     epithet: el('panel-epithet'),
@@ -924,14 +941,15 @@
     const qIndex = new Date().getDate() % QUOTES.length;
     motivationQuote.textContent = QUOTES[qIndex];
 
-    // Spell the sum out on the label so the three tabs visibly reconcile:
-    // 경지 효율 + 검 효율 = this number.
+    // Spell the sum out on the label so the tabs visibly reconcile:
+    // 경지 효율 + 검 효율 + 장비 효율 = this number.
     const realmPart = realmIncomeAt(realmLevel);
     const swordPart = swordIncomeAt(swordLevel);
-    const total = realmPart + swordPart;
+    const gearPart = gearIncomeAt(gearLevel);
+    const total = realmPart + swordPart + gearPart;
     incomePerMinute.textContent = `${total.toLocaleString('ko-KR')}G`;
     incomePerMinuteLabel.textContent =
-      `총 분당 골드 (경지 ${realmPart.toLocaleString('ko-KR')} + 검 ${swordPart.toLocaleString('ko-KR')})`;
+      `총 분당 골드 (경지 ${realmPart.toLocaleString('ko-KR')} + 검 ${swordPart.toLocaleString('ko-KR')} + 장비 ${gearPart.toLocaleString('ko-KR')})`;
     incomePerHour.textContent = `${(total * 60).toLocaleString('ko-KR')}G`;
   }
 
@@ -1006,6 +1024,7 @@
     tabButtons.forEach((btn) => btn.classList.toggle('active', btn.dataset.tab === name));
     Object.entries(tabPanels).forEach(([key, panel]) => panel.classList.toggle('active', key === name));
     if (name === 'ranking') renderRanking(currentRankCategory);
+    if (name === 'gear') renderGearPanel();
     if (name === 'enhance') renderEnhance();
     if (name === 'codex') renderCodex();
     if (name === 'epithet') renderEpithets();
@@ -1603,11 +1622,11 @@
     const stars = swordStars[swordIdx] || 0;
     return niceGold(SWORDS[swordIdx].studyBonus * (1.5 / 5) * (1 + ENHANCE_TOTAL_BONUS_BY_STAR[stars]));
   }
-  function studyIncomeAt(realmIdx, swordIdx) {
-    return realmIncomeAt(realmIdx) + swordIncomeAt(swordIdx);
+  function studyIncomeAt(realmIdx, swordIdx, gearIdx) {
+    return realmIncomeAt(realmIdx) + swordIncomeAt(swordIdx) + gearIncomeAt(gearIdx);
   }
 
-  function currentStudyIncome() { return studyIncomeAt(realmLevel, swordLevel); }
+  function currentStudyIncome() { return studyIncomeAt(realmLevel, swordLevel, gearLevel); }
 
   function renderStudyHint() {
     const income = currentStudyIncome();
@@ -1977,6 +1996,357 @@
       gachaResults.appendChild(node);
     });
   }
+
+  /* ---------------- 장비 뽑기 (가챠) ----------------
+     A second, independent gacha track alongside 검 뽑기 — its income adds
+     on top of 경지 효율 + 검 효율 rather than replacing either. Ported
+     verbatim (names/lore/desc/epithet) from 단련타's 운동 장비 pool, just
+     regraded for this economy:
+
+     - Odds reuse the exact 검 뽑기 percentages, with 단련타's 6 grades
+       mapped onto swords' 8 by merging the three rarest sword grades
+       (신병이기 0.175% + 선검 0.02% + 설화검 0.005% = 0.2%) into the single
+       top 천고물 grade, so "확률은 검이랑 같게" holds exactly and the
+       table still sums to 100%.
+     - studyBonus values are 단련타's raw numbers scaled ×2.4 (grades
+       0-4) or freshly set well above 설화검's range (grade 5, the merged
+       top slot) — a draw costs 100,000G here vs 50,000G for a sword, so
+       the payout is more than proportionally better, not just 2x. */
+  const GEAR_RARITIES = [
+    { key: 'jojap',     name: '조잡',   hanja: '粗雜', chance: 64.5 },
+    { key: 'jeongryeon',name: '정련',   hanja: '精鍊', chance: 20 },
+    { key: 'jingwi',    name: '진귀',   hanja: '珍貴', chance: 10 },
+    { key: 'yeongmul',  name: '영물',   hanja: '靈物', chance: 4.8 },
+    { key: 'sinmul',    name: '신물',   hanja: '神物', chance: 0.5 },
+    { key: 'cheongo',   name: '천고물', hanja: '千古物', chance: 0.2 },
+  ];
+
+  const GEAR_ITEMS = [
+    /* ---- 조잡(粗雜) ---- */
+    { name: '마의', hanja: '麻衣', rarity: 0, studyBonus: 2900,
+      lore: '거친 삼베로 지어 무게조차 잊게 만드는 수련복. 문파의 막내 제자들이 처음 몸에 걸치는 옷이다.',
+      desc: '화려함은 없지만, 어떤 동작을 펼쳐도 걸리는 데가 없다. 모든 수련은 이 옷 한 벌에서 시작된다.' },
+    { name: '짚신', hanja: '草鞋', rarity: 0, studyBonus: 3250,
+      lore: '지푸라기를 엮어 만든 값싼 신. 산을 백 번 오르내리면 밑창이 다 닳는다.',
+      desc: '발끝이 시리고 아파도, 이 신을 신고 걸은 산길이 다리 힘을 키운다.' },
+    { name: '목갑', hanja: '木甲', rarity: 0, studyBonus: 3500,
+      lore: '나무판을 엮어 두른 초심자용 갑주. 진짜 매질은 견뎌도, 무겁고 둔하다.',
+      desc: '무겁고 둔하지만, 몸을 지키는 법을 가장 먼저 가르쳐주는 갑주다.' },
+    { name: '무명 각반', hanja: '無名 脚絆', rarity: 0, studyBonus: 3850,
+      lore: '이름조차 없는 흔한 각반. 저잣거리 어디서나 몇 푼이면 구한다.',
+      desc: '다리를 가볍게 감싸주는 것만으로도, 하루 종일 움직일 수 있는 힘이 생긴다.' },
+
+    /* ---- 정련(精鍊) ---- */
+    { name: '연사 무복', hanja: '練絲 武服', rarity: 1, studyBonus: 7200,
+      lore: '명주실을 곱게 자아 지은 무복. 땀을 잘 흡수해 오랜 수련에도 몸이 무겁지 않다.',
+      desc: '실 한 올 한 올에 장인의 손길이 스며, 움직임을 방해하지 않는다.' },
+    { name: '쾌행리', hanja: '快行履', rarity: 1, studyBonus: 7800,
+      lore: '밑창에 특수하게 무두질한 가죽을 덧대, 디딜 때마다 반동이 실린다.',
+      desc: '신는 순간 걸음이 가벼워지고, 움직이는 속도가 눈에 띄게 붙는다.' },
+    { name: '연환 권갑', hanja: '連環 拳甲', rarity: 1, studyBonus: 8500,
+      lore: '작은 쇠고리를 사슬처럼 엮어 손등에 덧댄 권갑. 지를 때마다 소리가 쟁쟁 울린다.',
+      desc: '맨손보다 한결 묵직한 힘을 실을 수 있게 도와준다.' },
+    { name: '등패 호완', hanja: '籐牌 護腕', rarity: 1, studyBonus: 9100,
+      lore: '등나무를 얇게 엮어 손목에 감는 보호구. 가볍지만 어지간한 충격은 튕겨낸다.',
+      desc: '손목의 부담을 크게 덜어주어, 몸을 오래 쓸 수 있게 해준다.' },
+
+    /* ---- 진귀(珍貴) — 여기부터 별호(別號)가 붙는다 ---- */
+    { name: '백로 갑주', hanja: '白鷺 甲胄', rarity: 2, studyBonus: 14900, epithet: '백로의 몸놀림',
+      lore: '백로의 깃털처럼 가볍게 벼린 경갑. 두르고도 물 위를 걷듯 움직일 수 있다 하여 이름을 얻었다.',
+      desc: '무게를 거의 느낄 수 없는데도, 웬만한 충격은 모두 흘려보낸다.' },
+    { name: '청풍 각반', hanja: '淸風 脚絆', rarity: 2, studyBonus: 15800, epithet: '맑은 바람의 발걸음',
+      lore: '먼 지방의 명장이 벼린 각반으로, 착용하면 바람을 두른 듯 다리가 가벼워진다는 소문이 자자하다.',
+      desc: '한 걸음마다 옅은 바람이 이는 듯, 움직이는 속도가 몰라보게 빨라진다.' },
+    { name: '반석 권갑', hanja: '磐石 拳甲', rarity: 2, studyBonus: 17000, epithet: '반석을 부수는 주먹',
+      lore: '바위처럼 단단한 합금을 두들겨 만든 권갑. 시험 삼아 바위를 친 장인의 손이 멀쩡했다는 이야기가 전해진다.',
+      desc: '지를 때마다 반석을 두드리는 듯한 묵직함이 실린다.' },
+    { name: '유운 무복', hanja: '流雲 武服', rarity: 2, studyBonus: 18200, epithet: '구름을 두른 자',
+      lore: '구름이 흐르는 무늬를 짜 넣은 무복. 명문 대파의 속가 제자들이 승급 시험을 통과하면 하사받는다.',
+      desc: '몸에 걸치는 순간 동작 하나하나가 한결 유려해진다.' },
+
+    /* ---- 영물(靈物) ---- */
+    { name: '화린 갑주', hanja: '火麟 甲胄', rarity: 3, studyBonus: 33600, epithet: '불기린의 비늘',
+      lore: '전설의 불기린이 벗어놓았다는 비늘 한 조각을 엮어 만든 갑주. 두르면 은은한 열기가 돈다.',
+      desc: '몸속 깊은 곳까지 뜨거운 기운이 차올라, 지치지 않고 스스로를 몰아붙일 수 있다.' },
+    { name: '은하 각반', hanja: '銀河 脚絆', rarity: 3, studyBonus: 36500, epithet: '은하를 밟는 걸음',
+      lore: '밤하늘의 별빛을 은실로 짜 넣었다는 신비한 각반. 착용자가 움직이면 발자국마다 옅은 빛이 인다고 전해진다.',
+      desc: '지면을 딛는 감각조차 아득해질 만큼, 몸이 가볍고 빠르게 나아간다.' },
+    { name: '뇌전 권갑', hanja: '雷電 拳甲', rarity: 3, studyBonus: 39800, epithet: '벼락을 두른 주먹',
+      lore: '벼락 맞은 나무의 심을 갈아 넣었다는 영물 권갑. 지를 때마다 손끝에서 옅은 스파크가 인다.',
+      desc: '한 번의 지름이 여러 번의 타격처럼 쌓여, 폭발적인 힘을 낸다.' },
+    { name: '현무 호완', hanja: '玄武 護腕', rarity: 3, studyBonus: 43200, epithet: '현무의 가호',
+      lore: '북방을 지키는 현무의 등딱지를 본떠 벼린 호완. 어떤 충격도 굳건히 받아낸다는 영물.',
+      desc: '지치고 힘든 순간에도, 마치 등딱지처럼 몸을 굳건히 지탱해준다.' },
+
+    /* ---- 신물(神物) ---- */
+    { name: '봉황 우의', hanja: '鳳凰 羽衣', rarity: 4, studyBonus: 72000, epithet: '불사조의 날개옷',
+      lore: '봉황의 깃털로 짜냈다는 신물. 지친 몸에 불사조의 생명력이 스며든다는 전설이 전해진다.',
+      desc: '아무리 몰아붙여도 몸이 다시 살아나는 듯, 지치지 않고 다음 세트에 임할 수 있다.' },
+    { name: '기린 갑주', hanja: '麒麟 甲胄', rarity: 4, studyBonus: 80400, epithet: '기린의 위엄',
+      lore: '성군이 나타날 때만 모습을 드러낸다는 기린의 뿔로 벼린 갑주. 두른 이의 기세만으로 주변이 압도된다.',
+      desc: '몸을 감싸는 순간, 태산 같은 안정감과 함께 폭발적인 힘이 차오른다.' },
+    { name: '천마 각반', hanja: '天馬 脚絆', rarity: 4, studyBonus: 87600, epithet: '천마의 질주',
+      lore: '하늘을 달린다는 천마의 갈기를 엮어 만든 각반. 착용자는 발이 땅에 닿는지도 잊는다는 신물.',
+      desc: '움직일 때마다 마치 하늘을 나는 듯, 상상 이상의 속도가 붙는다.' },
+    { name: '백호 권갑', hanja: '白虎 拳甲', rarity: 4, studyBonus: 94800, epithet: '백호의 포효',
+      lore: '서쪽을 지키는 백호의 발톱을 벼려 만든 권갑. 지를 때마다 짐승의 포효가 울린다는 신물.',
+      desc: '한 방 한 방에 맹수의 기세가 실려, 스스로도 놀랄 힘을 낸다.' },
+    { name: '청룡 호완', hanja: '靑龍 護腕', rarity: 4, studyBonus: 100800, epithet: '청룡의 비늘',
+      lore: '동해를 다스리는 청룡의 비늘로 감싼 호완. 어떤 무리한 동작도 다치지 않게 지켜준다는 신물.',
+      desc: '몸의 한계를 걱정하지 않고, 극한까지 스스로를 몰아붙일 수 있게 해준다.' },
+
+    /* ---- 천고물(千古物) — 이 뽑기의 최종 등급 ---- */
+    { name: '무영신갑', hanja: '無影神甲', rarity: 5, studyBonus: 2600000, epithet: '그림자조차 남기지 않는 자',
+      lore: '억겁의 수련 끝에 그림자마저 지웠다는 전설의 고수가 남겼다는 신갑. 존재하는 것만으로 주변의 기운을 압도한다.',
+      desc: '몸에 걸치는 순간, 인간의 한계라는 말 자체가 무의미해진다.' },
+    { name: '파극권갑', hanja: '破極拳甲', rarity: 5, studyBonus: 3000000, epithet: '극한을 부수는 자',
+      lore: '극(極)이라 불리던 모든 한계를 부쉈다는 전설의 권사가 남긴 유품. 그 이름을 들은 것만으로 두려움에 떠는 이가 많았다 전해진다.',
+      desc: '지를 때마다 자신이 알던 한계가 산산이 부서지는 감각을 느낀다.' },
+    { name: '만리질풍화', hanja: '萬里疾風靴', rarity: 5, studyBonus: 3400000, epithet: '만 리를 나는 질풍',
+      lore: '하루 만에 만 리를 달렸다는 전설의 각행자(脚行者)가 신었다는 화. 바람조차 이 신을 따라잡지 못했다 한다.',
+      desc: '달리는 것이 아니라, 스스로가 한 줄기 바람이 된 듯한 속도를 낸다.' },
+    { name: '불괴금강신', hanja: '不壞金剛身', rarity: 5, studyBonus: 3800000, epithet: '무너지지 않는 금강의 몸',
+      lore: '금강불괴(金剛不壞)의 경지에 이르렀다는 전설 속 무인의 몸 그 자체를 형상화했다는 신물.',
+      desc: '지치고 무너질 것 같은 순간에도, 결코 꺾이지 않는 굳건함이 온몸에 깃든다.' },
+    { name: '천고제일신체', hanja: '千古第一身體', rarity: 5, studyBonus: 4200000, epithet: '천고에 다시없을 몸',
+      lore: '천고에 다시없을 몸이라 칭송받던 전설의 종사가 평생의 수련 끝에 남긴 마지막 흔적. 이를 얻은 자는 그 종사의 첫걸음을 다시 걷는다고 전해진다.',
+      desc: '이 장비를 두른 자는, 전설이 걸었던 길의 끝에 마침내 자신도 설 수 있음을 깨닫는다.' },
+  ];
+
+  function gearPower(idx) {
+    const g = GEAR_ITEMS[idx];
+    return g.rarity * 1e9 + g.studyBonus;
+  }
+  function gearPowerSafe(idx) {
+    return GEAR_ITEMS[idx] ? gearPower(idx) : -1;
+  }
+  function gearIncomeAt(idx) {
+    return niceGold(GEAR_ITEMS[idx].studyBonus * (1.5 / 5));
+  }
+
+  const GEAR_DRAW_COST = 100000;
+  const GEAR_MAX_DRAWS_PER_BATCH = 100;
+  function gearDrawCost() { return GEAR_DRAW_COST; }
+
+  function rollGear() {
+    let roll = Math.random() * 100;
+    let rarity = 0;
+    for (let i = 0; i < GEAR_RARITIES.length; i++) {
+      if (roll < GEAR_RARITIES[i].chance) { rarity = i; break; }
+      roll -= GEAR_RARITIES[i].chance;
+      rarity = i;
+    }
+    const pool = GEAR_ITEMS.map((g, i) => (g.rarity === rarity ? i : -1)).filter((i) => i >= 0);
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  function performGearDraws(count) {
+    const cost = gearDrawCost();
+    const total = cost * count;
+    if (gold < total) {
+      showToast(`💸 골드가 부족해요. ${count}회 뽑기에 ${total.toLocaleString('ko-KR')}G가 필요합니다.`);
+      return;
+    }
+
+    gold -= total;
+
+    const results = [];
+    let equippedChanged = false;
+    let newlyDiscovered = 0;
+    let dupeCount = 0;
+
+    for (let i = 0; i < count; i++) {
+      const idx = rollGear();
+      const isNew = !gearDiscovered.includes(idx);
+      if (isNew) {
+        gearDiscovered.push(idx);
+        newlyDiscovered++;
+      } else {
+        dupeCount++;
+      }
+      const upgraded = gearPower(idx) > gearPower(gearLevel);
+      if (upgraded) { gearLevel = idx; equippedChanged = true; }
+      results.push({ idx, isNew, upgraded });
+    }
+
+    queueSave();
+    renderGold();
+    renderGearResults(results);
+    renderGearPanel();
+    renderStudyHint();
+    renderHeader();
+
+    const best = results.reduce((a, b) => (gearPower(b.idx) > gearPower(a.idx) ? b : a));
+    const bestGear = GEAR_ITEMS[best.idx];
+    if (equippedChanged) {
+      showToast(`🛡️ ${GEAR_RARITIES[bestGear.rarity].name} ${bestGear.name}(${bestGear.hanja}) 획득! 자동으로 장착했습니다.`);
+    } else if (newlyDiscovered > 0) {
+      showToast(`📖 새로운 장비 ${newlyDiscovered}개를 도감에 기록했습니다.`);
+    } else if (dupeCount > 0) {
+      showToast('🌀 이미 보유한 장비만 나왔어요.');
+    } else {
+      showToast('🌀 이번엔 더 좋은 장비가 나오지 않았어요. 현재 장비를 그대로 유지합니다.');
+    }
+  }
+
+  const gearGachaCountInput = el('gearGachaCount');
+  const gearGachaDrawBtn = el('gearGachaDrawBtn');
+  const gearGachaCostLabel = el('gearGachaCostLabel');
+  const gearGachaResults = el('gearGachaResults');
+  const gearGachaResultsEmpty = el('gearGachaResultsEmpty');
+  const gearRarityTable = el('gearRarityTable');
+  const ownedGearList = el('ownedGearList');
+  const ownedGearCount = el('ownedGearCount');
+  const ownedGearEmpty = el('ownedGearEmpty');
+
+  const gearEquippedEls = {
+    name: el('gearName'), nameText: el('gearNameText'), hanja: el('gearHanja'), grade: el('gearGrade'),
+    epithet: el('gearEpithet'), lore: el('gearLore'), desc: el('gearDesc'), studyRange: el('gearStudyRange'),
+  };
+
+  function clampGearDrawCount() {
+    let n = parseInt(gearGachaCountInput.value, 10);
+    if (!Number.isFinite(n) || n < 1) n = 1;
+    if (n > GEAR_MAX_DRAWS_PER_BATCH) n = GEAR_MAX_DRAWS_PER_BATCH;
+    return n;
+  }
+
+  let expandedGearRarity = null;
+
+  function renderGearPanel() {
+    const cur = GEAR_ITEMS[gearLevel];
+    const rar = GEAR_RARITIES[cur.rarity];
+
+    gearEquippedEls.nameText.textContent = cur.name;
+    gearEquippedEls.name.className = `cultivation-name rar-${cur.rarity}`;
+    gearEquippedEls.hanja.textContent = `(${cur.hanja})`;
+    gearEquippedEls.grade.textContent = `${rar.name} · ${rar.hanja}`;
+    gearEquippedEls.grade.className = `sword-grade rar-chip rar-${cur.rarity}`;
+    if (cur.epithet) {
+      gearEquippedEls.epithet.textContent = `《${cur.epithet}》`;
+      gearEquippedEls.epithet.className = `sword-epithet rar-${cur.rarity}`;
+      gearEquippedEls.epithet.hidden = false;
+    } else {
+      gearEquippedEls.epithet.hidden = true;
+    }
+    gearEquippedEls.lore.textContent = cur.lore;
+    gearEquippedEls.desc.textContent = cur.desc;
+    gearEquippedEls.studyRange.textContent = `+${gearIncomeAt(gearLevel).toLocaleString('ko-KR')}G`;
+
+    const n = clampGearDrawCount();
+    const cost = gearDrawCost();
+    const total = cost * n;
+    gearGachaCostLabel.textContent = `1회 ${cost.toLocaleString('ko-KR')}G · ${n}회 ${total.toLocaleString('ko-KR')}G`;
+    gearGachaDrawBtn.textContent = `${n}회 뽑기`;
+    gearGachaDrawBtn.disabled = gold < total;
+
+    gearRarityTable.innerHTML = '';
+    GEAR_RARITIES.forEach((r, i) => {
+      const items = GEAR_ITEMS.map((g, idx) => ({ ...g, idx })).filter((g) => g.rarity === i);
+      const isOpen = expandedGearRarity === i;
+
+      const group = document.createElement('li');
+      group.className = 'rarity-group';
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `rarity-row rar-${i}${isOpen ? ' open' : ''}`;
+      btn.dataset.rarity = String(i);
+      btn.setAttribute('aria-expanded', String(isOpen));
+      btn.innerHTML = `
+        <span class="rarity-name">${r.name}<small>${r.hanja}</small></span>
+        <span class="rarity-chance">${r.chance}%</span>
+        <span class="rarity-count">${items.length}종</span>
+        <span class="rarity-caret">▾</span>`;
+      group.appendChild(btn);
+
+      const sub = document.createElement('ul');
+      sub.className = `rarity-sword-list${isOpen ? ' show' : ''}`;
+      items.forEach((g, j) => {
+        const item = document.createElement('li');
+        item.className = `rarity-sword-item${gearDiscovered.includes(g.idx) ? '' : ' undiscovered'}`;
+        item.style.animationDelay = isOpen ? `${j * 30}ms` : '0ms';
+        item.innerHTML = `<span class="rarity-sword-name">${g.name}</span><span class="rarity-sword-hanja">(${g.hanja})</span><span class="rarity-sword-income">분당 +${gearIncomeAt(g.idx).toLocaleString('ko-KR')}G</span>`;
+        sub.appendChild(item);
+      });
+      group.appendChild(sub);
+
+      gearRarityTable.appendChild(group);
+    });
+
+    renderOwnedGear();
+  }
+
+  function equipGearItem(idx) {
+    if (idx === gearLevel || !gearDiscovered.includes(idx)) return;
+    gearLevel = idx;
+    queueSave();
+    renderGearPanel();
+    renderStudyHint();
+    renderHeader();
+    const g = GEAR_ITEMS[idx];
+    showToast(`🛡️ ${GEAR_RARITIES[g.rarity].name} ${g.name}(${g.hanja})을(를) 장착했습니다.`);
+  }
+
+  function renderOwnedGear() {
+    const owned = gearDiscovered
+      .map((idx) => ({ idx, ...GEAR_ITEMS[idx] }))
+      .sort((a, b) => gearPower(b.idx) - gearPower(a.idx));
+
+    ownedGearCount.textContent = `${gearDiscovered.length} / ${GEAR_ITEMS.length}`;
+    ownedGearEmpty.style.display = owned.length ? 'none' : 'block';
+
+    ownedGearList.innerHTML = '';
+    owned.forEach((g) => {
+      const equipped = g.idx === gearLevel;
+      const item = document.createElement('li');
+      item.className = `owned-sword-item rar-${g.rarity}${equipped ? ' equipped' : ''}`;
+      item.innerHTML = `
+        <span class="owned-sword-grade rar-chip rar-${g.rarity}">${GEAR_RARITIES[g.rarity].name}</span>
+        <span class="owned-sword-name">${g.name}<small>(${g.hanja})</small></span>
+        <span class="owned-sword-income">분당 +${gearIncomeAt(g.idx).toLocaleString('ko-KR')}G</span>
+        <button type="button" class="btn-equip" data-idx="${g.idx}" ${equipped ? 'disabled' : ''}>${equipped ? '장착 중' : '장착하기'}</button>`;
+      ownedGearList.appendChild(item);
+    });
+  }
+
+  ownedGearList.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-equip');
+    if (!btn) return;
+    equipGearItem(Number(btn.dataset.idx));
+  });
+
+  gearRarityTable.addEventListener('click', (e) => {
+    const btn = e.target.closest('.rarity-row');
+    if (!btn) return;
+    const i = Number(btn.dataset.rarity);
+    expandedGearRarity = expandedGearRarity === i ? null : i;
+    renderGearPanel();
+  });
+
+  function renderGearResults(results) {
+    gearGachaResults.innerHTML = '';
+    gearGachaResultsEmpty.style.display = results.length ? 'none' : 'block';
+    results.forEach((r, i) => {
+      const g = GEAR_ITEMS[r.idx];
+      const node = swordResultTpl.content.cloneNode(true);
+      const card = node.querySelector('.sword-result');
+      card.classList.add(`rar-${g.rarity}`);
+      if (r.upgraded) card.classList.add('upgraded');
+      card.style.animationDelay = `${Math.min(i, 20) * 35}ms`;
+      node.querySelector('.sword-result-grade').textContent = GEAR_RARITIES[g.rarity].name;
+      node.querySelector('.sword-result-name').textContent = g.name;
+      node.querySelector('.sword-result-hanja').textContent = g.hanja;
+      const tag = node.querySelector('.sword-result-tag');
+      if (r.upgraded) tag.textContent = '장착!';
+      else if (r.isNew) tag.textContent = 'NEW';
+      else tag.remove();
+      gearGachaResults.appendChild(node);
+    });
+  }
+
+  gearGachaCountInput.addEventListener('input', renderGearPanel);
+  gearGachaDrawBtn.addEventListener('click', () => performGearDraws(clampGearDrawCount()));
 
   /* ---------------- 강화 ---------------- */
   const enhanceFragmentBadge = el('enhanceFragmentBadge');
@@ -2353,6 +2723,8 @@
     renderCultivationTrack(CULT_TRACKS.realm);
     renderGachaPanel();
     renderGachaResults([]);
+    renderGearPanel();
+    renderGearResults([]);
     renderCodex();
 
     lastStudyDay = studyDayKey();
