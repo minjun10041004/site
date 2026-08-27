@@ -2128,6 +2128,10 @@
   const GEAR_MAX_DRAWS_PER_BATCH = 100;
   function gearDrawCost() { return GEAR_DRAW_COST; }
 
+  // Temporary kill switch for this gacha track. Owned items, equip-swap,
+  // and the odds table stay fully usable — this only blocks new draws.
+  const GEAR_GACHA_PAUSED = true;
+
   function rollGear() {
     let roll = Math.random() * 100;
     let rarity = 0;
@@ -2141,6 +2145,10 @@
   }
 
   function performGearDraws(count) {
+    if (GEAR_GACHA_PAUSED) {
+      showToast('⏸️ 장비 뽑기는 현재 일시 중단되었어요.');
+      return;
+    }
     const cost = gearDrawCost();
     const total = cost * count;
     if (gold < total) {
@@ -2236,9 +2244,16 @@
     const n = clampGearDrawCount();
     const cost = gearDrawCost();
     const total = cost * n;
-    gearGachaCostLabel.textContent = `1회 ${cost.toLocaleString('ko-KR')}G · ${n}회 ${total.toLocaleString('ko-KR')}G`;
-    gearGachaDrawBtn.textContent = `${n}회 뽑기`;
-    gearGachaDrawBtn.disabled = gold < total;
+    gearGachaCountInput.disabled = GEAR_GACHA_PAUSED;
+    if (GEAR_GACHA_PAUSED) {
+      gearGachaCostLabel.textContent = '⏸️ 현재 뽑기가 일시 중단되었어요. 보유 장비 장착은 계속 이용할 수 있어요.';
+      gearGachaDrawBtn.textContent = '일시 중단';
+      gearGachaDrawBtn.disabled = true;
+    } else {
+      gearGachaCostLabel.textContent = `1회 ${cost.toLocaleString('ko-KR')}G · ${n}회 ${total.toLocaleString('ko-KR')}G`;
+      gearGachaDrawBtn.textContent = `${n}회 뽑기`;
+      gearGachaDrawBtn.disabled = gold < total;
+    }
 
     gearRarityTable.innerHTML = '';
     GEAR_RARITIES.forEach((r, i) => {
