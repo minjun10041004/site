@@ -1051,6 +1051,13 @@
     total_draws: '🎲 총 뽑기',
   };
   let currentRankCategory = 'realm';
+  // Flips false the first time a total_draws query errors outright (column
+  // doesn't exist in the DB yet -- see the migration note in flushSave()).
+  // The 'fallback' query below always re-orders by the same column, so for
+  // this one category a fallback can never succeed either; remembering the
+  // failure avoids re-issuing a doomed request on every render and lets the
+  // empty state explain *why* instead of just looking broken.
+  let totalDrawsColumnAvailable = true;
 
   // hyojanom asked to see themself on the 랭킹 tab from their own screen
   // while staying invisible to everyone else viewing the same shared rows.
@@ -1074,31 +1081,51 @@
     // Fetch unordered for this one category and rank by swordPower() below.
     const orderBySql = category !== 'sword';
 
-    // Named columns, not '*' -- keeps updated_at and anything added later out
-    // of a query that already runs often and carries an avatar per row.
-    const fullColumns = 'user_id, username, nickname, avatar, realm_level, sword_level, gold, study_today, study_week, study_month, total_draws';
-    const legacyColumns = 'user_id, username, nickname, avatar, realm_level, sword_level, gold, study_today, study_week, study_month';
-    let query = sb.from('leaderboard').select(fullColumns);
-    if (orderBySql) query = query.order(cfg.column, { ascending: false });
-    let { data, error } = await query.limit(200);
+    let rows = [];
+    let totalDrawsUnavailable = false;
 
-    // total_draws is a new column -- until its migration has run, asking
-    // for it errors the whole query (not just that field), which would
-    // otherwise blank out every ranking category, not just this one. Fall
-    // back to the older column list rather than showing nothing.
-    if (error) {
-      let fallbackQuery = sb.from('leaderboard').select(legacyColumns);
-      if (orderBySql) fallbackQuery = fallbackQuery.order(cfg.column, { ascending: false });
-      ({ data, error } = await fallbackQuery.limit(200));
+    if (category === 'total_draws' && !totalDrawsColumnAvailable) {
+      // Already confirmed missing this session -- don't re-issue a request
+      // that can only fail the same way again.
+      totalDrawsUnavailable = true;
+    } else {
+      // Named columns, not '*' -- keeps updated_at and anything added later out
+      // of a query that already runs often and carries an avatar per row.
+      const fullColumns = 'user_id, username, nickname, avatar, realm_level, sword_level, gold, study_today, study_week, study_month, total_draws';
+      const legacyColumns = 'user_id, username, nickname, avatar, realm_level, sword_level, gold, study_today, study_week, study_month';
+      let query = sb.from('leaderboard').select(fullColumns);
+      if (orderBySql) query = query.order(cfg.column, { ascending: false });
+      let { data, error } = await query.limit(200);
+
+      if (error && category === 'total_draws') {
+        // The column itself doesn't exist yet -- a fallback query would
+        // still try to order by it and fail identically, so there's no
+        // point retrying. Needs a one-time SQL migration on the DB side:
+        // alter table leaderboard add column if not exists total_draws bigint not null default 0;
+        totalDrawsColumnAvailable = false;
+        totalDrawsUnavailable = true;
+      } else if (error) {
+        // total_draws is a new column -- until its migration has run, asking
+        // for it errors the whole query (not just that field), which would
+        // otherwise blank out every ranking category, not just this one. Fall
+        // back to the older column list rather than showing nothing.
+        let fallbackQuery = sb.from('leaderboard').select(legacyColumns);
+        if (orderBySql) fallbackQuery = fallbackQuery.order(cfg.column, { ascending: false });
+        ({ data, error } = await fallbackQuery.limit(200));
+      }
+
+      rows = error ? [] : (data || []);
     }
 
-    let rows = error ? [] : (data || []);
     rows = applyGhostRankFilter(rows);
     if (category === 'sword') {
       rows = rows.slice().sort((a, b) => swordPowerSafe(b.sword_level) - swordPowerSafe(a.sword_level));
     }
     rankList.innerHTML = '';
     rankEmpty.style.display = rows.length ? 'none' : 'block';
+    rankEmpty.textContent = totalDrawsUnavailable
+      ? '이 랭킹은 아직 준비 중이에요. (서버 설정이 끝나면 자동으로 표시돼요)'
+      : '아직 랭킹 데이터가 없어요.';
 
     const myIndex = rows.findIndex((r) => r.user_id === currentUserId);
     myRankEl.textContent = myIndex >= 0 ? `내 순위 ${myIndex + 1}위` : '순위 없음';
@@ -1225,13 +1252,18 @@
     // (see renderRanking() above) rather than a plain DB-side order.
     // username rides along on every category so applyGhostRankFilter() can
     // drop hyojanom's row the same way renderRanking() does.
+    // Skip total_draws here too once renderRanking() has already found the
+    // column missing this session -- same doomed-query reasoning as there.
     const results = await Promise.all(entries.map(([key, cfg]) => (
-      key === 'sword'
+      key === 'total_draws' && !totalDrawsColumnAvailable
+        ? Promise.resolve({ data: [], error: null })
+        : key === 'sword'
         ? sb.from('leaderboard').select('user_id, username, sword_level').limit(200)
         : sb.from('leaderboard').select('user_id, username').order(cfg.column, { ascending: false }).limit(200)
     )));
     entries.forEach(([key], i) => {
       const { data, error } = results[i];
+      if (key === 'total_draws' && error) totalDrawsColumnAvailable = false;
       let rows = error ? [] : (data || []);
       rows = applyGhostRankFilter(rows);
       if (key === 'sword') {
