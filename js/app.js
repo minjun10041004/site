@@ -2035,25 +2035,28 @@
      verbatim (names/lore/desc/epithet) from 단련타's 운동 장비 pool, just
      regraded for this economy:
 
-     - Odds reuse the exact 검 뽑기 percentages tier-for-tier: 8 grades,
-       identical chances to SWORDS' 8 (범품..설화검), so "확률은 검이랑
-       같게" holds exactly per grade rather than as an approximate merge.
-     - studyBonus for 조잡..신물 (grades 0-4) and 천고물 (grade 7, the
-       original top slot) are 단련타's raw numbers scaled ×2.4; 조화물과
-       등선물 (grades 5-6, added later to fill out the full 8-grade
-       table) instead use studyBonus = 2.1x the corresponding SWORDS
-       grade's own value, per "성능은 대응하는 [검] 등급의 2.1배" — a
-       draw costs 150,000G here vs 50,000G for a sword (3x), so the
-       payout is more than proportionally better, not just 3x. */
+     - Odds started as an exact tier-for-tier copy of SWORDS' 8 chances,
+       then got rebalanced once: 천고물 gave up 0.003 of its 0.005 to
+       조화물 (0.175→0.178) and dropped to 0.002, so the table no longer
+       matches SWORDS' 1:1 but still sums to 100.
+     - studyBonus for 조잡..신물 (grades 0-4) is 단련타's raw numbers
+       scaled ×2.4. 조화물과 등선물 (grades 5-6, added later to fill out
+       the full 8-grade table) use studyBonus = 2.1x the corresponding
+       SWORDS grade's own value, per "성능은 대응하는 [검] 등급의
+       2.1배". 천고물 (grade 7, the original top slot) was later doubled
+       on top of its original ×2.4-scaled value. A draw costs 150,000G
+       here vs 50,000G for a sword (3x), so the payout is more than
+       proportionally better, not just 3x. Live since GEAR_GACHA_PAUSED
+       was flipped off after this rebalance. */
   const GEAR_RARITIES = [
     { key: 'jojap',     name: '조잡',   hanja: '粗雜', chance: 64.5 },
     { key: 'jeongryeon',name: '정련',   hanja: '精鍊', chance: 20 },
     { key: 'jingwi',    name: '진귀',   hanja: '珍貴', chance: 10 },
     { key: 'yeongmul',  name: '영물',   hanja: '靈物', chance: 4.8 },
     { key: 'sinmul',    name: '신물',   hanja: '神物', chance: 0.5 },
-    { key: 'johwa',     name: '조화물', hanja: '造化物', chance: 0.175 },
+    { key: 'johwa',     name: '조화물', hanja: '造化物', chance: 0.178 },
     { key: 'deungseon', name: '등선물', hanja: '登仙物', chance: 0.02 },
-    { key: 'cheongo',   name: '천고물', hanja: '千古物', chance: 0.005 },
+    { key: 'cheongo',   name: '천고물', hanja: '千古物', chance: 0.002 },
   ];
 
   const GEAR_ITEMS = [
@@ -2131,19 +2134,19 @@
       desc: '몸의 한계를 걱정하지 않고, 극한까지 스스로를 몰아붙일 수 있게 해준다.' },
 
     /* ---- 천고물(千古物) — 이 뽑기의 최종 등급 ---- */
-    { name: '무영신갑', hanja: '無影神甲', rarity: 7, studyBonus: 2600000, epithet: '그림자조차 남기지 않는 자',
+    { name: '무영신갑', hanja: '無影神甲', rarity: 7, studyBonus: 5200000, epithet: '그림자조차 남기지 않는 자',
       lore: '억겁의 수련 끝에 그림자마저 지웠다는 전설의 고수가 남겼다는 신갑. 존재하는 것만으로 주변의 기운을 압도한다.',
       desc: '몸에 걸치는 순간, 인간의 한계라는 말 자체가 무의미해진다.' },
-    { name: '파극권갑', hanja: '破極拳甲', rarity: 7, studyBonus: 3000000, epithet: '극한을 부수는 자',
+    { name: '파극권갑', hanja: '破極拳甲', rarity: 7, studyBonus: 6000000, epithet: '극한을 부수는 자',
       lore: '극(極)이라 불리던 모든 한계를 부쉈다는 전설의 권사가 남긴 유품. 그 이름을 들은 것만으로 두려움에 떠는 이가 많았다 전해진다.',
       desc: '지를 때마다 자신이 알던 한계가 산산이 부서지는 감각을 느낀다.' },
-    { name: '만리질풍화', hanja: '萬里疾風靴', rarity: 7, studyBonus: 3400000, epithet: '만 리를 나는 질풍',
+    { name: '만리질풍화', hanja: '萬里疾風靴', rarity: 7, studyBonus: 6800000, epithet: '만 리를 나는 질풍',
       lore: '하루 만에 만 리를 달렸다는 전설의 각행자(脚行者)가 신었다는 화. 바람조차 이 신을 따라잡지 못했다 한다.',
       desc: '달리는 것이 아니라, 스스로가 한 줄기 바람이 된 듯한 속도를 낸다.' },
-    { name: '불괴금강신', hanja: '不壞金剛身', rarity: 7, studyBonus: 3800000, epithet: '무너지지 않는 금강의 몸',
+    { name: '불괴금강신', hanja: '不壞金剛身', rarity: 7, studyBonus: 7600000, epithet: '무너지지 않는 금강의 몸',
       lore: '금강불괴(金剛不壞)의 경지에 이르렀다는 전설 속 무인의 몸 그 자체를 형상화했다는 신물.',
       desc: '지치고 무너질 것 같은 순간에도, 결코 꺾이지 않는 굳건함이 온몸에 깃든다.' },
-    { name: '천고제일신체', hanja: '千古第一身體', rarity: 7, studyBonus: 4200000, epithet: '천고에 다시없을 몸',
+    { name: '천고제일신체', hanja: '千古第一身體', rarity: 7, studyBonus: 8400000, epithet: '천고에 다시없을 몸',
       lore: '천고에 다시없을 몸이라 칭송받던 전설의 종사가 평생의 수련 끝에 남긴 마지막 흔적. 이를 얻은 자는 그 종사의 첫걸음을 다시 걷는다고 전해진다.',
       desc: '이 장비를 두른 자는, 전설이 걸었던 길의 끝에 마침내 자신도 설 수 있음을 깨닫는다.' },
 
@@ -2191,9 +2194,10 @@
   const GEAR_MAX_DRAWS_PER_BATCH = 100;
   function gearDrawCost() { return GEAR_DRAW_COST; }
 
-  // Temporary kill switch for this gacha track. Owned items, equip-swap,
-  // and the odds table stay fully usable — this only blocks new draws.
-  const GEAR_GACHA_PAUSED = true;
+  // Kill switch for this gacha track — flipped off once the 8-grade table
+  // and 천고물 rebalance (2배 성능, chance 0.005→0.002 with the freed
+  // 0.003 handed to 조화물) landed.
+  const GEAR_GACHA_PAUSED = false;
 
   function rollGear() {
     let roll = Math.random() * 100;
