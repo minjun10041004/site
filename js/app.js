@@ -720,7 +720,7 @@
 
   /* ---------------- Quotes ---------------- */
   const QUOTES = [
-    '사람 사는 게 다 거기서 거기라지만 당신의 삶은 유난히 행복했으면 좋겠습니다',
+    '잘했고 잘하고 있고 잘 될 것이다',
   ];
 
   /* ---------------- Rendering: Schedules ---------------- */
@@ -2035,22 +2035,25 @@
      verbatim (names/lore/desc/epithet) from 단련타's 운동 장비 pool, just
      regraded for this economy:
 
-     - Odds reuse the exact 검 뽑기 percentages, with 단련타's 6 grades
-       mapped onto swords' 8 by merging the three rarest sword grades
-       (신병이기 0.175% + 선검 0.02% + 설화검 0.005% = 0.2%) into the single
-       top 천고물 grade, so "확률은 검이랑 같게" holds exactly and the
-       table still sums to 100%.
-     - studyBonus values are 단련타's raw numbers scaled ×2.4 (grades
-       0-4) or freshly set well above 설화검's range (grade 5, the merged
-       top slot) — a draw costs 100,000G here vs 50,000G for a sword, so
-       the payout is more than proportionally better, not just 2x. */
+     - Odds reuse the exact 검 뽑기 percentages tier-for-tier: 8 grades,
+       identical chances to SWORDS' 8 (범품..설화검), so "확률은 검이랑
+       같게" holds exactly per grade rather than as an approximate merge.
+     - studyBonus for 조잡..신물 (grades 0-4) and 천고물 (grade 7, the
+       original top slot) are 단련타's raw numbers scaled ×2.4; 조화물과
+       등선물 (grades 5-6, added later to fill out the full 8-grade
+       table) instead use studyBonus = 2.1x the corresponding SWORDS
+       grade's own value, per "성능은 대응하는 [검] 등급의 2.1배" — a
+       draw costs 150,000G here vs 50,000G for a sword (3x), so the
+       payout is more than proportionally better, not just 3x. */
   const GEAR_RARITIES = [
     { key: 'jojap',     name: '조잡',   hanja: '粗雜', chance: 64.5 },
     { key: 'jeongryeon',name: '정련',   hanja: '精鍊', chance: 20 },
     { key: 'jingwi',    name: '진귀',   hanja: '珍貴', chance: 10 },
     { key: 'yeongmul',  name: '영물',   hanja: '靈物', chance: 4.8 },
     { key: 'sinmul',    name: '신물',   hanja: '神物', chance: 0.5 },
-    { key: 'cheongo',   name: '천고물', hanja: '千古物', chance: 0.2 },
+    { key: 'johwa',     name: '조화물', hanja: '造化物', chance: 0.175 },
+    { key: 'deungseon', name: '등선물', hanja: '登仙物', chance: 0.02 },
+    { key: 'cheongo',   name: '천고물', hanja: '千古物', chance: 0.005 },
   ];
 
   const GEAR_ITEMS = [
@@ -2128,21 +2131,49 @@
       desc: '몸의 한계를 걱정하지 않고, 극한까지 스스로를 몰아붙일 수 있게 해준다.' },
 
     /* ---- 천고물(千古物) — 이 뽑기의 최종 등급 ---- */
-    { name: '무영신갑', hanja: '無影神甲', rarity: 5, studyBonus: 2600000, epithet: '그림자조차 남기지 않는 자',
+    { name: '무영신갑', hanja: '無影神甲', rarity: 7, studyBonus: 2600000, epithet: '그림자조차 남기지 않는 자',
       lore: '억겁의 수련 끝에 그림자마저 지웠다는 전설의 고수가 남겼다는 신갑. 존재하는 것만으로 주변의 기운을 압도한다.',
       desc: '몸에 걸치는 순간, 인간의 한계라는 말 자체가 무의미해진다.' },
-    { name: '파극권갑', hanja: '破極拳甲', rarity: 5, studyBonus: 3000000, epithet: '극한을 부수는 자',
+    { name: '파극권갑', hanja: '破極拳甲', rarity: 7, studyBonus: 3000000, epithet: '극한을 부수는 자',
       lore: '극(極)이라 불리던 모든 한계를 부쉈다는 전설의 권사가 남긴 유품. 그 이름을 들은 것만으로 두려움에 떠는 이가 많았다 전해진다.',
       desc: '지를 때마다 자신이 알던 한계가 산산이 부서지는 감각을 느낀다.' },
-    { name: '만리질풍화', hanja: '萬里疾風靴', rarity: 5, studyBonus: 3400000, epithet: '만 리를 나는 질풍',
+    { name: '만리질풍화', hanja: '萬里疾風靴', rarity: 7, studyBonus: 3400000, epithet: '만 리를 나는 질풍',
       lore: '하루 만에 만 리를 달렸다는 전설의 각행자(脚行者)가 신었다는 화. 바람조차 이 신을 따라잡지 못했다 한다.',
       desc: '달리는 것이 아니라, 스스로가 한 줄기 바람이 된 듯한 속도를 낸다.' },
-    { name: '불괴금강신', hanja: '不壞金剛身', rarity: 5, studyBonus: 3800000, epithet: '무너지지 않는 금강의 몸',
+    { name: '불괴금강신', hanja: '不壞金剛身', rarity: 7, studyBonus: 3800000, epithet: '무너지지 않는 금강의 몸',
       lore: '금강불괴(金剛不壞)의 경지에 이르렀다는 전설 속 무인의 몸 그 자체를 형상화했다는 신물.',
       desc: '지치고 무너질 것 같은 순간에도, 결코 꺾이지 않는 굳건함이 온몸에 깃든다.' },
-    { name: '천고제일신체', hanja: '千古第一身體', rarity: 5, studyBonus: 4200000, epithet: '천고에 다시없을 몸',
+    { name: '천고제일신체', hanja: '千古第一身體', rarity: 7, studyBonus: 4200000, epithet: '천고에 다시없을 몸',
       lore: '천고에 다시없을 몸이라 칭송받던 전설의 종사가 평생의 수련 끝에 남긴 마지막 흔적. 이를 얻은 자는 그 종사의 첫걸음을 다시 걷는다고 전해진다.',
       desc: '이 장비를 두른 자는, 전설이 걸었던 길의 끝에 마침내 자신도 설 수 있음을 깨닫는다.' },
+
+    /* ---- 조화물(造化物), 등선물(登仙物) — 8등급 표를 SWORDS와 정확히
+       맞추기 위해 나중에 추가된 두 등급. 뒤에 덧붙이는 이유는 SWORDS에
+       용검을 추가했을 때와 동일: 이미 존재하는 항목들의 배열 인덱스(=
+       gearLevel/gearDiscovered가 가리키는 값)를 절대 밀어내지 않기
+       위함. studyBonus는 대응하는 SWORDS 등급(신병이기/선검) 값의
+       2.1배. ---- */
+    /* ---- 조화물(造化物) — SWORDS 신병이기(rarity 5) 대응, ×2.1 ---- */
+    { name: '창세 갑주', hanja: '創世 甲胄', rarity: 5, studyBonus: 249900, epithet: '천지가 열리던 순간의 갑옷',
+      lore: '천지가 처음 열리던 순간의 기운을 옷감에 담았다는 전설의 갑주. 두른 자는 세상이 만들어지던 태초의 힘을 온몸으로 느낀다고 한다.',
+      desc: '몸에 걸치는 순간, 마치 세상이 다시 시작되는 듯한 벅찬 기운이 차오른다.' },
+    { name: '조화 각반', hanja: '造化 脚絆', rarity: 5, studyBonus: 268800, epithet: '만물을 빚어낸 걸음',
+      lore: '만물을 빚어낸 조화옹(造化翁)의 손길이 스며들었다는 각반. 착용자의 걸음마다 새로운 기운이 피어난다는 전설이 전해진다.',
+      desc: '한 걸음 한 걸음이 마치 새로운 무언가를 빚어내는 듯, 남다른 힘이 실린다.' },
+    { name: '개벽 권갑', hanja: '開闢 拳甲', rarity: 5, studyBonus: 287700, epithet: '하늘과 땅을 가른 주먹',
+      lore: '하늘과 땅이 처음 갈라지던 개벽(開闢)의 순간을 벼려 넣었다는 권갑. 지르는 순간 태초의 굉음이 울린다는 이야기가 전해진다.',
+      desc: '한 방 한 방에 세상을 여는 듯한 압도적인 힘이 실린다.' },
+    { name: '태극 호완', hanja: '太極 護腕', rarity: 5, studyBonus: 300300, epithet: '음양을 품은 팔찌',
+      lore: '음(陰)과 양(陽)이 처음 나뉘던 태극(太極)의 이치를 새겨 넣은 호완. 어떤 극한의 순간에도 균형을 잃지 않게 해준다는 전설의 물건이다.',
+      desc: '몸의 균형이 무너질 듯한 순간에도, 마치 태극처럼 다시 중심을 잡아준다.' },
+
+    /* ---- 등선물(登仙物) — SWORDS 선검(rarity 6) 대응, ×2.1 ---- */
+    { name: '등선의', hanja: '登仙衣', rarity: 6, studyBonus: 2247000, epithet: '하늘로 오르는 옷자락',
+      lore: '수많은 구도자들이 평생을 바쳐도 닿지 못했다는 등선(登仙)의 경지, 그 순간 입고 있었다는 전설의 옷. 실을 짠 이도, 짠 시기도 전해지지 않는다.',
+      desc: '몸에 걸치는 순간, 발밑이 아득해질 만큼 가벼워지고 하늘이 가까워지는 듯한 감각이 든다.' },
+    { name: '비선화', hanja: '飛仙靴', rarity: 6, studyBonus: 2688000, epithet: '구름을 밟고 하늘을 걷다',
+      lore: '신선이 되어 하늘로 날아올랐다는 전설의 인물이 마지막으로 남기고 간 신. 구름 위를 걷듯 신은 이의 발을 가볍게 한다고 전해진다.',
+      desc: '땅을 딛는 감각조차 희미해질 만큼, 구름 위를 걷는 듯한 가벼움이 온몸에 퍼진다.' },
   ];
 
   function gearPower(idx) {
@@ -2156,7 +2187,7 @@
     return niceGold(GEAR_ITEMS[idx].studyBonus * (1.5 / 5));
   }
 
-  const GEAR_DRAW_COST = 100000;
+  const GEAR_DRAW_COST = 150000;
   const GEAR_MAX_DRAWS_PER_BATCH = 100;
   function gearDrawCost() { return GEAR_DRAW_COST; }
 
