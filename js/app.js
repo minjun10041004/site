@@ -180,9 +180,30 @@
     if (saveTimer) clearTimeout(saveTimer);
     saveTimer = setTimeout(flushSave, 500);
   }
-  window.addEventListener('beforeunload', () => {
-    if (saveTimer) flushSave();
+  // A pending save can still be sitting in the 500ms debounce window when
+  // the tab/app goes away -- study minutes and gold from a just-finished
+  // session are exactly the kind of state that lives there. 'beforeunload'
+  // alone isn't enough to catch that: it doesn't fire at all on iOS Safari
+  // or when a mobile app is backgrounded/killed rather than closed via
+  // browser chrome, and even where it does fire, the fetch flushSave()
+  // kicks off is not guaranteed to finish before the page is torn down.
+  // 'visibilitychange' -> hidden fires reliably in both cases (tab switch,
+  // app backgrounding, screen lock) *before* teardown, while the page is
+  // still alive to let the request land; 'pagehide' catches actual
+  // navigation/close more reliably than 'beforeunload' on mobile. All three
+  // funnel into the same immediate flush, cancelling the debounce so nothing
+  // double-fires pointlessly.
+  function flushSaveIfPending() {
+    if (!saveTimer) return;
+    clearTimeout(saveTimer);
+    saveTimer = null;
+    flushSave();
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') flushSaveIfPending();
   });
+  window.addEventListener('pagehide', flushSaveIfPending);
+  window.addEventListener('beforeunload', flushSaveIfPending);
 
   async function loadUserState() {
     const { data } = await sb.from('app_data').select('data').eq('user_id', currentUserId).maybeSingle();
