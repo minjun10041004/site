@@ -223,17 +223,6 @@
   <!-- Study Timer Tab -->
   <section class="tab-panel" id="panel-study">
     <div class="study-grid">
-      <div class="card timer-card">
-        <p class="timer-subject" id="timerSubjectLabel">과목을 선택해주세요</p>
-        <div class="timer-display" id="timerDisplay">00:00:00</div>
-        <p class="rest-display hidden" id="restDisplay">쉰 시간 00:00:00</p>
-        <div class="timer-btn-row">
-          <button class="btn-measure" id="measureBtn" disabled>▶ 측정 시작</button>
-          <button class="btn-rest hidden" id="restBtn" type="button">☕ 쉬기</button>
-        </div>
-        <p class="timer-hint" id="timerHint">1분마다 810 골드를 획득해요 <span class="gold-icon" aria-hidden="true"></span></p>
-      </div>
-
       <div class="card subject-card">
         <div class="card-head">
           <h2><span class="card-icon">📚</span> 과목</h2>
@@ -247,6 +236,17 @@
           <input type="text" id="subjectText" placeholder="과목을 입력하고 Enter" required maxlength="40">
         </form>
         <p class="empty-state" id="subjectEmpty">과목을 추가하고 눌러서 선택해보세요 📖</p>
+      </div>
+
+      <div class="card timer-card">
+        <p class="timer-subject" id="timerSubjectLabel">과목을 선택해주세요</p>
+        <div class="timer-display" id="timerDisplay">00:00:00</div>
+        <p class="rest-display hidden" id="restDisplay">쉰 시간 00:00:00</p>
+        <div class="timer-btn-row">
+          <button class="btn-measure" id="measureBtn" disabled>▶ 측정 시작</button>
+          <button class="btn-rest hidden" id="restBtn" type="button">☕ 쉬기</button>
+        </div>
+        <p class="timer-hint" id="timerHint">1분마다 810 골드를 획득해요 <span class="gold-icon" aria-hidden="true"></span></p>
       </div>
     </div>
 
