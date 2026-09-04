@@ -632,32 +632,43 @@ body {
 
 .tab-nav {
   display: inline-flex;
-  gap: 4px;
-  background: var(--surface);
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 4px;
-  box-shadow: var(--shadow-sm);
+  gap: 2px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  background: transparent;
+  border: none;
+  padding: 0;
+  box-shadow: none;
 }
 
 .tab-btn {
+  position: relative;
   border: none;
   background: transparent;
-  color: var(--text-soft);
+  color: var(--text-faint);
   font-family: inherit;
   font-size: 0.8rem;
   font-weight: 700;
-  padding: 7px 14px;
-  border-radius: 999px;
+  padding: 9px 13px;
+  border-radius: 0;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition: color 0.2s ease;
   white-space: nowrap;
 }
 .tab-btn:hover { color: var(--text); }
 .tab-btn.active {
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #fff;
+  color: var(--accent);
+  text-shadow: 0 0 14px var(--quote-glow);
+}
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 1px;
+  height: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
 }
 
 /* ============ Tab panels ============ */
@@ -674,7 +685,7 @@ body {
 /* ============ Study Timer Tab ============ */
 .study-grid {
   display: grid;
-  grid-template-columns: 1.3fr 1fr;
+  grid-template-columns: 300px 1fr;
   gap: 22px;
   align-items: start;
 }
@@ -704,6 +715,7 @@ body {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  filter: drop-shadow(0 0 18px var(--quote-glow));
 }
 
 .timer-card {
@@ -731,6 +743,7 @@ body {
   background-clip: text;
   color: transparent;
   margin-bottom: 32px;
+  filter: drop-shadow(0 0 22px var(--quote-glow));
 }
 
 .btn-measure {
@@ -1756,7 +1769,6 @@ body {
 .btn-measure,
 .btn-upgrade,
 .btn-draw,
-.tab-btn.active,
 .chip-btn {
   position: relative;
   overflow: hidden;
@@ -1765,8 +1777,7 @@ body {
 .btn-primary::before,
 .btn-measure::before,
 .btn-upgrade::before,
-.btn-draw::before,
-.tab-btn.active::before {
+.btn-draw::before {
   content: '';
   position: absolute;
   inset: 0 0 52% 0;
@@ -2437,6 +2448,7 @@ body {
 .modal-gate.hidden { display: none; }
 
 .modal-card {
+  position: relative;
   width: 100%;
   max-width: 380px;
   background: var(--surface-solid);
@@ -2445,6 +2457,15 @@ body {
   box-shadow: var(--shadow);
   padding: 28px 24px 24px;
   text-align: center;
+  overflow: hidden;
+}
+.modal-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  box-shadow: 0 0 12px var(--accent);
 }
 .modal-icon { display: block; font-size: 2.4rem; line-height: 1; margin-bottom: 10px; }
 .modal-title { font-size: 1.25rem; font-weight: 800; margin: 0 0 8px; }
