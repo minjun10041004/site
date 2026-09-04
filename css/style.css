@@ -67,17 +67,17 @@ body::before {
   -webkit-mask-image: linear-gradient(180deg, black, transparent 85%);
 }
 
-/* HUD readout font for numbers/brand — Korean glyphs (and hanja) fall back
-   automatically per-character since Orbitron has no CJK coverage, so it's
-   safe to apply broadly to any class that's mostly-numeric even where a
-   little Korean text rides along. */
+/* HUD readout font for numbers — Orbitron has zero CJK coverage, so any
+   Korean/hanja riding along in the same element falls through to Black Han
+   Sans (the site's bold display face, set on body below) rather than
+   plain Noto Sans KR, so mixed number+Korean labels still read as one
+   consistent typographic voice instead of switching mid-string. */
 .stat-value,
 .progress-ring-label span,
 .badge,
 .dday-pill,
 .today-total-display,
 .timer-display,
-.brand-name,
 .gold-badge strong,
 .percent-value,
 .rank-value,
@@ -91,7 +91,7 @@ body::before {
 .adjust-value,
 .enhance-income,
 #gachaCount {
-  font-family: 'Orbitron', 'Noto Sans KR', sans-serif;
+  font-family: 'Orbitron', 'Black Han Sans', 'Noto Sans KR', sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -102,8 +102,13 @@ html, body {
   min-height: 100%;
 }
 
+/* Black Han Sans is the site's bold display voice for every other piece
+   of text — headings, nav, buttons, badges, quotes, body copy. Only two
+   things opt out on purpose: the Orbitron HUD numerals above, and the
+   Noto Serif KR treatment further down for wuxia item lore-names (a
+   deliberate elegance-vs-chrome contrast, not leftover base font). */
 body {
-  font-family: 'Inter', 'Noto Sans KR', sans-serif;
+  font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
   background: linear-gradient(160deg, var(--bg-a), var(--bg-b));
   color: var(--text);
   transition: background 0.4s ease, color 0.4s ease;
@@ -2131,7 +2136,7 @@ body {
   gap: 1px;
   padding: 10px 13px;
   min-width: 104px;
-  border-radius: var(--radius-sm);
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
   border: 1px solid var(--rar-solid);
   background: linear-gradient(160deg,
     color-mix(in srgb, var(--rar-a) 26%, var(--surface-solid)),
@@ -2184,7 +2189,7 @@ body {
   gap: 12px;
   width: 100%;
   padding: 12px 15px;
-  border-radius: var(--radius-sm);
+  clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
   border: 1px solid var(--rar-solid);
   background: linear-gradient(100deg,
     color-mix(in srgb, var(--rar-a) 18%, transparent), transparent 70%);
@@ -2195,7 +2200,6 @@ body {
 }
 .rarity-row:hover { filter: brightness(1.08); }
 .rarity-row.open {
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
   filter: brightness(1.1);
 }
 .rarity-name {
@@ -2309,7 +2313,7 @@ body {
   align-items: center;
   gap: 12px;
   padding: 10px 14px;
-  border-radius: var(--radius-sm);
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
   border: 1px solid var(--rar-solid);
   background: linear-gradient(100deg,
     color-mix(in srgb, var(--rar-a) 14%, transparent), transparent 70%);
@@ -2369,12 +2373,12 @@ body {
   flex-direction: column;
   gap: 5px;
   padding: 16px 16px 15px;
-  border-radius: var(--radius-md);
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
   border: 1px solid var(--rar-solid);
   background: linear-gradient(160deg,
-    color-mix(in srgb, var(--rar-a) 20%, var(--surface-solid)),
+    color-mix(in srgb, var(--rar-a) 26%, var(--surface-solid)),
     var(--surface-solid));
-  box-shadow: 0 0 14px var(--rar-glow), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 20px var(--rar-glow), inset 0 1px 0 rgba(255, 255, 255, 0.35);
   overflow: hidden;
 }
 .codex-card::after {
@@ -2382,6 +2386,7 @@ body {
   position: absolute;
   inset: 0 0 auto 0;
   height: 42%;
+  clip-path: polygon(14px 0, 100% 0, 100% 100%, 0 100%, 0 14px);
   background: linear-gradient(to bottom, var(--gloss-top), var(--gloss-bottom));
   pointer-events: none;
 }
