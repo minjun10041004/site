@@ -1,48 +1,83 @@
+/* ============ 천마(天魔) Neon Wuxia theme ============
+   Near-black cyber-murim-cult palette: magenta + cyan neon on void black,
+   scanline/grid texture, angular accents. The site keeps its light/dark
+   toggle for contrast preference, but both states now live inside this
+   identity — "twilight" (toggle off) is a touch brighter than "void"
+   (toggle on, the default), never a return to the old pastel light theme. */
 :root {
-  --bg-a: #eef1ff;
-  --bg-b: #fdf2f8;
-  --surface: rgba(255, 255, 255, 0.72);
-  --surface-solid: #ffffff;
-  --border: rgba(15, 23, 42, 0.08);
-  --text: #1e1b2e;
-  --text-soft: #625f78;
-  --text-faint: #9694ab;
-  --accent: #7c5cff;
-  --accent-2: #ff6fa5;
-  --accent-3: #34d399;
-  --danger: #ef4577;
-  --gold: #d69a1f;
-  --gold-2: #ffd767;
-  --quote-color: #ca8a04;
-  --quote-glow: rgba(202, 138, 4, 0.4);
-  --shadow: 0 20px 40px -20px rgba(76, 60, 140, 0.25);
-  --shadow-sm: 0 8px 20px -12px rgba(76, 60, 140, 0.3);
-  --radius-lg: 26px;
-  --radius-md: 16px;
-  --radius-sm: 10px;
-  color-scheme: light;
+  --bg-a: #170f22;
+  --bg-b: #200f1c;
+  --surface: rgba(255, 255, 255, 0.06);
+  --surface-solid: #1c1526;
+  --border: rgba(255, 46, 166, 0.3);
+  --text: #f5f2fb;
+  --text-soft: #c3bcd9;
+  --text-faint: #8b84a8;
+  --accent: #ff2ea6;
+  --accent-2: #29f0e0;
+  --accent-3: #39ff8a;
+  --danger: #ff3d68;
+  --gold: #ffcf3d;
+  --gold-2: #ffe37a;
+  --quote-color: #ffffff;
+  --quote-glow: rgba(255, 46, 166, 0.55);
+  --shadow: 0 22px 50px -22px rgba(0, 0, 0, 0.7), 0 0 34px -12px rgba(255, 46, 166, 0.28);
+  --shadow-sm: 0 10px 26px -14px rgba(0, 0, 0, 0.6), 0 0 18px -8px rgba(41, 240, 224, 0.28);
+  --radius-lg: 14px;
+  --radius-md: 10px;
+  --radius-sm: 6px;
+  color-scheme: dark;
 }
 
 [data-theme="dark"] {
-  --bg-a: #0f0c1e;
-  --bg-b: #1a1330;
-  --surface: rgba(30, 25, 53, 0.68);
-  --surface-solid: #1c1830;
-  --border: rgba(255, 255, 255, 0.08);
-  --text: #f1eefc;
-  --text-soft: #b8b3d1;
-  --text-faint: #756f92;
-  --accent: #9a7cff;
-  --accent-2: #ff85b3;
-  --accent-3: #4ade80;
-  --danger: #ff6b8b;
-  --gold: #ffcc4d;
-  --gold-2: #ffb020;
-  --quote-color: #fffdf5;
-  --quote-glow: rgba(254, 240, 138, 0.7);
-  --shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.6);
-  --shadow-sm: 0 8px 20px -12px rgba(0, 0, 0, 0.5);
+  --bg-a: #07060b;
+  --bg-b: #0a0611;
+  --surface: rgba(255, 255, 255, 0.03);
+  --surface-solid: #0d0a14;
+  --border: rgba(255, 46, 166, 0.24);
+  --text: #f3f0fb;
+  --text-soft: #a9a4c4;
+  --text-faint: #6f6a8c;
+  --accent: #ff2ea6;
+  --accent-2: #29f0e0;
+  --accent-3: #39ff8a;
+  --danger: #ff2d55;
+  --gold: #ffcf3d;
+  --gold-2: #ffd863;
+  --quote-color: #ffffff;
+  --quote-glow: rgba(255, 46, 166, 0.6);
+  --shadow: 0 24px 55px -24px rgba(0, 0, 0, 0.85), 0 0 36px -10px rgba(255, 46, 166, 0.3);
+  --shadow-sm: 0 12px 28px -16px rgba(0, 0, 0, 0.75), 0 0 20px -8px rgba(41, 240, 224, 0.3);
   color-scheme: dark;
+}
+
+/* Void scanline + grid texture, fixed behind every panel. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.025) 0px, rgba(255, 255, 255, 0.025) 1px, transparent 1px, transparent 3px),
+    linear-gradient(rgba(255, 46, 166, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 46, 166, 0.05) 1px, transparent 1px);
+  background-size: auto, 46px 46px, 46px 46px;
+  mask-image: linear-gradient(180deg, black, transparent 85%);
+  -webkit-mask-image: linear-gradient(180deg, black, transparent 85%);
+}
+
+/* HUD readout font for numbers/brand — Korean glyphs fall back automatically
+   since Orbitron has no Hangul coverage. */
+.stat-value,
+.progress-ring-label span,
+.badge,
+.dday-pill,
+.today-total-display,
+.timer-display,
+.brand-name,
+.gold-badge strong {
+  font-family: 'Orbitron', 'Noto Sans KR', sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -272,7 +307,7 @@ body {
 }
 .inline-form input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.15);
+  box-shadow: 0 0 0 3px rgba(255, 46, 166, 0.22);
 }
 .inline-form input[type="date"] { color: var(--text); min-width: 150px; }
 
@@ -454,7 +489,7 @@ body {
 .add-row:focus-within {
   border-style: solid;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.15);
+  box-shadow: 0 0 0 3px rgba(255, 46, 166, 0.22);
   background: var(--surface-solid);
 }
 .add-row-plus {
@@ -1295,7 +1330,7 @@ body {
 }
 .auth-form input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.15);
+  box-shadow: 0 0 0 3px rgba(255, 46, 166, 0.22);
 }
 .auth-submit { width: 100%; padding: 13px; font-size: 0.95rem; margin-top: 4px; }
 
@@ -1422,8 +1457,8 @@ body {
 }
 .rank-row.me {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.15);
-  background: linear-gradient(120deg, rgba(124, 92, 255, 0.1), var(--surface-solid));
+  box-shadow: 0 0 0 3px rgba(255, 46, 166, 0.22);
+  background: linear-gradient(120deg, rgba(255, 46, 166, 0.14), var(--surface-solid));
 }
 
 .rank-medal {
@@ -1649,18 +1684,18 @@ body {
    reused by every panel so the whole site reads as one skin.
    ============================================================ */
 :root {
-  --gloss-top: rgba(255, 255, 255, 0.55);
-  --gloss-bottom: rgba(255, 255, 255, 0);
-  --bevel-light: rgba(255, 255, 255, 0.75);
-  --bevel-dark: rgba(20, 12, 45, 0.22);
-  --ink: rgba(24, 16, 52, 0.5);
+  --gloss-top: rgba(255, 46, 166, 0.14);
+  --gloss-bottom: rgba(255, 46, 166, 0);
+  --bevel-light: rgba(41, 240, 224, 0.4);
+  --bevel-dark: rgba(0, 0, 0, 0.55);
+  --ink: rgba(0, 0, 0, 0.8);
 }
 [data-theme="dark"] {
-  --gloss-top: rgba(255, 255, 255, 0.22);
-  --gloss-bottom: rgba(255, 255, 255, 0);
-  --bevel-light: rgba(255, 255, 255, 0.28);
-  --bevel-dark: rgba(0, 0, 0, 0.5);
-  --ink: rgba(0, 0, 0, 0.75);
+  --gloss-top: rgba(255, 46, 166, 0.1);
+  --gloss-bottom: rgba(255, 46, 166, 0);
+  --bevel-light: rgba(41, 240, 224, 0.3);
+  --bevel-dark: rgba(0, 0, 0, 0.6);
+  --ink: rgba(0, 0, 0, 0.85);
 }
 
 /* Sheen: a narrow bright band that slides across a surface. */
@@ -1790,15 +1825,12 @@ body {
   100% { background-position: 210% 0, 0 0; }
 }
 .gold-badge strong {
-  background: linear-gradient(100deg, #8a5a06, var(--gold), #f0b429, var(--gold), #8a5a06);
+  background: linear-gradient(100deg, var(--gold-2), var(--gold), #fff8e0, var(--gold), var(--gold-2));
   background-size: 240% auto;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   animation: textSheen 5s ease-in-out infinite;
-}
-[data-theme="dark"] .gold-badge strong {
-  background-image: linear-gradient(100deg, var(--gold-2), var(--gold), #fff8e0, var(--gold), var(--gold-2));
 }
 
 /* ============ Sword rarity palette (8 grades) ============
