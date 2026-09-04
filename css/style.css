@@ -716,7 +716,7 @@ body {
   text-align: center;
   font-variant-numeric: tabular-nums;
   font-size: clamp(2.8rem, 8vw, 4.6rem);
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: 0.02em;
   -webkit-background-clip: text;
   background-clip: text;
@@ -746,7 +746,7 @@ body {
   text-align: center;
   font-variant-numeric: tabular-nums;
   font-size: clamp(3.6rem, 10vw, 6.4rem);
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: 0.02em;
   -webkit-background-clip: text;
   background-clip: text;
