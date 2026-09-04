@@ -2134,14 +2134,29 @@ body {
   background: linear-gradient(160deg,
     color-mix(in srgb, var(--rar-a) 26%, var(--surface-solid)),
     var(--surface-solid));
-  box-shadow: 0 0 12px var(--rar-glow), inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 0 0 1.5px var(--rar-solid);
+  box-shadow: 0 0 12px var(--rar-glow), inset 0 1px 0 rgba(255, 255, 255, 0.4);
   animation: resultPop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+.sword-result::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  padding: 1.5px;
+  box-sizing: border-box;
+  background: var(--rar-solid);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
 }
 @keyframes resultPop {
   from { opacity: 0; transform: scale(0.72) translateY(8px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
-.sword-result.upgraded { box-shadow: 0 0 22px var(--rar-glow), inset 0 1px 0 rgba(255, 255, 255, 0.55), inset 0 0 0 2px var(--rar-solid); }
+.sword-result.upgraded { box-shadow: 0 0 22px var(--rar-glow), inset 0 1px 0 rgba(255, 255, 255, 0.55); }
+.sword-result.upgraded::after { padding: 2px; }
 .sword-result-grade {
   font-size: 0.62rem;
   font-weight: 500;
@@ -2176,6 +2191,7 @@ body {
 .rarity-table { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .rarity-group { display: flex; flex-direction: column; }
 .rarity-row {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr auto auto auto;
   align-items: center;
@@ -2185,10 +2201,24 @@ body {
   clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
   background: linear-gradient(100deg,
     color-mix(in srgb, var(--rar-a) 18%, transparent), transparent 70%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), inset 0 0 0 1.5px var(--rar-solid);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
   font-family: inherit;
   cursor: pointer;
   transition: filter 0.15s ease;
+}
+.rarity-row::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
+  padding: 1.5px;
+  box-sizing: border-box;
+  background: var(--rar-solid);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
 }
 .rarity-row:hover { filter: brightness(1.08); }
 .rarity-row.open {
@@ -2300,17 +2330,31 @@ body {
   overflow-y: auto;
 }
 .owned-sword-item {
+  position: relative;
   display: grid;
   grid-template-columns: auto 1fr auto auto;
   align-items: center;
   gap: 12px;
   padding: 10px 14px;
   clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-  box-shadow: inset 0 0 0 1.5px var(--rar-solid);
   background: linear-gradient(100deg,
     color-mix(in srgb, var(--rar-a) 14%, transparent), transparent 70%);
 }
-.owned-sword-item.equipped { box-shadow: 0 0 0 2px var(--rar-solid) inset; }
+.owned-sword-item::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  padding: 1.5px;
+  box-sizing: border-box;
+  background: var(--rar-solid);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.owned-sword-item.equipped::after { padding: 2px; }
 .owned-sword-grade { padding: 3px 10px; font-size: 0.62rem; }
 .owned-sword-name {
   font-family: 'Noto Serif KR', serif;
@@ -2344,12 +2388,10 @@ body {
 }
 /* 설화검(rar-7)은 --rar-solid가 순검정이라, 이 목록의 테두리/버튼처럼
    윤곽선으로 쓰는 곳은 옅은 은빛으로 바꿔줘야 다크 배경에서도 보인다. */
-.owned-sword-item.rar-7 { box-shadow: inset 0 0 0 1.5px #d4d4d8; }
-.owned-sword-item.rar-7.equipped { box-shadow: 0 0 0 2px #d4d4d8 inset; }
+.owned-sword-item.rar-7::after { background: #d4d4d8; }
 .owned-sword-item.rar-7 .btn-equip { border-color: #d4d4d8; color: #d4d4d8; }
 .owned-sword-item.rar-7 .btn-equip:disabled { color: #fff; }
-[data-theme="dark"] .owned-sword-item.rar-7 { box-shadow: inset 0 0 0 1.5px #e4e4e7; }
-[data-theme="dark"] .owned-sword-item.rar-7.equipped { box-shadow: 0 0 0 2px #e4e4e7 inset; }
+[data-theme="dark"] .owned-sword-item.rar-7::after { background: #e4e4e7; }
 [data-theme="dark"] .owned-sword-item.rar-7 .btn-equip { border-color: #e4e4e7; color: #e4e4e7; }
 
 /* ============ Codex (도감) ============ */
@@ -2366,27 +2408,47 @@ body {
   gap: 5px;
   padding: 16px 16px 15px;
   clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
-  background: linear-gradient(160deg,
-    color-mix(in srgb, var(--rar-a) 26%, var(--surface-solid)),
-    var(--surface-solid));
-  box-shadow: 0 0 20px var(--rar-glow), inset 0 1px 0 rgba(255, 255, 255, 0.35), inset 0 0 0 1.5px var(--rar-solid);
+  background-image:
+    linear-gradient(to bottom, var(--gloss-top), var(--gloss-bottom)),
+    linear-gradient(160deg,
+      color-mix(in srgb, var(--rar-a) 26%, var(--surface-solid)),
+      var(--surface-solid));
+  background-size: 100% 42%, 100% 100%;
+  background-repeat: no-repeat, no-repeat;
+  background-position: top, top;
+  box-shadow: 0 0 20px var(--rar-glow);
   overflow: hidden;
 }
+/* Cut-corner outline: `border` paints along the box's original rectangular
+   path and gets truncated (not rerouted) where clip-path removes a corner,
+   leaving the diagonal edge unstroked. Safari also won't reliably trace an
+   inset box-shadow around a clip-path shape. A masked ring sidesteps both:
+   fill the box solid, mask away everything but a thin band at the edge
+   (the classic padding + content-box/mask-composite ring), then clip that
+   ring to the exact same polygon so it follows the cut corner too. */
 .codex-card::after {
   content: '';
   position: absolute;
-  inset: 0 0 auto 0;
-  height: 42%;
-  clip-path: polygon(14px 0, 100% 0, 100% 100%, 0 100%, 0 14px);
-  background: linear-gradient(to bottom, var(--gloss-top), var(--gloss-bottom));
+  inset: 0;
+  z-index: 2;
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  padding: 1.5px;
+  box-sizing: border-box;
+  background: var(--rar-solid);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
   pointer-events: none;
 }
 .codex-card.locked {
-  background: var(--surface-solid);
-  box-shadow: inset 0 1px 0 var(--bevel-light), inset 0 0 0 1.5px var(--border);
+  background-image: none;
+  background-color: var(--surface-solid);
+  box-shadow: inset 0 1px 0 var(--bevel-light);
   opacity: 0.72;
 }
-.codex-card.equipped { box-shadow: 0 0 20px var(--rar-glow), inset 0 1px 0 rgba(255, 255, 255, 0.35), inset 0 0 0 1.5px var(--rar-solid), 0 0 0 2px var(--rar-solid); }
+.codex-card.locked::after { background: var(--border); }
+.codex-card.equipped::after { padding: 2.5px; }
 .codex-card.equipped::before {
   content: '장착 중';
   position: absolute;
