@@ -68,13 +68,16 @@ body::before {
 }
 
 /* HUD readout font for numbers/brand — Korean glyphs fall back automatically
-   since Orbitron has no Hangul coverage. */
+   since Orbitron has no Hangul coverage. The two live-ticking timers
+   (.timer-display, .today-total-display) are deliberately excluded:
+   Orbitron doesn't expose real tabular-figure glyphs, so as the digits
+   changed every second the text's shrink-to-fit width kept changing too,
+   visibly resizing/rewobbling the centered box around it. Inter's tabular
+   numerals are genuinely fixed-width, so those two keep the plain stack. */
 .stat-value,
 .progress-ring-label span,
 .badge,
 .dday-pill,
-.today-total-display,
-.timer-display,
 .brand-name,
 .gold-badge strong {
   font-family: 'Orbitron', 'Noto Sans KR', sans-serif;
@@ -147,7 +150,7 @@ body {
   margin-bottom: 20px;
 }
 
-.brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 1.1rem; }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1.1rem; }
 .brand-mark { font-size: 1.3rem; }
 
 .icon-btn {
@@ -180,7 +183,7 @@ body {
 .hero-date {
   margin: 0 0 6px;
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-faint);
   letter-spacing: 0.02em;
 }
@@ -188,7 +191,7 @@ body {
 .hero-quote {
   margin: 0 0 22px;
   font-size: clamp(1.25rem, 2.4vw, 1.7rem);
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.4;
   letter-spacing: -0.01em;
   /* A gradient text-clip in the brand purple/pink read as muted on the
@@ -201,7 +204,7 @@ body {
 
 .hero-stats { display: flex; gap: 28px; flex-wrap: wrap; }
 .stat { display: flex; flex-direction: column; gap: 2px; }
-.stat-value { font-size: 1.6rem; font-weight: 800; }
+.stat-value { font-size: 1.6rem; font-weight: 700; }
 .stat-label { font-size: 0.78rem; color: var(--text-soft); font-weight: 500; }
 
 .progress-ring-wrap { position: relative; width: 140px; height: 140px; flex-shrink: 0; }
@@ -229,8 +232,8 @@ body {
   align-items: center;
   justify-content: center;
 }
-.progress-ring-label span { font-size: 1.5rem; font-weight: 800; }
-.progress-ring-label small { font-size: 0.72rem; color: var(--text-soft); font-weight: 600; margin-top: 2px; }
+.progress-ring-label span { font-size: 1.5rem; font-weight: 700; }
+.progress-ring-label small { font-size: 0.72rem; color: var(--text-soft); font-weight: 500; margin-top: 2px; }
 
 /* ---------- Grid & Cards ---------- */
 .grid {
@@ -266,7 +269,7 @@ body {
 
 .card-head h2 {
   font-size: 1.08rem;
-  font-weight: 800;
+  font-weight: 700;
   margin: 0;
   display: flex;
   align-items: center;
@@ -278,7 +281,7 @@ body {
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   color: #fff;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   padding: 4px 12px;
   border-radius: 999px;
 }
@@ -317,7 +320,7 @@ body {
   border: none;
   padding: 10px 20px;
   border-radius: var(--radius-sm);
-  font-weight: 700;
+  font-weight: 500;
   font-size: 0.9rem;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -333,7 +336,7 @@ body {
   padding: 5px 12px;
   border-radius: 999px;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 .chip-btn:hover { color: var(--accent); border-color: var(--accent); }
@@ -379,7 +382,7 @@ body {
   text-align: center;
   padding: 7px 10px;
   border-radius: 999px;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 0.82rem;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   color: #fff;
@@ -388,7 +391,7 @@ body {
 .dday-pill.past { background: var(--border); color: var(--text-faint); }
 
 .schedule-info { flex: 1; min-width: 0; }
-.schedule-title { margin: 0; font-weight: 700; font-size: 0.92rem; }
+.schedule-title { margin: 0; font-weight: 500; font-size: 0.92rem; }
 .schedule-date { margin: 2px 0 0; font-size: 0.76rem; color: var(--text-faint); }
 
 .delete-btn {
@@ -408,7 +411,7 @@ body {
 
 /* ---------- Todo ---------- */
 .day-nav { display: flex; align-items: center; gap: 8px; }
-.viewing-date { font-size: 0.82rem; font-weight: 700; color: var(--text-soft); min-width: 90px; text-align: center; }
+.viewing-date { font-size: 0.82rem; font-weight: 500; color: var(--text-soft); min-width: 90px; text-align: center; }
 
 .todo-item {
   display: flex;
@@ -433,7 +436,7 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 0.8rem;
-  font-weight: 800;
+  font-weight: 700;
   color: transparent;
   transition: all 0.15s ease;
 }
@@ -448,7 +451,7 @@ body {
   flex: 1;
   min-width: 90px;
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: 500;
   word-break: break-word;
 }
 .todo-item.done .todo-text {
@@ -468,7 +471,7 @@ body {
 }
 .percent-value {
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--text-soft);
   min-width: 34px;
   text-align: right;
@@ -502,7 +505,7 @@ body {
   justify-content: center;
   background: var(--border);
   color: var(--text-faint);
-  font-weight: 800;
+  font-weight: 700;
   font-size: 1rem;
   transition: all 0.15s ease;
 }
@@ -516,7 +519,7 @@ body {
   background: transparent;
   outline: none;
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: 500;
   font-family: inherit;
   color: var(--text);
   padding: 4px 0;
@@ -560,7 +563,7 @@ body {
   justify-content: center;
   gap: 3px;
   border: 1px solid var(--border);
-  font-weight: 700;
+  font-weight: 500;
   color: #fff;
   min-height: 84px;
   padding: 10px 4px;
@@ -568,7 +571,7 @@ body {
 }
 .heat-cell .heat-day { font-size: 0.68rem; opacity: 0.85; }
 .heat-cell .heat-pct { font-size: 0.9rem; }
-.heat-cell .heat-study { font-size: 0.7rem; opacity: 0.9; font-weight: 600; }
+.heat-cell .heat-study { font-size: 0.7rem; opacity: 0.9; font-weight: 500; }
 .heat-cell.empty {
   background: var(--surface-solid);
   color: var(--text-faint);
@@ -610,14 +613,14 @@ body {
   border-radius: 999px;
   padding: 6px 14px 6px 10px;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--text-soft);
   box-shadow: var(--shadow-sm);
 }
 .gold-badge strong {
   color: var(--gold);
   font-size: 0.86rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 .gold-icon {
   display: inline-block;
@@ -648,7 +651,7 @@ body {
   color: var(--text-faint);
   font-family: inherit;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 500;
   padding: 9px 13px;
   border-radius: 0;
   cursor: pointer;
@@ -703,14 +706,17 @@ body {
 .today-total-label {
   margin: 0 0 8px;
   font-size: 0.95rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--text-soft);
 }
 
 .today-total-display {
+  display: inline-block;
+  width: 8.6ch;
+  text-align: center;
   font-variant-numeric: tabular-nums;
   font-size: clamp(2.8rem, 8vw, 4.6rem);
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.02em;
   -webkit-background-clip: text;
   background-clip: text;
@@ -729,15 +735,18 @@ body {
 .timer-subject {
   margin: 0 0 10px;
   font-size: 1.2rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--text-soft);
   min-height: 1.4em;
 }
 
 .timer-display {
+  display: inline-block;
+  width: 8.6ch;
+  text-align: center;
   font-variant-numeric: tabular-nums;
   font-size: clamp(3.6rem, 10vw, 6.4rem);
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.02em;
   -webkit-background-clip: text;
   background-clip: text;
@@ -752,7 +761,7 @@ body {
   color: #fff;
   font-family: inherit;
   font-size: 1.15rem;
-  font-weight: 800;
+  font-weight: 700;
   padding: 18px 44px;
   border-radius: 999px;
   cursor: pointer;
@@ -774,13 +783,13 @@ body {
   margin: 18px 0 0;
   font-size: 0.78rem;
   color: var(--text-faint);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .rest-display {
   margin: -20px 0 24px;
   font-size: 0.85rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--text-faint);
 }
 .rest-display.hidden { display: none; }
@@ -799,7 +808,7 @@ body {
   color: var(--text-soft);
   font-family: inherit;
   font-size: 0.95rem;
-  font-weight: 700;
+  font-weight: 500;
   padding: 14px 26px;
   border-radius: 999px;
   cursor: pointer;
@@ -873,12 +882,12 @@ body {
   flex: 1;
   min-width: 60px;
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: 500;
   word-break: break-word;
 }
 .subject-time {
   font-size: 0.76rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--text-soft);
   white-space: nowrap;
   flex-shrink: 0;
@@ -930,7 +939,7 @@ body {
   position: relative;
   margin: 0 0 6px;
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.14em;
   color: var(--text-faint);
   text-transform: uppercase;
@@ -940,7 +949,7 @@ body {
   position: relative;
   margin: 0;
   font-family: 'Noto Serif KR', 'Noto Sans KR', serif;
-  font-weight: 900;
+  font-weight: 700;
   font-size: clamp(2.6rem, 7vw, 4.6rem);
   line-height: 1.1;
   letter-spacing: -0.01em;
@@ -1095,8 +1104,8 @@ body {
   gap: 4px;
   min-width: 150px;
 }
-.cultivation-stat span { font-size: 0.72rem; font-weight: 700; color: var(--text-faint); }
-.cultivation-stat strong { font-size: 1.05rem; font-weight: 800; color: var(--gold); }
+.cultivation-stat span { font-size: 0.72rem; font-weight: 500; color: var(--text-faint); }
+.cultivation-stat strong { font-size: 1.05rem; font-weight: 700; color: var(--gold); }
 
 .cultivation-next {
   position: relative;
@@ -1110,14 +1119,14 @@ body {
 .next-label {
   margin: 0 0 4px;
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--text-faint);
   letter-spacing: 0.06em;
 }
 .next-name {
   margin: 0 0 14px;
   font-size: 1.05rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--text);
 }
 .btn-upgrade {
@@ -1127,7 +1136,7 @@ body {
   color: #16121f;
   font-family: inherit;
   font-size: 0.95rem;
-  font-weight: 800;
+  font-weight: 700;
   padding: 13px 18px;
   border-radius: 999px;
   cursor: pointer;
@@ -1149,10 +1158,10 @@ body {
 .odds-row {
   margin: 0;
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--text-faint);
 }
-.odds-row strong { font-size: 0.94rem; font-weight: 900; }
+.odds-row strong { font-size: 0.94rem; font-weight: 700; }
 .odds-success strong { color: var(--accent-3); }
 .odds-fail strong { color: var(--danger); }
 
@@ -1194,14 +1203,14 @@ body {
   flex-shrink: 0;
   text-align: center;
   font-size: 0.76rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--text-faint);
 }
 .ladder-info { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-.ladder-name { font-size: 0.9rem; font-weight: 700; }
+.ladder-name { font-size: 0.9rem; font-weight: 500; }
 .ladder-hanja { font-family: 'Noto Serif KR', serif; font-size: 0.76rem; color: var(--text-faint); }
-.ladder-range { flex-shrink: 0; font-size: 0.72rem; font-weight: 700; color: var(--gold); white-space: nowrap; }
-.ladder-status { flex-shrink: 0; font-size: 0.76rem; font-weight: 800; white-space: nowrap; min-width: 64px; text-align: right; }
+.ladder-range { flex-shrink: 0; font-size: 0.72rem; font-weight: 500; color: var(--gold); white-space: nowrap; }
+.ladder-status { flex-shrink: 0; font-size: 0.76rem; font-weight: 700; white-space: nowrap; min-width: 64px; text-align: right; }
 .ladder-caret { flex-shrink: 0; font-size: 0.7rem; color: var(--text-faint); transition: transform 0.2s ease; }
 .ladder-item.expanded .ladder-caret { transform: rotate(180deg); }
 
@@ -1248,7 +1257,7 @@ body {
   background: var(--surface-solid);
   border: 1px solid var(--border);
   color: var(--text);
-  font-weight: 700;
+  font-weight: 500;
   font-size: 0.88rem;
   padding: 12px 22px;
   border-radius: 999px;
@@ -1293,7 +1302,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 1.2rem;
   margin-bottom: 22px;
 }
@@ -1314,7 +1323,7 @@ body {
   color: var(--text-soft);
   font-family: inherit;
   font-size: 0.86rem;
-  font-weight: 700;
+  font-weight: 500;
   padding: 9px 10px;
   border-radius: 999px;
   cursor: pointer;
@@ -1351,7 +1360,7 @@ body {
   min-height: 1.3em;
   margin: 14px 0 0;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--danger);
   text-align: center;
 }
@@ -1374,7 +1383,7 @@ body {
   border-bottom: 1px solid var(--border);
 }
 .settings-row:last-child { border-bottom: none; }
-.settings-row-title { margin: 0 0 3px; font-size: 0.92rem; font-weight: 700; }
+.settings-row-title { margin: 0 0 3px; font-size: 0.92rem; font-weight: 500; }
 .settings-row-desc { margin: 0; font-size: 0.78rem; color: var(--text-faint); }
 .settings-row-desc strong { color: var(--text-soft); }
 
@@ -1415,7 +1424,7 @@ body {
   background: linear-gradient(135deg, var(--gold), var(--gold-2));
   color: #2b1c02;
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 700;
   padding: 5px 14px;
   border-radius: 999px;
 }
@@ -1432,7 +1441,7 @@ body {
   color: var(--text-soft);
   font-family: inherit;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 500;
   padding: 8px 14px;
   border-radius: 999px;
   cursor: pointer;
@@ -1479,7 +1488,7 @@ body {
   flex-shrink: 0;
   text-align: center;
   font-size: 0.9rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--text-faint);
 }
 .rank-row.top1 .rank-medal { font-size: 1.3rem; }
@@ -1490,7 +1499,7 @@ body {
   flex: 1;
   min-width: 0;
   font-size: 0.9rem;
-  font-weight: 700;
+  font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1501,7 +1510,7 @@ body {
   background: var(--accent);
   color: #fff;
   font-size: 0.66rem;
-  font-weight: 800;
+  font-weight: 700;
   padding: 2px 7px;
   border-radius: 999px;
   vertical-align: middle;
@@ -1510,7 +1519,7 @@ body {
 .rank-value {
   flex-shrink: 0;
   font-size: 0.86rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--gold);
   white-space: nowrap;
 }
@@ -1527,7 +1536,7 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 0.76rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--text-soft);
 }
 
@@ -1630,10 +1639,10 @@ body {
   justify-content: space-between;
   gap: 14px;
 }
-.profile-stat-label { font-size: 0.8rem; font-weight: 700; color: var(--text-faint); flex-shrink: 0; }
+.profile-stat-label { font-size: 0.8rem; font-weight: 500; color: var(--text-faint); flex-shrink: 0; }
 .profile-stat-value {
   font-size: 1.05rem;
-  font-weight: 800;
+  font-weight: 700;
   text-align: right;
   word-break: keep-all;
 }
@@ -1688,8 +1697,8 @@ body {
   border: 1px solid var(--border);
   font-size: 0.86rem;
 }
-.profile-rank-label { font-weight: 700; color: var(--text-soft); }
-.profile-rank-place { font-weight: 800; color: var(--gold); }
+.profile-rank-label { font-weight: 500; color: var(--text-soft); }
+.profile-rank-place { font-weight: 700; color: var(--gold); }
 
 /* ============================================================
    Glossy game-UI layer (Sailor Piece / Legacy Piece flavoured)
@@ -1762,7 +1771,7 @@ body {
 [data-theme="dark"] .brand-name { text-shadow: 0 2px 4px var(--ink); }
 
 .card-head h2,
-.brand-name { font-weight: 900; }
+.brand-name { font-weight: 700; }
 
 /* Glossy buttons: bevel + a sheen that sweeps on hover. */
 .btn-primary,
@@ -1989,7 +1998,7 @@ body {
   padding: 5px 14px;
   border-radius: 999px;
   font-size: 0.74rem;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: 0.1em;
   color: #fff;
   background: linear-gradient(160deg, var(--rar-a), var(--rar-solid));
@@ -1997,7 +2006,7 @@ body {
   box-shadow: 0 0 14px var(--rar-glow), inset 0 1px 0 rgba(255, 255, 255, 0.55);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
-.rar-chip small { margin-left: 6px; opacity: 0.8; font-weight: 700; }
+.rar-chip small { margin-left: 6px; opacity: 0.8; font-weight: 500; }
 .rar-chip.rar-7 { position: relative; overflow: hidden; }
 .rar-chip.rar-7::after {
   content: '';
@@ -2051,7 +2060,7 @@ body {
 }
 .gacha-count-label {
   font-size: 0.8rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--text-soft);
   letter-spacing: 0.06em;
 }
@@ -2064,7 +2073,7 @@ body {
   color: var(--text);
   font-family: inherit;
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: 700;
   text-align: center;
   box-shadow: inset 0 2px 5px var(--bevel-dark);
 }
@@ -2074,7 +2083,7 @@ body {
   color: #3b1d00;
   font-family: inherit;
   font-size: 1.05rem;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: 0.02em;
   padding: 15px 34px;
   border-radius: 999px;
@@ -2087,7 +2096,7 @@ body {
   flex-basis: 100%;
   margin: 4px 0 0;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--text-faint);
 }
 
@@ -2126,14 +2135,14 @@ body {
 .sword-result.upgraded { border-width: 2px; box-shadow: 0 0 22px var(--rar-glow), inset 0 1px 0 rgba(255, 255, 255, 0.55); }
 .sword-result-grade {
   font-size: 0.62rem;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: 0.1em;
   color: var(--rar-solid);
 }
 .sword-result-name {
   font-family: 'Noto Serif KR', serif;
   font-size: 0.95rem;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--text);
 }
 .sword-result-hanja { font-size: 0.66rem; color: var(--text-faint); letter-spacing: 0.08em; }
@@ -2144,7 +2153,7 @@ body {
   padding: 2px 7px;
   border-radius: 999px;
   font-size: 0.58rem;
-  font-weight: 900;
+  font-weight: 700;
   color: #fff;
   background: linear-gradient(140deg, var(--accent-2), var(--danger));
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
@@ -2180,13 +2189,13 @@ body {
 }
 .rarity-name {
   font-family: 'Noto Serif KR', serif;
-  font-weight: 900;
+  font-weight: 700;
   font-size: 1rem;
   color: var(--rar-solid);
   text-shadow: 0 0 12px var(--rar-glow);
   text-align: left;
 }
-.rarity-name small { margin-left: 6px; font-size: 0.68rem; opacity: 0.7; font-weight: 600; }
+.rarity-name small { margin-left: 6px; font-size: 0.68rem; opacity: 0.7; font-weight: 500; }
 .rarity-chance {
   font-weight: 400;
   font-size: 1rem;
@@ -2208,7 +2217,7 @@ body {
     0 0 10px rgba(255, 255, 255, 0.85),
     0 0 16px rgba(255, 255, 255, 0.6);
 }
-.rarity-count { font-size: 0.72rem; color: var(--text-faint); font-weight: 700; }
+.rarity-count { font-size: 0.72rem; color: var(--text-faint); font-weight: 500; }
 .rarity-caret {
   font-size: 0.8rem;
   color: var(--rar-solid);
@@ -2243,12 +2252,12 @@ body {
   from { opacity: 0; transform: translateY(-6px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.rarity-sword-name { font-family: 'Noto Serif KR', serif; font-weight: 800; color: var(--rar-solid); }
+.rarity-sword-name { font-family: 'Noto Serif KR', serif; font-weight: 700; color: var(--rar-solid); }
 .rarity-sword-hanja { font-size: 0.72rem; color: var(--text-faint); }
 .rarity-sword-income {
   margin-left: auto;
   font-size: 0.7rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--gold);
   white-space: nowrap;
 }
@@ -2259,7 +2268,7 @@ body {
   content: '미발견';
   margin-left: auto;
   font-size: 0.64rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--text-faint);
   letter-spacing: 0.04em;
 }
@@ -2298,15 +2307,15 @@ body {
 .owned-sword-grade { padding: 3px 10px; font-size: 0.62rem; }
 .owned-sword-name {
   font-family: 'Noto Serif KR', serif;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 0.9rem;
   color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.owned-sword-name small { margin-left: 4px; font-weight: 600; color: var(--text-faint); font-size: 0.72rem; }
-.owned-sword-income { font-size: 0.74rem; font-weight: 700; color: var(--gold); white-space: nowrap; }
+.owned-sword-name small { margin-left: 4px; font-weight: 500; color: var(--text-faint); font-size: 0.72rem; }
+.owned-sword-income { font-size: 0.74rem; font-weight: 500; color: var(--gold); white-space: nowrap; }
 .btn-equip {
   padding: 6px 14px;
   border-radius: 999px;
@@ -2315,7 +2324,7 @@ body {
   color: var(--rar-solid);
   font-family: inherit;
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
   transition: filter 0.15s ease;
@@ -2337,7 +2346,7 @@ body {
 [data-theme="dark"] .owned-sword-item.rar-7 .btn-equip { border-color: #e4e4e7; color: #e4e4e7; }
 
 /* ============ Codex (도감) ============ */
-.codex-note { margin: 0 0 16px; font-size: 0.8rem; color: var(--text-faint); font-weight: 600; }
+.codex-note { margin: 0 0 16px; font-size: 0.8rem; color: var(--text-faint); font-weight: 500; }
 .codex-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
@@ -2381,7 +2390,7 @@ body {
   padding: 3px 9px;
   border-radius: 999px;
   font-size: 0.6rem;
-  font-weight: 900;
+  font-weight: 700;
   color: #fff;
   background: linear-gradient(140deg, var(--accent), var(--accent-2));
 }
@@ -2389,7 +2398,7 @@ body {
   position: relative;
   z-index: 1;
   font-size: 0.62rem;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: 0.12em;
   color: var(--rar-solid);
 }
@@ -2400,7 +2409,7 @@ body {
   margin: 0;
   font-family: 'Noto Serif KR', serif;
   font-size: 1.16rem;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--text);
 }
 .codex-hanja {
@@ -2427,7 +2436,7 @@ body {
   z-index: 1;
   margin: 9px 0 0;
   font-size: 0.78rem;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--rar-solid);
   font-variant-numeric: tabular-nums;
 }
@@ -2468,15 +2477,15 @@ body {
   box-shadow: 0 0 12px var(--accent);
 }
 .modal-icon { display: block; font-size: 2.4rem; line-height: 1; margin-bottom: 10px; }
-.modal-title { font-size: 1.25rem; font-weight: 800; margin: 0 0 8px; }
+.modal-title { font-size: 1.25rem; font-weight: 700; margin: 0 0 8px; }
 .modal-text { font-size: 0.88rem; color: var(--text-soft); margin: 0 0 14px; line-height: 1.55; }
-.modal-countdown { font-size: 1.05rem; font-weight: 800; color: var(--danger); margin: 0 0 16px; }
+.modal-countdown { font-size: 1.05rem; font-weight: 700; color: var(--danger); margin: 0 0 16px; }
 .modal-btn { width: 100%; margin-top: 4px; }
 .modal-note { font-size: 0.75rem; color: var(--text-faint); margin: 12px 0 0; line-height: 1.55; }
 
 .adjust-value {
   font-size: 2rem;
-  font-weight: 800;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--accent);
   margin: 6px 0 12px;
@@ -2486,7 +2495,7 @@ body {
   display: flex;
   justify-content: space-between;
   font-size: 0.72rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-faint);
   margin-top: 6px;
 }
@@ -2495,7 +2504,7 @@ body {
 .sword-epithet {
   margin: 8px 0 0;
   font-family: 'Noto Serif KR', serif;
-  font-weight: 700;
+  font-weight: 500;
   font-size: 0.92rem;
   letter-spacing: 0.04em;
   color: var(--rar-solid);
@@ -2546,7 +2555,7 @@ body {
   padding: 3px 9px;
   border-radius: 999px;
   font-size: 0.6rem;
-  font-weight: 900;
+  font-weight: 700;
   color: #fff;
   background: linear-gradient(140deg, var(--accent), var(--accent-2));
 }
@@ -2554,7 +2563,7 @@ body {
   position: relative;
   z-index: 1;
   font-size: 0.62rem;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: 0.12em;
   color: var(--rar-solid);
 }
@@ -2565,7 +2574,7 @@ body {
   margin: 4px 0 0;
   font-family: 'Noto Serif KR', serif;
   font-size: 1.28rem;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--text);
   word-break: keep-all;
 }
@@ -2584,7 +2593,7 @@ body {
   margin: 0 0 6px;
   font-family: 'Noto Serif KR', serif;
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--rar-solid);
 }
 .codex-card.locked .codex-epithet { color: var(--text-faint); }
@@ -2597,7 +2606,7 @@ body {
   padding: 2px 9px;
   border-radius: 999px;
   font-size: 0.55em;
-  font-weight: 900;
+  font-weight: 700;
   vertical-align: middle;
   color: #3b1d00;
   background: linear-gradient(135deg, #ffd76a, #f59e0b);
@@ -2612,7 +2621,7 @@ body {
   gap: 10px;
   margin: 4px 0 20px;
 }
-.enhance-select-row label { font-size: 0.85rem; font-weight: 700; color: var(--text-soft); }
+.enhance-select-row label { font-size: 0.85rem; font-weight: 500; color: var(--text-soft); }
 .enhance-select-row select {
   flex: 1;
   padding: 10px 14px;
@@ -2622,7 +2631,7 @@ body {
   color: var(--text);
   font-family: inherit;
   font-size: 0.9rem;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .enhance-display {
@@ -2645,7 +2654,7 @@ body {
   margin: 4px 0 14px;
   font-family: 'Noto Serif KR', serif;
   font-size: 1.7rem;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--text);
 }
 .enhance-income {
@@ -2653,11 +2662,11 @@ body {
   z-index: 1;
   margin: 12px 0 0;
   font-size: 0.85rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--gold);
 }
 .enhance-action { position: relative; z-index: 1; margin-top: 22px; }
-.enhance-next-info { margin: 0 0 12px; font-size: 0.8rem; font-weight: 700; color: var(--text-soft); }
+.enhance-next-info { margin: 0 0 12px; font-size: 0.8rem; font-weight: 500; color: var(--text-soft); }
 
 .enhance-stars {
   position: relative;
@@ -2698,7 +2707,7 @@ body {
    around the wheel, each with a much stronger glow of its own hue. */
 .enhance-star.filled.star-pos-11 { filter: hue-rotate(0deg)  saturate(1.7) brightness(1.2) drop-shadow(0 0 11px rgba(59, 130, 246, 0.9)); }
 .enhance-star.filled.star-pos-12 { filter: hue-rotate(55deg) saturate(2.6) brightness(1.05) drop-shadow(0 0 11px rgba(168, 85, 247, 0.9)); }
-.enhance-overcap-warning { color: var(--danger); font-weight: 800; }
+.enhance-overcap-warning { color: var(--danger); font-weight: 700; }
 
 /* 별의 조각 currency icon — a small crystal-shard image with a soft glow. */
 .frag-icon {
