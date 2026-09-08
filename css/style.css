@@ -1,95 +1,54 @@
-/* ============ 천마(天魔) Neon Wuxia theme ============
-   Near-black cyber-murim-cult palette: magenta + cyan neon on void black,
-   scanline/grid texture, angular accents. The site keeps its light/dark
-   toggle for contrast preference, but both states now live inside this
-   identity — "twilight" (toggle off) is a touch brighter than "void"
-   (toggle on, the default), never a return to the old pastel light theme. */
+/* ============ Vivid Tech Gradient theme ============
+   Modern white-background identity: crisp off-white pages, an indigo→cyan
+   gradient reserved for the hero banner / timer / primary actions, plain
+   white cards with soft shadows. The toggle keeps both states inside this
+   identity — "Day" (toggle off) is the brighter of the two, "Dusk" (toggle
+   on) a touch dimmer/grayer — never a return to the old dark neon theme. */
 :root {
-  --bg-a: #170f22;
-  --bg-b: #200f1c;
-  --surface: rgba(255, 255, 255, 0.06);
-  --surface-solid: #1c1526;
-  --border: rgba(255, 46, 166, 0.3);
-  --text: #f5f2fb;
-  --text-soft: #c3bcd9;
-  --text-faint: #8b84a8;
-  --accent: #ff2ea6;
-  --accent-2: #29f0e0;
-  --accent-3: #39ff8a;
-  --danger: #ff3d68;
-  --gold: #ffcf3d;
-  --gold-2: #ffe37a;
+  --bg-a: #fefeff;
+  --bg-b: #f6f7fb;
+  --surface: #ffffff;
+  --surface-solid: #ffffff;
+  --border: #eceef4;
+  --text: #14151f;
+  --text-soft: #5a5d6e;
+  --text-faint: #8b8fa3;
+  --accent: #4f46e5;
+  --accent-2: #06b6d4;
+  --accent-3: #06b6d4;
+  --danger: #ef4444;
+  --gold: #d69a1f;
+  --gold-2: #f0b429;
   --quote-color: #ffffff;
-  --quote-glow: rgba(255, 46, 166, 0.55);
-  --shadow: 0 22px 50px -22px rgba(0, 0, 0, 0.7), 0 0 34px -12px rgba(255, 46, 166, 0.28);
-  --shadow-sm: 0 10px 26px -14px rgba(0, 0, 0, 0.6), 0 0 18px -8px rgba(41, 240, 224, 0.28);
-  --radius-lg: 14px;
-  --radius-md: 10px;
-  --radius-sm: 6px;
-  color-scheme: dark;
+  --quote-glow: rgba(0, 0, 0, 0.18);
+  --shadow: 0 20px 40px -24px rgba(79, 70, 229, 0.28);
+  --shadow-sm: 0 8px 20px -14px rgba(79, 70, 229, 0.22);
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-sm: 12px;
+  color-scheme: light;
 }
 
 [data-theme="dark"] {
-  --bg-a: #07060b;
-  --bg-b: #0a0611;
-  --surface: rgba(255, 255, 255, 0.03);
-  --surface-solid: #0d0a14;
-  --border: rgba(255, 46, 166, 0.24);
-  --text: #f3f0fb;
-  --text-soft: #a9a4c4;
-  --text-faint: #6f6a8c;
-  --accent: #ff2ea6;
-  --accent-2: #29f0e0;
-  --accent-3: #39ff8a;
-  --danger: #ff2d55;
-  --gold: #ffcf3d;
-  --gold-2: #ffd863;
+  --bg-a: #f5f6fa;
+  --bg-b: #eef0f6;
+  --surface: #ffffff;
+  --surface-solid: #ffffff;
+  --border: #e2e4ee;
+  --text: #14151f;
+  --text-soft: #5a5d6e;
+  --text-faint: #8b8fa3;
+  --accent: #4f46e5;
+  --accent-2: #06b6d4;
+  --accent-3: #06b6d4;
+  --danger: #ef4444;
+  --gold: #d69a1f;
+  --gold-2: #f0b429;
   --quote-color: #ffffff;
-  --quote-glow: rgba(255, 46, 166, 0.6);
-  --shadow: 0 24px 55px -24px rgba(0, 0, 0, 0.85), 0 0 36px -10px rgba(255, 46, 166, 0.3);
-  --shadow-sm: 0 12px 28px -16px rgba(0, 0, 0, 0.75), 0 0 20px -8px rgba(41, 240, 224, 0.3);
-  color-scheme: dark;
-}
-
-/* Void scanline + grid texture, fixed behind every panel. */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.025) 0px, rgba(255, 255, 255, 0.025) 1px, transparent 1px, transparent 3px),
-    linear-gradient(rgba(255, 46, 166, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 46, 166, 0.05) 1px, transparent 1px);
-  background-size: auto, 46px 46px, 46px 46px;
-  mask-image: linear-gradient(180deg, black, transparent 85%);
-  -webkit-mask-image: linear-gradient(180deg, black, transparent 85%);
-}
-
-/* HUD readout font for numbers — Korean/hanja riding along in the same
-   element (badges, gold amounts) falls through per-character to Noto
-   Sans KR since Orbitron has zero CJK coverage. */
-.stat-value,
-.progress-ring-label span,
-.badge,
-.dday-pill,
-.today-total-display,
-.timer-display,
-.gold-badge strong,
-.percent-value,
-.rank-value,
-.profile-stat-value,
-.profile-rank-place,
-.rarity-chance,
-.rarity-count,
-.rarity-sword-income,
-.owned-sword-income,
-.codex-bonus,
-.adjust-value,
-.enhance-income,
-#gachaCount {
-  font-family: 'Orbitron', 'Noto Sans KR', sans-serif;
+  --quote-glow: rgba(0, 0, 0, 0.2);
+  --shadow: 0 20px 40px -22px rgba(79, 70, 229, 0.3);
+  --shadow-sm: 0 8px 20px -14px rgba(79, 70, 229, 0.24);
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; }
@@ -101,7 +60,7 @@ html, body {
 }
 
 body {
-  font-family: 'Inter', 'Noto Sans KR', sans-serif;
+  font-family: 'Sora', 'Noto Sans KR', sans-serif;
   font-weight: 300;
   background: linear-gradient(160deg, var(--bg-a), var(--bg-b));
   color: var(--text);
@@ -109,13 +68,9 @@ body {
   overflow-x: hidden;
 }
 
-.bg-decor {
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
-  z-index: 0;
-  pointer-events: none;
-}
+/* Vivid Tech is a crisp white page — no ambient blob glow; vividness lives
+   in the hero/timer gradient banners instead. */
+.bg-decor { display: none; }
 
 .blob {
   position: absolute;
@@ -143,15 +98,42 @@ body {
 }
 
 /* ---------- Header ---------- */
+/* The one place the gradient goes big: everything else on the page is a
+   plain white card, but the hero banner carries the indigo→cyan identity
+   with white text on top, matching the timer card on the study tab. */
 .hero {
-  background: var(--surface);
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(120deg, #4f46e5 0%, #6366f1 45%, #06b6d4 100%);
+  border: none;
   border-radius: var(--radius-lg);
   padding: 28px 30px 32px;
   box-shadow: var(--shadow);
   margin-bottom: 24px;
+  color: #fff;
 }
+.hero::before {
+  content: '';
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.28), transparent 70%);
+  top: -180px;
+  right: -80px;
+  pointer-events: none;
+}
+.hero .brand-name,
+.hero .hero-date,
+.hero .hero-quote,
+.hero .stat-value { color: #fff; }
+.hero .stat-label { color: rgba(255, 255, 255, 0.68); }
+.hero .stat-label svg,
+.hero .brand-mark { color: rgba(255, 255, 255, 0.85); }
+.hero .ring-bg { stroke: rgba(255, 255, 255, 0.25); }
+.hero .ring-fg { stroke: #fff; }
+.hero .progress-ring-label span { color: #fff; }
+.hero .progress-ring-label small { color: rgba(255, 255, 255, 0.65); }
 
 .hero-top {
   display: flex;
@@ -320,7 +302,7 @@ body {
 }
 .inline-form input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(255, 46, 166, 0.22);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.18);
 }
 .inline-form input[type="date"] { color: var(--text); min-width: 150px; }
 
@@ -502,7 +484,7 @@ body {
 .add-row:focus-within {
   border-style: solid;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(255, 46, 166, 0.22);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.18);
   background: var(--surface-solid);
 }
 .add-row-plus {
@@ -617,15 +599,13 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--surface);
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--border);
+  background: rgba(79, 70, 229, 0.08);
+  border: 1px solid rgba(79, 70, 229, 0.14);
   border-radius: 999px;
   padding: 6px 14px 6px 10px;
   font-size: 0.8rem;
-  font-weight: 400;
-  color: var(--text-soft);
-  box-shadow: var(--shadow-sm);
+  font-weight: 500;
+  color: var(--accent);
 }
 .gold-badge strong {
   color: var(--gold);
@@ -661,27 +641,17 @@ body {
   color: var(--text-faint);
   font-family: inherit;
   font-size: 0.8rem;
-  font-weight: 400;
+  font-weight: 500;
   padding: 9px 13px;
-  border-radius: 0;
+  border-radius: 10px;
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: color 0.2s ease, background 0.2s ease;
   white-space: nowrap;
 }
 .tab-btn:hover { color: var(--text); }
 .tab-btn.active {
-  color: var(--accent);
-  text-shadow: 0 0 14px var(--quote-glow);
-}
-.tab-btn.active::after {
-  content: '';
-  position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: 1px;
-  height: 2px;
-  background: var(--accent);
-  box-shadow: 0 0 8px var(--accent);
+  color: #fff;
+  background: linear-gradient(120deg, var(--accent), var(--accent-2));
 }
 
 /* ============ Tab panels ============ */
@@ -735,18 +705,50 @@ body {
 }
 
 .timer-card {
+  position: relative;
+  overflow: hidden;
   align-items: center;
   text-align: center;
   padding: 64px 28px;
   min-height: 460px;
   justify-content: center;
+  background: linear-gradient(120deg, #4f46e5 0%, #6366f1 45%, #06b6d4 100%);
+  border: none;
+  color: #fff;
+}
+.timer-card::before {
+  content: '';
+  position: absolute;
+  width: 360px;
+  height: 360px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.22), transparent 70%);
+  top: -140px;
+  right: -60px;
+  pointer-events: none;
+}
+.timer-card .timer-display {
+  background: none;
+  -webkit-text-fill-color: #fff;
+  color: #fff;
+  animation: none;
+  filter: none;
+}
+.timer-card .btn-measure {
+  background: #fff;
+  color: #4338ca;
+}
+.timer-card .btn-rest {
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
 }
 
 .timer-subject {
+  position: relative;
   margin: 0 0 10px;
   font-size: 1.2rem;
-  font-weight: 400;
-  color: var(--text-soft);
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
   min-height: 1.4em;
 }
 
@@ -785,22 +787,24 @@ body {
   animation: pulseBtn 1.6s ease-in-out infinite;
 }
 @keyframes pulseBtn {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 69, 119, 0.35); }
-  50% { box-shadow: 0 0 0 10px rgba(239, 69, 119, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.35); }
+  50% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
 }
 
 .timer-hint {
+  position: relative;
   margin: 18px 0 0;
   font-size: 0.78rem;
-  color: var(--text-faint);
+  color: rgba(255, 255, 255, 0.7);
   font-weight: 400;
 }
 
 .rest-display {
+  position: relative;
   margin: -20px 0 24px;
   font-size: 0.85rem;
   font-weight: 400;
-  color: var(--text-faint);
+  color: rgba(255, 255, 255, 0.7);
 }
 .rest-display.hidden { display: none; }
 
@@ -858,7 +862,7 @@ body {
 .subject-item.selected { border-color: var(--accent); }
 .subject-item.running {
   border-color: var(--danger);
-  box-shadow: 0 0 0 3px rgba(239, 69, 119, 0.12);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
 }
 
 .subject-select-btn {
@@ -1362,7 +1366,7 @@ body {
 }
 .auth-form input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(255, 46, 166, 0.22);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.18);
 }
 .auth-submit { width: 100%; padding: 13px; font-size: 0.95rem; margin-top: 4px; }
 
@@ -1489,8 +1493,8 @@ body {
 }
 .rank-row.me {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(255, 46, 166, 0.22);
-  background: linear-gradient(120deg, rgba(255, 46, 166, 0.14), var(--surface-solid));
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.18);
+  background: linear-gradient(120deg, rgba(79, 70, 229, 0.1), var(--surface-solid));
 }
 
 .rank-medal {
@@ -1716,18 +1720,18 @@ body {
    reused by every panel so the whole site reads as one skin.
    ============================================================ */
 :root {
-  --gloss-top: rgba(255, 46, 166, 0.14);
-  --gloss-bottom: rgba(255, 46, 166, 0);
-  --bevel-light: rgba(41, 240, 224, 0.4);
-  --bevel-dark: rgba(0, 0, 0, 0.55);
-  --ink: rgba(0, 0, 0, 0.8);
+  --gloss-top: rgba(255, 255, 255, 0.5);
+  --gloss-bottom: rgba(255, 255, 255, 0);
+  --bevel-light: rgba(255, 255, 255, 0.6);
+  --bevel-dark: rgba(20, 21, 31, 0.08);
+  --ink: transparent;
 }
 [data-theme="dark"] {
-  --gloss-top: rgba(255, 46, 166, 0.1);
-  --gloss-bottom: rgba(255, 46, 166, 0);
-  --bevel-light: rgba(41, 240, 224, 0.3);
-  --bevel-dark: rgba(0, 0, 0, 0.6);
-  --ink: rgba(0, 0, 0, 0.85);
+  --gloss-top: rgba(255, 255, 255, 0.45);
+  --gloss-bottom: rgba(255, 255, 255, 0);
+  --bevel-light: rgba(255, 255, 255, 0.55);
+  --bevel-dark: rgba(20, 21, 31, 0.1);
+  --ink: transparent;
 }
 
 /* Sheen: a narrow bright band that slides across a surface. */
@@ -2130,33 +2134,19 @@ body {
   gap: 1px;
   padding: 10px 13px;
   min-width: 104px;
-  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--rar-solid);
   background: linear-gradient(160deg,
     color-mix(in srgb, var(--rar-a) 26%, var(--surface-solid)),
     var(--surface-solid));
   box-shadow: 0 0 12px var(--rar-glow), inset 0 1px 0 rgba(255, 255, 255, 0.4);
   animation: resultPop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
 }
-.sword-result::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-  padding: 1.5px;
-  box-sizing: border-box;
-  background: var(--rar-solid);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask-composite: exclude;
-  pointer-events: none;
-}
 @keyframes resultPop {
   from { opacity: 0; transform: scale(0.72) translateY(8px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
-.sword-result.upgraded { box-shadow: 0 0 22px var(--rar-glow), inset 0 1px 0 rgba(255, 255, 255, 0.55); }
-.sword-result.upgraded::after { padding: 2px; }
+.sword-result.upgraded { border-width: 2px; box-shadow: 0 0 22px var(--rar-glow), inset 0 1px 0 rgba(255, 255, 255, 0.55); }
 .sword-result-grade {
   font-size: 0.62rem;
   font-weight: 500;
@@ -2198,7 +2188,8 @@ body {
   gap: 12px;
   width: 100%;
   padding: 12px 15px;
-  clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--rar-solid);
   background: linear-gradient(100deg,
     color-mix(in srgb, var(--rar-a) 18%, transparent), transparent 70%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
@@ -2206,22 +2197,9 @@ body {
   cursor: pointer;
   transition: filter 0.15s ease;
 }
-.rarity-row::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
-  padding: 1.5px;
-  box-sizing: border-box;
-  background: var(--rar-solid);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask-composite: exclude;
-  pointer-events: none;
-}
 .rarity-row:hover { filter: brightness(1.08); }
 .rarity-row.open {
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
   filter: brightness(1.1);
 }
 .rarity-name {
@@ -2336,25 +2314,12 @@ body {
   align-items: center;
   gap: 12px;
   padding: 10px 14px;
-  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--rar-solid);
   background: linear-gradient(100deg,
     color-mix(in srgb, var(--rar-a) 14%, transparent), transparent 70%);
 }
-.owned-sword-item::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-  padding: 1.5px;
-  box-sizing: border-box;
-  background: var(--rar-solid);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask-composite: exclude;
-  pointer-events: none;
-}
-.owned-sword-item.equipped::after { padding: 2px; }
+.owned-sword-item.equipped { box-shadow: 0 0 0 2px var(--rar-solid) inset; }
 .owned-sword-grade { padding: 3px 10px; font-size: 0.62rem; }
 .owned-sword-name {
   font-family: 'Noto Serif KR', serif;
@@ -2388,10 +2353,12 @@ body {
 }
 /* 설화검(rar-7)은 --rar-solid가 순검정이라, 이 목록의 테두리/버튼처럼
    윤곽선으로 쓰는 곳은 옅은 은빛으로 바꿔줘야 다크 배경에서도 보인다. */
-.owned-sword-item.rar-7::after { background: #d4d4d8; }
+.owned-sword-item.rar-7 { border-color: #d4d4d8; }
+.owned-sword-item.rar-7.equipped { box-shadow: 0 0 0 2px #d4d4d8 inset; }
 .owned-sword-item.rar-7 .btn-equip { border-color: #d4d4d8; color: #d4d4d8; }
 .owned-sword-item.rar-7 .btn-equip:disabled { color: #fff; }
-[data-theme="dark"] .owned-sword-item.rar-7::after { background: #e4e4e7; }
+[data-theme="dark"] .owned-sword-item.rar-7 { border-color: #e4e4e7; }
+[data-theme="dark"] .owned-sword-item.rar-7.equipped { box-shadow: 0 0 0 2px #e4e4e7 inset; }
 [data-theme="dark"] .owned-sword-item.rar-7 .btn-equip { border-color: #e4e4e7; color: #e4e4e7; }
 
 /* ============ Codex (도감) ============ */
@@ -2407,48 +2374,29 @@ body {
   flex-direction: column;
   gap: 5px;
   padding: 16px 16px 15px;
-  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
-  background-image:
-    linear-gradient(to bottom, var(--gloss-top), var(--gloss-bottom)),
-    linear-gradient(160deg,
-      color-mix(in srgb, var(--rar-a) 26%, var(--surface-solid)),
-      var(--surface-solid));
-  background-size: 100% 42%, 100% 100%;
-  background-repeat: no-repeat, no-repeat;
-  background-position: top, top;
-  box-shadow: 0 0 20px var(--rar-glow);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--rar-solid);
+  background: linear-gradient(160deg,
+    color-mix(in srgb, var(--rar-a) 20%, var(--surface-solid)),
+    var(--surface-solid));
+  box-shadow: 0 0 14px var(--rar-glow), inset 0 1px 0 rgba(255, 255, 255, 0.35);
   overflow: hidden;
 }
-/* Cut-corner outline: `border` paints along the box's original rectangular
-   path and gets truncated (not rerouted) where clip-path removes a corner,
-   leaving the diagonal edge unstroked. Safari also won't reliably trace an
-   inset box-shadow around a clip-path shape. A masked ring sidesteps both:
-   fill the box solid, mask away everything but a thin band at the edge
-   (the classic padding + content-box/mask-composite ring), then clip that
-   ring to the exact same polygon so it follows the cut corner too. */
 .codex-card::after {
   content: '';
   position: absolute;
-  inset: 0;
-  z-index: 2;
-  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
-  padding: 1.5px;
-  box-sizing: border-box;
-  background: var(--rar-solid);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask-composite: exclude;
+  inset: 0 0 auto 0;
+  height: 42%;
+  background: linear-gradient(to bottom, var(--gloss-top), var(--gloss-bottom));
   pointer-events: none;
 }
 .codex-card.locked {
-  background-image: none;
-  background-color: var(--surface-solid);
+  border-color: var(--border);
+  background: var(--surface-solid);
   box-shadow: inset 0 1px 0 var(--bevel-light);
   opacity: 0.72;
 }
-.codex-card.locked::after { background: var(--border); }
-.codex-card.equipped::after { padding: 2.5px; }
+.codex-card.equipped { outline: 2px solid var(--rar-solid); outline-offset: 2px; }
 .codex-card.equipped::before {
   content: '장착 중';
   position: absolute;
