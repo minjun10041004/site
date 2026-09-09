@@ -779,6 +779,7 @@ body {
   color: #4338ca;
 }
 .timer-card .btn-rest {
+  background: transparent;
   border-color: rgba(255, 255, 255, 0.4);
   color: #fff;
 }
@@ -823,7 +824,8 @@ body {
 .btn-measure:hover:not(:disabled) { transform: translateY(-2px); }
 .btn-measure:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-measure.running {
-  background: linear-gradient(135deg, #f87171, var(--danger));
+  background: #fff;
+  color: var(--danger);
   animation: pulseBtn 1.6s ease-in-out infinite;
 }
 @keyframes pulseBtn {
@@ -871,8 +873,8 @@ body {
 .btn-rest:hover { transform: translateY(-2px); }
 .btn-rest.hidden { display: none; }
 .btn-rest.resting {
-  background: linear-gradient(135deg, var(--accent-3), #10b981);
-  color: #fff;
+  background: #fff;
+  color: #059669;
   border-color: transparent;
 }
 
