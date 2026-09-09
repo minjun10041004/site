@@ -38,7 +38,9 @@
 
   let schedules = [];
   let todosByDate = {};
-  let examChecklist = []; // { id, text, done } — a flat list, not date-scoped
+  let examChecklist = []; // { id, text, done, subjectId } — a flat list, not date-scoped
+  let examSubjects = []; // { id, name } — user-defined tabs to split the checklist by subject
+  let activeExamSubjectId = null; // null = "전체" (shows every item, tagged or not)
   let gold = 1000;
   let subjects = [];
   let studyByDate = {};
@@ -62,7 +64,7 @@
 
   function collectState() {
     return {
-      schedules, todosByDate, examChecklist, gold, subjects, studyByDate, activeSession,
+      schedules, todosByDate, examChecklist, examSubjects, gold, subjects, studyByDate, activeSession,
       realmLevel, swordLevel, discovered, swordTableVersion: SWORD_TABLE_VERSION,
       nickname, avatar, starFragments, swordStars, totalDraws,
       gearLevel, gearDiscovered, gearTableVersion: GEAR_TABLE_VERSION,
@@ -73,6 +75,7 @@
     schedules = data.schedules ?? [];
     todosByDate = data.todosByDate ?? {};
     examChecklist = Array.isArray(data.examChecklist) ? data.examChecklist : [];
+    examSubjects = Array.isArray(data.examSubjects) ? data.examSubjects : [];
     subjects = data.subjects ?? [];
     studyByDate = data.studyByDate ?? {};
     activeSession = data.activeSession ?? null;
@@ -298,6 +301,10 @@
   const motivationQuote = el('motivationQuote');
 
   const examDdayEl = el('examDday');
+
+  const examSubjectTabsEl = el('examSubjectTabs');
+  const examSubjectForm = el('examSubjectForm');
+  const examSubjectTextInput = el('examSubjectText');
 
   const examChecklistForm = el('examChecklistForm');
   const examChecklistTextInput = el('examChecklistText');
@@ -979,12 +986,65 @@
   }
 
   /* ---------------- Exam checklist ---------------- */
-  function renderExamChecklist() {
-    examChecklistList.innerHTML = '';
-    examChecklistEmpty.style.display = examChecklist.length ? 'none' : 'block';
-    examChecklistBadge.textContent = `${examChecklist.length}개`;
+  function renderExamSubjectTabs() {
+    examSubjectTabsEl.innerHTML = '';
 
-    examChecklist.forEach((t) => {
+    const allTab = document.createElement('button');
+    allTab.type = 'button';
+    allTab.className = 'exam-tab' + (activeExamSubjectId === null ? ' active' : '');
+    allTab.textContent = '전체';
+    allTab.addEventListener('click', () => {
+      activeExamSubjectId = null;
+      renderExamSubjectTabs();
+      renderExamChecklist();
+    });
+    examSubjectTabsEl.appendChild(allTab);
+
+    examSubjects.forEach((s) => {
+      const tab = document.createElement('button');
+      tab.type = 'button';
+      tab.className = 'exam-tab' + (activeExamSubjectId === s.id ? ' active' : '');
+
+      const label = document.createElement('span');
+      label.textContent = s.name;
+      tab.appendChild(label);
+
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'exam-tab-del';
+      delBtn.title = '탭 삭제';
+      delBtn.textContent = '✕';
+      delBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        examSubjects = examSubjects.filter((x) => x.id !== s.id);
+        examChecklist = examChecklist.filter((x) => x.subjectId !== s.id);
+        if (activeExamSubjectId === s.id) activeExamSubjectId = null;
+        queueSave();
+        renderExamSubjectTabs();
+        renderExamChecklist();
+      });
+      tab.appendChild(delBtn);
+
+      tab.addEventListener('click', () => {
+        activeExamSubjectId = s.id;
+        renderExamSubjectTabs();
+        renderExamChecklist();
+      });
+
+      examSubjectTabsEl.appendChild(tab);
+    });
+  }
+
+  function renderExamChecklist() {
+    const items = activeExamSubjectId === null
+      ? examChecklist
+      : examChecklist.filter((t) => t.subjectId === activeExamSubjectId);
+
+    examChecklistList.innerHTML = '';
+    examChecklistEmpty.style.display = items.length ? 'none' : 'block';
+    examChecklistBadge.textContent = `${items.length}개`;
+
+    items.forEach((t) => {
       const node = examChecklistItemTpl.content.cloneNode(true);
       const li = node.querySelector('.todo-item');
       const checkBtn = node.querySelector('.check-btn');
@@ -1015,11 +1075,24 @@
     });
   }
 
+  examSubjectForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = examSubjectTextInput.value.trim();
+    if (!name) return;
+    const subject = { id: crypto.randomUUID(), name };
+    examSubjects.push(subject);
+    activeExamSubjectId = subject.id;
+    queueSave();
+    examSubjectForm.reset();
+    renderExamSubjectTabs();
+    renderExamChecklist();
+  });
+
   examChecklistForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const text = examChecklistTextInput.value.trim();
     if (!text) return;
-    examChecklist.push({ id: crypto.randomUUID(), text, done: false });
+    examChecklist.push({ id: crypto.randomUUID(), text, done: false, subjectId: activeExamSubjectId });
     queueSave();
     examChecklistForm.reset();
     renderExamChecklist();
@@ -2829,6 +2902,7 @@
     renderTodos();
     renderSummary();
     renderHeader();
+    renderExamSubjectTabs();
     renderExamChecklist();
 
     renderGold();

@@ -26,7 +26,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500&family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260909examcheck1">
+<link rel="stylesheet" href="css/style.css?v=20260909examtabs1">
 </head>
 <body>
 
@@ -213,6 +213,14 @@
         <h2><span class="card-icon">📝</span> 시험 전 체크리스트</h2>
         <span class="badge" id="examChecklistBadge">0개</span>
       </div>
+
+      <div class="exam-tab-row" id="examSubjectTabs">
+        <!-- rendered by JS: 전체 + 과목별 탭 -->
+      </div>
+      <form id="examSubjectForm" class="exam-subject-form">
+        <input type="text" id="examSubjectText" placeholder="과목 탭 추가 (예: 수학)" maxlength="20">
+        <button type="submit" class="chip-btn">+ 탭 추가</button>
+      </form>
 
       <ul class="todo-list" id="examChecklistList">
         <!-- rendered by JS -->
@@ -679,6 +687,6 @@
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/app.js?v=20260909examcheck1"></script>
+<script src="js/app.js?v=20260909examtabs1"></script>
 </body>
 </html>
