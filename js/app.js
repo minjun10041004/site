@@ -666,6 +666,21 @@
       desc: '이 검을 든 자 앞에서는 나머지 네 방위의 기운마저 숨을 죽인다. 다스리기 위한 검이지, 베기 위한 검이 아니다.' },
   ];
 
+  // File order deliberately matches SWORDS so existing saved sword indices stay untouched.
+  const SWORD_ART_FILES = [
+    '00-mokgeom.png', '01-dando.png', '02-hwando.png', '03-cheolgeom.png',
+    '04-yuyeopgeom.png', '05-cheongryugeom.png', '06-hansanggeom.png', '07-buwolgeom.png',
+    '08-maehwageom.png', '09-binghongeom.png', '10-bokmageom.png', '11-noejeonggeom.png',
+    '12-hoageom.png', '13-akhyeonggeom.png', '14-geopmyeolgeom.png', '15-sahyunggeom.png',
+    '16-sunggu.png', '17-seungsa.png', '18-eojang.png', '19-geogweol.png',
+    '20-damro.png', '21-taea.png', '22-yongcheon.png', '23-makya.png',
+    '24-ganjang.png', '25-cheonjumyeolsingeom.png', '26-gaebyeokjohwageom.png', '27-ilsal.png',
+    '28-gwangmyeonggeom.png', '29-pacheongeom.png', '30-jincheonpaedo.png', '31-songmungogeom.png',
+    '32-amhyangmaehwageom.png', '33-changcheongeom.png', '34-sailgeom.png', '35-banyamyeolmageom.png',
+    '36-paewangdanhongeom.png', '37-cheongryonggeom.png', '38-baengryonggeom.png',
+    '39-jeongryonggeom.png', '40-heugryonggeom.png', '41-hwangryonggeom.png',
+  ];
+
   /* ---------------- 강화 (검 개별 강화) ----------------
      Drawing a sword you've already discovered gives 별의 조각 instead of
      nothing — the amount scales with the duplicate's own rarity. Spend
@@ -2717,6 +2732,19 @@
   });
 
   /* ---------------- 도감 ---------------- */
+  let expandedCodexIndex = null;
+
+  function setExpandedCodexCard(card, expanded) {
+    const current = codexGrid.querySelector('.codex-card.expanded');
+    if (current && current !== card) {
+      current.classList.remove('expanded');
+      current.setAttribute('aria-expanded', 'false');
+    }
+    card.classList.toggle('expanded', expanded);
+    card.setAttribute('aria-expanded', String(expanded));
+    expandedCodexIndex = expanded ? Number(card.dataset.swordIndex) : null;
+  }
+
   function renderCodex() {
     codexGrid.innerHTML = '';
     codexProgress.textContent = `${discovered.length} / ${SWORDS.length}`;
@@ -2734,9 +2762,34 @@
       const found = discovered.includes(i);
       const node = codexCardTpl.content.cloneNode(true);
       const card = node.querySelector('.codex-card');
+      card.dataset.swordIndex = i;
       card.classList.add(`rar-${s.rarity}`);
       if (!found) card.classList.add('locked');
       if (i === swordLevel) card.classList.add('equipped');
+
+      const art = node.querySelector('.codex-art-img');
+      art.src = `img/swords/${SWORD_ART_FILES[i]}`;
+      art.alt = found ? `${s.name} 검 일러스트` : '';
+
+      if (found) {
+        card.tabIndex = 0;
+        card.setAttribute('role', 'button');
+        card.setAttribute('aria-label', `${s.name} 상세 설명 열기`);
+        if (expandedCodexIndex === i) {
+          card.classList.add('expanded');
+          card.setAttribute('aria-expanded', 'true');
+        }
+        const toggleCard = () => setExpandedCodexCard(card, !card.classList.contains('expanded'));
+        card.addEventListener('click', toggleCard);
+        card.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            toggleCard();
+          }
+        });
+      } else {
+        card.setAttribute('aria-label', `${s.name}, 아직 발견하지 못한 검`);
+      }
 
       node.querySelector('.codex-grade').textContent = RARITIES[s.rarity].name;
       node.querySelector('.codex-name-text').textContent = s.name;   // name is always shown

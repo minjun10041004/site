@@ -658,14 +658,23 @@
 </template>
 
 <template id="codexCardTemplate">
-  <article class="codex-card">
-    <span class="codex-grade"></span>
-    <h3 class="codex-name"><span class="codex-name-text"></span><span class="enhance-badge codex-enhance-badge" hidden></span></h3>
-    <p class="codex-hanja"></p>
-    <p class="codex-epithet"></p>
-    <p class="codex-lore"></p>
-    <p class="codex-desc"></p>
-    <p class="codex-bonus"></p>
+  <article class="codex-card" aria-expanded="false">
+    <div class="codex-art">
+      <img class="codex-art-img" alt="" loading="lazy" decoding="async">
+      <span class="codex-lock" aria-hidden="true">🔒</span>
+      <span class="codex-open-hint">자세히 보기</span>
+    </div>
+    <div class="codex-summary">
+      <span class="codex-grade"></span>
+      <h3 class="codex-name"><span class="codex-name-text"></span><span class="enhance-badge codex-enhance-badge" hidden></span></h3>
+      <p class="codex-hanja"></p>
+      <p class="codex-epithet"></p>
+    </div>
+    <div class="codex-detail">
+      <p class="codex-lore"></p>
+      <p class="codex-desc"></p>
+      <p class="codex-bonus"></p>
+    </div>
   </article>
 </template>
 
