@@ -26,7 +26,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500&family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260908vividtech1">
+<link rel="stylesheet" href="css/style.css?v=20260909examcheck1">
 </head>
 <body>
 
@@ -109,9 +109,9 @@
   <!-- Header -->
   <header class="hero">
     <div class="hero-top">
-      <div class="brand">
-        <span class="brand-mark">⚔️</span>
-        <span class="brand-name">무공타</span>
+      <div class="exam-dday-wrap">
+        <span class="exam-dday-value" id="examDday">D-0</span>
+        <span class="exam-dday-label">2026.9.29 시험까지</span>
       </div>
     </div>
 
@@ -207,13 +207,22 @@
       </form>
     </section>
 
-    <!-- History Section -->
-    <section class="card history-card">
+    <!-- Exam Checklist Section -->
+    <section class="card exam-checklist-card">
       <div class="card-head">
-        <h2><span class="card-icon">📊</span> 최근 7일 기록</h2>
+        <h2><span class="card-icon">📝</span> 시험 전 체크리스트</h2>
+        <span class="badge" id="examChecklistBadge">0개</span>
       </div>
-      <div class="heatmap" id="heatmap"></div>
-      <p class="empty-state" id="historyEmpty">기록이 쌓이면 여기에 그래프가 표시돼요.</p>
+
+      <ul class="todo-list" id="examChecklistList">
+        <!-- rendered by JS -->
+      </ul>
+
+      <form id="examChecklistForm" class="add-row">
+        <span class="add-row-plus">+</span>
+        <input type="text" id="examChecklistText" placeholder="체크리스트 항목을 입력하고 Enter" required maxlength="80">
+      </form>
+      <p class="empty-state" id="examChecklistEmpty">아직 체크리스트가 없어요. 시험 전에 할 일을 적어보세요 📝</p>
     </section>
 
   </main>
@@ -595,6 +604,14 @@
   </li>
 </template>
 
+<template id="examChecklistItemTemplate">
+  <li class="todo-item">
+    <button class="check-btn" title="완료 표시"></button>
+    <span class="todo-text"></span>
+    <button class="icon-btn delete-btn" title="삭제">✕</button>
+  </li>
+</template>
+
 <template id="subjectItemTemplate">
   <li class="subject-item">
     <button class="subject-select-btn" title="과목 선택">▶</button>
@@ -662,6 +679,6 @@
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/app.js?v=20260909quote1"></script>
+<script src="js/app.js?v=20260909examcheck1"></script>
 </body>
 </html>

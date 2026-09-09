@@ -123,13 +123,14 @@ body {
   right: -80px;
   pointer-events: none;
 }
-.hero .brand-name,
+.hero .exam-dday-value,
+.hero .exam-dday-label,
 .hero .hero-date,
 .hero .hero-quote,
 .hero .stat-value { color: #fff; }
 .hero .stat-label { color: rgba(255, 255, 255, 0.68); }
-.hero .stat-label svg,
-.hero .brand-mark { color: rgba(255, 255, 255, 0.85); }
+.hero .stat-label svg { color: rgba(255, 255, 255, 0.85); }
+.hero .exam-dday-label { color: rgba(255, 255, 255, 0.75); }
 .hero .ring-bg { stroke: rgba(255, 255, 255, 0.25); }
 .hero .ring-fg { stroke: #fff; }
 .hero .progress-ring-label span { color: #fff; }
@@ -142,8 +143,9 @@ body {
   margin-bottom: 20px;
 }
 
-.brand { display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 1.1rem; }
-.brand-mark { font-size: 1.3rem; }
+.exam-dday-wrap { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.exam-dday-value { font-size: clamp(1.8rem, 4.5vw, 2.6rem); font-weight: 600; letter-spacing: -0.01em; }
+.exam-dday-label { font-size: 0.85rem; font-weight: 400; }
 
 .icon-btn {
   border: 1px solid var(--border);
@@ -233,7 +235,7 @@ body {
   grid-template-columns: 1.25fr 1fr;
   gap: 22px;
 }
-.history-card { grid-column: 1 / -1; }
+.exam-checklist-card { grid-column: 1 / -1; }
 
 @media (max-width: 760px) {
   .grid { grid-template-columns: 1fr; }
@@ -540,35 +542,6 @@ body {
 }
 .day-summary-text { font-size: 0.85rem; color: var(--text-soft); white-space: nowrap; }
 .day-summary-text strong { color: var(--text); font-size: 1rem; }
-
-/* ---------- Heatmap / History ---------- */
-.heatmap {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
-  gap: 10px;
-}
-.heat-cell {
-  border-radius: var(--radius-sm);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  border: 1px solid var(--border);
-  font-weight: 400;
-  color: #fff;
-  min-height: 84px;
-  padding: 10px 4px;
-  position: relative;
-}
-.heat-cell .heat-day { font-size: 0.68rem; opacity: 0.85; }
-.heat-cell .heat-pct { font-size: 0.9rem; }
-.heat-cell .heat-study { font-size: 0.7rem; opacity: 0.9; font-weight: 400; }
-.heat-cell.empty {
-  background: var(--surface-solid);
-  color: var(--text-faint);
-}
-.heat-cell.today-cell { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* ---------- Footer ---------- */
 .footer {
@@ -1776,16 +1749,15 @@ body {
 .btn-measure,
 .btn-upgrade,
 .btn-draw,
-.brand-name {
+.exam-dday-value {
   text-shadow: 0 1px 0 var(--bevel-light), 0 2px 3px var(--ink);
   letter-spacing: 0.01em;
 }
 [data-theme="dark"] .card-head h2,
 [data-theme="dark"] .stat-value,
-[data-theme="dark"] .brand-name { text-shadow: 0 2px 4px var(--ink); }
+[data-theme="dark"] .exam-dday-value { text-shadow: 0 2px 4px var(--ink); }
 
-.card-head h2,
-.brand-name { font-weight: 500; }
+.card-head h2 { font-weight: 500; }
 
 /* Glossy buttons: bevel + a sheen that sweeps on hover. */
 .btn-primary,
