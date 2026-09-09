@@ -38,6 +38,7 @@
 
   let schedules = [];
   let todosByDate = {};
+  let examChecklist = []; // { id, text, done } — a flat list, not date-scoped
   let gold = 1000;
   let subjects = [];
   let studyByDate = {};
@@ -61,7 +62,7 @@
 
   function collectState() {
     return {
-      schedules, todosByDate, gold, subjects, studyByDate, activeSession,
+      schedules, todosByDate, examChecklist, gold, subjects, studyByDate, activeSession,
       realmLevel, swordLevel, discovered, swordTableVersion: SWORD_TABLE_VERSION,
       nickname, avatar, starFragments, swordStars, totalDraws,
       gearLevel, gearDiscovered, gearTableVersion: GEAR_TABLE_VERSION,
@@ -71,6 +72,7 @@
   function applyState(data) {
     schedules = data.schedules ?? [];
     todosByDate = data.todosByDate ?? {};
+    examChecklist = Array.isArray(data.examChecklist) ? data.examChecklist : [];
     subjects = data.subjects ?? [];
     studyByDate = data.studyByDate ?? {};
     activeSession = data.activeSession ?? null;
@@ -216,6 +218,8 @@
     await flushSave();
   }
 
+  const EXAM_TARGET_DATE = '2026-09-29';
+
   /* ---------------- Date helpers ---------------- */
   const toKey = (d) => {
     const y = d.getFullYear();
@@ -255,11 +259,6 @@
     const dt = new Date(y, m - 1, d);
     return dt.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' });
   };
-  const formatShort = (key) => {
-    const [y, m, d] = key.split('-').map(Number);
-    return `${m}/${d}`;
-  };
-
   /* ---------------- State ---------------- */
   let viewingDateKey = todayKey();
 
@@ -298,8 +297,14 @@
   const todayDateEl = el('todayDate');
   const motivationQuote = el('motivationQuote');
 
-  const heatmap = el('heatmap');
-  const historyEmpty = el('historyEmpty');
+  const examDdayEl = el('examDday');
+
+  const examChecklistForm = el('examChecklistForm');
+  const examChecklistTextInput = el('examChecklistText');
+  const examChecklistList = el('examChecklistList');
+  const examChecklistEmpty = el('examChecklistEmpty');
+  const examChecklistBadge = el('examChecklistBadge');
+  const examChecklistItemTpl = el('examChecklistItemTemplate');
 
   const themeSwitch = el('themeSwitch');
 
@@ -741,7 +746,7 @@
 
   /* ---------------- Quotes ---------------- */
   const QUOTES = [
-    '행복한 순간들은 하루에 몇 번씩 우리를 지나간다. 지금 이 순간에도.',
+    '되는 대로 살자',
   ];
 
   /* ---------------- Rendering: Schedules ---------------- */
@@ -847,7 +852,6 @@
         renderTodos();
         renderSummary();
         renderHeader();
-        renderHeatmap();
       });
 
       slider.addEventListener('input', () => {
@@ -862,7 +866,6 @@
         persistTodos();
         renderSummary();
         renderHeader();
-        renderHeatmap();
         if (t.done) renderTodos();
       });
 
@@ -872,7 +875,6 @@
         renderTodos();
         renderSummary();
         renderHeader();
-        renderHeatmap();
       });
 
       li.dataset.id = t.id;
@@ -901,7 +903,6 @@
     renderTodos();
     renderSummary();
     renderHeader();
-    renderHeatmap();
   });
 
   prevDayBtn.addEventListener('click', () => {
@@ -956,6 +957,9 @@
     streakValue.textContent = computeStreak();
     todoCount.textContent = getTodosFor(todayK).length;
 
+    const examDiff = daysBetween(todayK, EXAM_TARGET_DATE);
+    examDdayEl.textContent = examDiff === 0 ? 'D-DAY' : examDiff > 0 ? `D-${examDiff}` : `D+${Math.abs(examDiff)}`;
+
     const withDiff = schedules.map((s) => ({ ...s, diff: daysBetween(todayK, s.date) }));
     upcomingCount.textContent = withDiff.filter((s) => s.diff >= 0).length;
 
@@ -974,42 +978,52 @@
     incomePerHour.textContent = `${(total * 60).toLocaleString('ko-KR')}G`;
   }
 
-  /* ---------------- Heatmap ---------------- */
-  function renderHeatmap() {
-    heatmap.innerHTML = '';
-    const todayK = todayKey();
-    const days = [];
-    for (let i = 6; i >= 0; i--) days.push(addDays(todayK, -i));
+  /* ---------------- Exam checklist ---------------- */
+  function renderExamChecklist() {
+    examChecklistList.innerHTML = '';
+    examChecklistEmpty.style.display = examChecklist.length ? 'none' : 'block';
+    examChecklistBadge.textContent = `${examChecklist.length}개`;
 
-    let hasAny = false;
+    examChecklist.forEach((t) => {
+      const node = examChecklistItemTpl.content.cloneNode(true);
+      const li = node.querySelector('.todo-item');
+      const checkBtn = node.querySelector('.check-btn');
+      const textEl = node.querySelector('.todo-text');
+      const delBtn = node.querySelector('.delete-btn');
 
-    days.forEach((key) => {
-      const pct = computeDayPercent(key);
-      const studySeconds = sumStudySecondsForDate(key);
-      if (pct !== null || studySeconds > 0) hasAny = true;
-      const cell = document.createElement('div');
-      cell.className = 'heat-cell' + (pct === null ? ' empty' : '') + (key === todayK ? ' today-cell' : '');
-      if (pct !== null) {
-        const intensity = 0.25 + (pct / 100) * 0.75;
-        cell.style.background = `linear-gradient(135deg, rgba(124,92,255,${intensity}), rgba(255,111,165,${intensity}))`;
+      textEl.textContent = t.text;
+      if (t.done) {
+        li.classList.add('done');
+        checkBtn.classList.add('done');
+        checkBtn.textContent = '✓';
       }
-      const dayLabel = document.createElement('span');
-      dayLabel.className = 'heat-day';
-      dayLabel.textContent = formatShort(key);
-      const pctLabel = document.createElement('span');
-      pctLabel.className = 'heat-pct';
-      pctLabel.textContent = pct === null ? '–' : `${pct}%`;
-      const studyLabel = document.createElement('span');
-      studyLabel.className = 'heat-study';
-      studyLabel.textContent = studySeconds > 0 ? formatDurationLabel(studySeconds) : '0분';
-      cell.appendChild(dayLabel);
-      cell.appendChild(pctLabel);
-      cell.appendChild(studyLabel);
-      heatmap.appendChild(cell);
-    });
 
-    historyEmpty.style.display = hasAny ? 'none' : 'block';
+      checkBtn.addEventListener('click', () => {
+        t.done = !t.done;
+        queueSave();
+        renderExamChecklist();
+      });
+
+      delBtn.addEventListener('click', () => {
+        examChecklist = examChecklist.filter((x) => x.id !== t.id);
+        queueSave();
+        renderExamChecklist();
+      });
+
+      li.dataset.id = t.id;
+      examChecklistList.appendChild(node);
+    });
   }
+
+  examChecklistForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = examChecklistTextInput.value.trim();
+    if (!text) return;
+    examChecklist.push({ id: crypto.randomUUID(), text, done: false });
+    queueSave();
+    examChecklistForm.reset();
+    renderExamChecklist();
+  });
 
   /* ---------------- Toast ---------------- */
   let toastTimeout = null;
@@ -2815,7 +2829,7 @@
     renderTodos();
     renderSummary();
     renderHeader();
-    renderHeatmap();
+    renderExamChecklist();
 
     renderGold();
     renderSubjects();
