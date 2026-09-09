@@ -2975,3 +2975,170 @@ body {
   background: conic-gradient(from 0deg, #ff2d55, #f59e0b, #eab308, #22c55e, #3b82f6, #a855f7, #ff2d55);
   opacity: 0.55;
 }
+
+/* Login is the first screen people see, so it belongs to the same quiet
+   productivity system as the dashboard instead of retaining the old neon
+   gradient treatment. */
+.auth-gate {
+  background:
+    radial-gradient(circle at 18% 16%, rgba(184, 208, 194, .42), transparent 28%),
+    radial-gradient(circle at 86% 84%, rgba(220, 203, 166, .34), transparent 27%),
+    linear-gradient(135deg, #f7f5f0, #eceae3);
+}
+.auth-card {
+  max-width: 400px;
+  padding: 34px 30px 28px;
+  background: rgba(255, 254, 250, .94);
+  border: 1px solid #dedbd2;
+  border-top-color: #eeeae0;
+  border-radius: 18px;
+  box-shadow: 0 18px 42px -28px rgba(43, 57, 54, .42);
+}
+.auth-brand { color: #243641; font-family: 'Noto Serif KR', serif; font-size: 1.3rem; }
+.auth-tabs { padding: 3px; background: #f3f2ec; border-color: #e4e1d8; }
+.auth-tab { color: #6c756f; }
+.auth-tab.active { background: #356f75; color: #fff; }
+.auth-form input { background: #fffefa; border-color: #deddd5; }
+.auth-form input:focus { border-color: #6f988d; box-shadow: 0 0 0 3px rgba(111, 152, 141, .16); }
+.auth-submit { background: #356f75; }
+.auth-submit:hover { background: #285c63; }
+.auth-note { margin-top: 12px; color: #8b918e; }
+
+/* ============ Moonlit Wuxia dashboard ============
+   Direction reference: midnight ink, aged brass outlines, muted jade state
+   signals, and cinnabar emphasis. This is a visual-only layer; all existing
+   user actions, panels, fields, lists, and navigation remain unchanged. */
+:root,
+[data-theme="dark"] {
+  --bg-a: #07121e;
+  --bg-b: #0c1924;
+  --surface: rgba(10, 24, 35, .92);
+  --surface-solid: #0c1a25;
+  --border: rgba(173, 143, 83, .45);
+  --text: #ece5d5;
+  --text-soft: #b9b7ac;
+  --text-faint: #77858a;
+  --accent: #b58a4a;
+  --accent-2: #d0b272;
+  --accent-3: #78c5a2;
+  --danger: #c95b50;
+  --gold: #d2a74f;
+  --gold-2: #f1d289;
+  --quote-color: #f6eddd;
+  --quote-glow: rgba(233, 207, 149, .15);
+  --shadow: 0 20px 42px -25px rgba(0, 0, 0, .8);
+  --shadow-sm: 0 12px 24px -18px rgba(0, 0, 0, .78);
+  --radius-lg: 8px;
+  --radius-md: 6px;
+  --radius-sm: 5px;
+  color-scheme: dark;
+}
+
+body {
+  background:
+    radial-gradient(ellipse at 76% -15%, rgba(59, 88, 105, .44), transparent 38%),
+    radial-gradient(ellipse at 8% 75%, rgba(25, 57, 75, .46), transparent 37%),
+    linear-gradient(135deg, #06111c, #0b1721 52%, #07131e);
+  color: var(--text);
+  letter-spacing: -.01em;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: .22;
+  background-image: repeating-linear-gradient(0deg, transparent 0, transparent 3px, rgba(255,255,255,.035) 4px);
+  mix-blend-mode: soft-light;
+  z-index: 0;
+}
+.app { max-width: 1440px; padding: 18px 26px 64px; }
+
+.topbar {
+  position: sticky;
+  z-index: 20;
+  top: 0;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  background: rgba(4, 13, 22, .82);
+  border-top: 1px solid rgba(215, 187, 121, .26);
+  border-bottom: 1px solid rgba(215, 187, 121, .42);
+  border-radius: 0;
+  box-shadow: 0 8px 22px -17px #000;
+  backdrop-filter: blur(14px);
+}
+.gold-badge { background: rgba(42, 33, 16, .72); border-color: rgba(211, 169, 77, .52); color: #e8dbbc; border-radius: 5px; }
+.gold-badge strong { color: var(--gold-2); }
+.tab-nav { gap: 6px; }
+.tab-btn { color: #b8b6ad; border-radius: 3px; padding: 8px 10px; font-family: 'Noto Serif KR', serif; }
+.tab-btn:hover { color: #f2dfae; background: rgba(181, 138, 74, .12); }
+.tab-btn.active { color: #f4d78d; background: transparent; box-shadow: inset 0 -2px 0 #d0a958; }
+
+.hero {
+  min-height: 242px;
+  padding: 26px 32px 28px;
+  margin-bottom: 18px;
+  color: var(--text);
+  border: 1px solid rgba(184, 147, 74, .6);
+  border-radius: 7px;
+  background:
+    radial-gradient(circle at 78% 30%, rgba(193, 158, 88, .17), transparent 18%),
+    linear-gradient(100deg, rgba(5, 17, 27, .92), rgba(11, 29, 41, .82));
+  box-shadow: inset 0 0 0 3px rgba(10, 22, 31, .78), var(--shadow);
+}
+.hero::before { width: 430px; height: 430px; top: -245px; right: -80px; background: radial-gradient(circle, rgba(213, 190, 139, .24), transparent 67%); }
+.hero::after { content: ''; position: absolute; inset: 8px; border: 1px solid rgba(184, 147, 74, .2); pointer-events: none; }
+.hero .exam-dday-value, .hero .hero-quote, .hero .stat-value { color: #f4e9d2; }
+.hero .exam-dday-label, .hero .stat-label, .hero .progress-ring-label small { color: #aeb5ac; }
+.hero .hero-quote { font-family: 'Noto Serif KR', serif; font-size: clamp(1.55rem, 2.8vw, 2.15rem); text-shadow: 0 1px 8px rgba(0,0,0,.8); }
+.hero .ring-bg { stroke: rgba(198, 172, 115, .16); }
+.hero .ring-fg { stroke: #bd9a57; }
+.hero .progress-ring-label span { color: #f0dca6; }
+
+.grid { grid-template-columns: minmax(0, 1.1fr) minmax(360px, .9fr); gap: 16px; }
+.card {
+  padding: 20px;
+  border: 1px solid rgba(170, 138, 78, .45);
+  border-radius: 6px;
+  background: linear-gradient(145deg, rgba(14, 31, 43, .96), rgba(7, 21, 31, .94));
+  box-shadow: inset 0 0 0 2px rgba(7, 17, 25, .8), var(--shadow-sm);
+}
+.card::after { background: linear-gradient(to bottom, rgba(255,255,255,.035), transparent); }
+.card-head { margin-bottom: 14px; padding: 0 0 12px; border-bottom: 1px solid rgba(179, 148, 91, .28); }
+.card-head h2 { font-family: 'Noto Serif KR', serif; color: #f0e6d4; }
+.badge, .dday-pill, .exam-tab.active { background: rgba(125, 42, 38, .75); color: #ffe2ba; border-color: rgba(211, 139, 89, .7); border-radius: 3px; }
+
+.todo-item, .schedule-item {
+  border-color: rgba(143, 132, 103, .26);
+  border-radius: 4px;
+  background: rgba(18, 37, 49, .78);
+}
+.todo-item:hover, .schedule-item:hover { border-color: rgba(208, 170, 94, .62); background: rgba(24, 46, 57, .88); }
+.check-btn { border-color: #7c8a83; background: #0c1a25; border-radius: 3px; }
+.check-btn.done { background: #5eaa89; color: #081915; }
+.add-row { border-color: rgba(166, 139, 87, .45); background: rgba(7, 19, 28, .58); border-radius: 4px; }
+.add-row:focus-within { border-color: #c9a65d; box-shadow: 0 0 0 3px rgba(201, 166, 93, .12); }
+.add-row-plus { background: rgba(181, 138, 74, .2); color: #e0c382; border-radius: 3px; }
+.inline-form input, .exam-subject-form input, .enhance-select-row select, .auth-form input { background: rgba(5, 17, 25, .75); border-color: rgba(157, 137, 94, .45); color: var(--text); }
+.inline-form input:focus, .exam-subject-form input:focus, .auth-form input:focus { border-color: #c9a65d; box-shadow: 0 0 0 3px rgba(201, 166, 93, .12); }
+.btn-primary { background: linear-gradient(135deg, #8f443d, #b96550); color: #fff1dc; border: 1px solid rgba(235, 175, 111, .48); border-radius: 4px; }
+.btn-primary:hover { background: linear-gradient(135deg, #a34e42, #c47159); box-shadow: 0 7px 17px -12px rgba(0,0,0,.8); }
+.chip-btn, .exam-tab { background: rgba(7, 19, 28, .66); border-color: rgba(157, 137, 94, .42); color: #bac1b6; border-radius: 3px; }
+.chip-btn:hover, .exam-tab:hover { color: #f2dc9e; border-color: #bc9655; }
+.day-summary-bar { background: rgba(158, 150, 118, .18); }
+.day-summary-fill { background: linear-gradient(90deg, #5b9f84, #8ed0a9); }
+
+.auth-gate { background: radial-gradient(circle at 50% 28%, rgba(61, 95, 112, .35), transparent 34%), linear-gradient(135deg, #06111c, #0d1b26); }
+.auth-card { background: linear-gradient(145deg, rgba(13, 31, 43, .98), rgba(6, 18, 27, .98)); border-color: rgba(184, 147, 74, .58); border-radius: 7px; box-shadow: inset 0 0 0 3px rgba(7, 17, 25, .78), var(--shadow); }
+.auth-brand { color: #f0e6d4; font-family: 'Noto Serif KR', serif; }
+.auth-tabs { background: rgba(4, 14, 22, .76); border-color: rgba(170, 138, 78, .38); }
+.auth-tab { color: #9ca9a1; }
+.auth-tab.active { background: #8f443d; color: #fff0d7; }
+.auth-submit { background: linear-gradient(135deg, #8f443d, #b96550); }
+.auth-note { color: #89948d; }
+
+.modal-gate { background: rgba(1, 8, 13, .72); }
+.modal-card { background: #0b1a25; border-color: rgba(184, 147, 74, .55); }
+.modal-card::before { background: #b58a4a; }
+
+@media (max-width: 860px) { .topbar { position: relative; } .grid { grid-template-columns: 1fr; } }
