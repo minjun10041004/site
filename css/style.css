@@ -779,6 +779,7 @@ body {
   color: #4338ca;
 }
 .timer-card .btn-rest {
+  background: transparent;
   border-color: rgba(255, 255, 255, 0.4);
   color: #fff;
 }
@@ -873,7 +874,7 @@ body {
 .btn-rest.hidden { display: none; }
 .btn-rest.resting {
   background: #fff;
-  color: #0d9488;
+  color: #059669;
   border-color: transparent;
 }
 
