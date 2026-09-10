@@ -451,6 +451,27 @@
         <span class="badge" id="codexProgress">0 / 0</span>
       </div>
       <p class="codex-note">한 번이라도 뽑은 검만 설정과 설명이 공개돼요.</p>
+      <section class="codex-showcase" id="codexShowcase" hidden aria-live="polite">
+        <div class="codex-showcase-art">
+          <img id="codexShowcaseImg" alt="" decoding="async">
+          <span class="codex-showcase-effect" id="codexShowcaseEffect" aria-hidden="true"></span>
+        </div>
+        <div class="codex-showcase-info">
+          <div class="codex-showcase-topline">
+            <span class="codex-grade" id="codexShowcaseGrade"></span>
+            <button class="codex-showcase-close" id="codexShowcaseClose" type="button" aria-label="선택한 검 전시 닫기">×</button>
+          </div>
+          <h3 class="codex-showcase-name"><span id="codexShowcaseName"></span><span class="enhance-badge" id="codexShowcaseEnhance" hidden></span></h3>
+          <p class="codex-showcase-hanja" id="codexShowcaseHanja"></p>
+          <p class="codex-showcase-epithet" id="codexShowcaseEpithet"></p>
+          <div class="codex-showcase-copy">
+            <p class="codex-quote" id="codexShowcaseQuote"></p>
+            <p class="codex-lore" id="codexShowcaseLore"></p>
+            <p class="codex-desc" id="codexShowcaseDesc"></p>
+            <p class="codex-bonus" id="codexShowcaseBonus"></p>
+          </div>
+        </div>
+      </section>
       <div class="codex-grid" id="codexGrid"></div>
     </div>
   </section>
@@ -658,24 +679,18 @@
 </template>
 
 <template id="codexCardTemplate">
-  <article class="codex-card" aria-expanded="false">
+  <article class="codex-card" aria-selected="false">
     <div class="codex-art">
       <img class="codex-art-img" alt="" loading="lazy" decoding="async">
       <span class="codex-effect" aria-hidden="true"></span>
       <span class="codex-lock" aria-hidden="true">🔒</span>
-      <span class="codex-open-hint">자세히 보기</span>
+      <span class="codex-open-hint">전시하기</span>
     </div>
     <div class="codex-summary">
       <span class="codex-grade"></span>
       <h3 class="codex-name"><span class="codex-name-text"></span><span class="enhance-badge codex-enhance-badge" hidden></span></h3>
       <p class="codex-hanja"></p>
       <p class="codex-epithet"></p>
-    </div>
-    <div class="codex-detail">
-      <p class="codex-quote"></p>
-      <p class="codex-lore"></p>
-      <p class="codex-desc"></p>
-      <p class="codex-bonus"></p>
     </div>
   </article>
 </template>

@@ -1982,6 +1982,19 @@
   const codexGrid = el('codexGrid');
   const codexProgress = el('codexProgress');
   const codexCardTpl = el('codexCardTemplate');
+  const codexShowcase = el('codexShowcase');
+  const codexShowcaseImg = el('codexShowcaseImg');
+  const codexShowcaseEffect = el('codexShowcaseEffect');
+  const codexShowcaseGrade = el('codexShowcaseGrade');
+  const codexShowcaseName = el('codexShowcaseName');
+  const codexShowcaseEnhance = el('codexShowcaseEnhance');
+  const codexShowcaseHanja = el('codexShowcaseHanja');
+  const codexShowcaseEpithet = el('codexShowcaseEpithet');
+  const codexShowcaseQuote = el('codexShowcaseQuote');
+  const codexShowcaseLore = el('codexShowcaseLore');
+  const codexShowcaseDesc = el('codexShowcaseDesc');
+  const codexShowcaseBonus = el('codexShowcaseBonus');
+  const codexShowcaseClose = el('codexShowcaseClose');
   const epithetGrid = el('epithetGrid');
   const epithetProgress = el('epithetProgress');
   const epithetCardTpl = el('epithetCardTemplate');
@@ -2732,28 +2745,47 @@
   });
 
   /* ---------------- 도감 ---------------- */
-  let expandedCodexIndex = null;
+  let selectedCodexIndex = null;
 
-  function setExpandedCodexCard(card, expanded) {
-    const current = codexGrid.querySelector('.codex-card.expanded');
-    if (current && current !== card) {
-      current.classList.remove('expanded');
-      current.classList.remove('expand-left');
-      current.setAttribute('aria-expanded', 'false');
-    }
-    if (expanded) {
-      const gridBounds = codexGrid.getBoundingClientRect();
-      const cardBounds = card.getBoundingClientRect();
-      const columnGap = Number.parseFloat(getComputedStyle(codexGrid).columnGap) || 14;
-      const wouldOverflowRight = cardBounds.right + cardBounds.width + columnGap > gridBounds.right;
-      card.classList.toggle('expand-left', wouldOverflowRight);
-    } else {
-      card.classList.remove('expand-left');
-    }
-    card.classList.toggle('expanded', expanded);
-    card.setAttribute('aria-expanded', String(expanded));
-    expandedCodexIndex = expanded ? Number(card.dataset.swordIndex) : null;
+  function selectCodexSword(index) {
+    const s = SWORDS[index];
+    if (!s || !discovered.includes(index)) return;
+
+    selectedCodexIndex = index;
+    codexShowcase.hidden = false;
+    codexShowcase.className = `codex-showcase rar-${s.rarity}`;
+    codexShowcaseImg.src = `img/swords/${SWORD_ART_FILES[index]}`;
+    codexShowcaseImg.alt = `${s.name} 검 일러스트`;
+    codexShowcaseGrade.textContent = RARITIES[s.rarity].name;
+    codexShowcaseName.textContent = s.name;
+    setEnhanceBadge(codexShowcaseEnhance, swordStars[index] || 0);
+    codexShowcaseHanja.textContent = `(${s.hanja})`;
+    codexShowcaseEpithet.textContent = s.epithet ? `《${s.epithet}》` : '';
+    codexShowcaseEpithet.hidden = !s.epithet;
+    codexShowcaseQuote.textContent = codexHook(s.desc);
+    codexShowcaseLore.textContent = s.lore;
+    codexShowcaseDesc.textContent = s.desc;
+    codexShowcaseBonus.textContent = `검 효율 분당 +${swordIncomeAt(index).toLocaleString('ko-KR')}G`;
+    codexShowcaseEffect.className = 'codex-showcase-effect';
+
+    codexGrid.querySelectorAll('.codex-card').forEach((card) => {
+      const selected = Number(card.dataset.swordIndex) === index;
+      card.classList.toggle('selected', selected);
+      card.setAttribute('aria-selected', String(selected));
+      card.setAttribute('aria-label', selected ? `${s.name} 전시 중` : `${card.dataset.swordName || '검'} 상세 전시`);
+    });
   }
+
+  function closeCodexShowcase() {
+    selectedCodexIndex = null;
+    codexShowcase.hidden = true;
+    codexGrid.querySelectorAll('.codex-card.selected').forEach((card) => {
+      card.classList.remove('selected');
+      card.setAttribute('aria-selected', 'false');
+    });
+  }
+
+  codexShowcaseClose.addEventListener('click', closeCodexShowcase);
 
   function codexHook(text) {
     const firstSentence = text.match(/^.*?[.!?](?:\s|$)/)?.[0] || text;
@@ -2786,17 +2818,17 @@
       art.src = `img/swords/${SWORD_ART_FILES[i]}`;
       art.alt = found ? `${s.name} 검 일러스트` : '';
 
-      const restoreExpanded = found && expandedCodexIndex === i;
       if (found) {
         card.tabIndex = 0;
         card.setAttribute('role', 'button');
-        card.setAttribute('aria-label', `${s.name} 상세 설명 열기`);
-        const toggleCard = () => setExpandedCodexCard(card, !card.classList.contains('expanded'));
-        card.addEventListener('click', toggleCard);
+        card.dataset.swordName = s.name;
+        card.setAttribute('aria-label', `${s.name} 상세 전시`);
+        const selectCard = () => selectCodexSword(i);
+        card.addEventListener('click', selectCard);
         card.addEventListener('keydown', (event) => {
           if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
-            toggleCard();
+            selectCard();
           }
         });
       } else {
@@ -2813,18 +2845,14 @@
       } else {
         epithetEl.remove();
       }
-      node.querySelector('.codex-lore').textContent = found ? s.lore : '???';
-      node.querySelector('.codex-desc').textContent = found ? s.desc : '???';
-      node.querySelector('.codex-quote').textContent = found ? codexHook(s.desc) : '“아직 모습을 드러내지 않은 검.”';
-      // Each blade's own efficiency, matching the 검 tab — so the codex can
-      // be read as a straight blade-vs-blade comparison, and adding it to
-      // your 경지 효율 gives the total the main tab shows.
-      node.querySelector('.codex-bonus').textContent = found
-        ? `검 효율 분당 +${swordIncomeAt(i).toLocaleString('ko-KR')}G`
-        : '검 효율 분당 +???';
       codexGrid.appendChild(node);
-      if (restoreExpanded) requestAnimationFrame(() => setExpandedCodexCard(card, true));
     });
+
+    if (selectedCodexIndex !== null && discovered.includes(selectedCodexIndex)) {
+      selectCodexSword(selectedCodexIndex);
+    } else {
+      closeCodexShowcase();
+    }
   }
 
   /* ---------------- 별호록 ----------------

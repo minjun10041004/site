@@ -2410,10 +2410,93 @@ body {
   gap: 14px;
   align-items: stretch;
 }
+.codex-showcase {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(260px, .78fr) minmax(0, 1.22fr);
+  min-height: 410px;
+  margin: 0 0 18px;
+  border: 1px solid var(--rar-solid);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--rar-a) 20%, var(--surface-solid)),
+    var(--surface-solid) 58%);
+  box-shadow: 0 16px 34px -24px var(--rar-glow), 0 0 22px var(--rar-glow), inset 0 1px 0 rgba(255,255,255,.32);
+  animation: codexShowcaseIn .32s cubic-bezier(.2,.8,.2,1);
+}
+.codex-showcase[hidden] { display: none; }
+.codex-showcase::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(112deg, transparent 18%, var(--gloss-top) 50%, transparent 80%);
+}
+.codex-showcase-art {
+  position: relative;
+  min-height: 410px;
+  overflow: hidden;
+  background: #05070c;
+  border-right: 1px solid color-mix(in srgb, var(--rar-solid) 42%, transparent);
+}
+.codex-showcase-art::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent 65%, color-mix(in srgb, var(--rar-a) 16%, transparent));
+}
+.codex-showcase-art img {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 18px;
+}
+.codex-showcase-effect {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  pointer-events: none;
+  background-size: 220% 100%, 100% 100%, 100% 100%;
+  background-position: 0% 50%, 50% 50%, 50% 50%;
+  animation: codexAuraShimmer 4.8s ease-in-out infinite;
+}
+.codex-showcase-info {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 25px 28px 24px;
+}
+.codex-showcase-topline { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.codex-showcase-close {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--surface-solid) 82%, transparent);
+  color: var(--text-soft);
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.codex-showcase-close:hover { border-color: var(--rar-solid); color: var(--rar-solid); }
+.codex-showcase-name { margin: 8px 0 0; font-family: 'Noto Serif KR', serif; font-size: clamp(1.45rem, 3vw, 2rem); font-weight: 500; color: var(--text); }
+.codex-showcase-hanja { margin: 3px 0 4px; letter-spacing: .12em; font-size: .8rem; color: var(--text-faint); }
+.codex-showcase-epithet { min-height: 1.35em; margin: 0; color: var(--rar-solid); font-family: 'Noto Serif KR', serif; font-size: .88rem; }
+.codex-showcase-copy { display: grid; gap: 10px; margin-top: 17px; }
+.codex-showcase-copy .codex-quote { margin: 0; }
+.codex-showcase-copy .codex-bonus { margin: 2px 0 0; }
+@keyframes codexShowcaseIn { from { opacity: 0; transform: translateY(-7px); } to { opacity: 1; transform: translateY(0); } }
 .codex-card {
   position: relative;
   display: grid;
-  grid-template-rows: 250px auto auto;
+  grid-template-rows: 250px auto;
   gap: 0;
   padding: 0;
   border-radius: var(--radius-md);
@@ -2425,7 +2508,7 @@ body {
   overflow: hidden;
   cursor: pointer;
   width: 100%;
-  transition: width 0.42s cubic-bezier(.22,.8,.24,1), box-shadow 0.32s ease, transform 0.32s ease;
+  transition: box-shadow 0.32s ease, transform 0.32s ease, border-color .25s ease;
 }
 .codex-card::after {
   content: '';
@@ -2443,6 +2526,11 @@ body {
   cursor: default;
 }
 .codex-card:not(.locked):hover { transform: translateY(-3px); }
+.codex-card.selected {
+  border-color: color-mix(in srgb, var(--rar-solid) 82%, white);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--rar-solid) 34%, transparent), 0 0 20px var(--rar-glow), inset 0 1px 0 rgba(255,255,255,.35);
+}
+.codex-card.selected .codex-open-hint { opacity: 0; }
 .codex-card:focus-visible { outline: 3px solid color-mix(in srgb, var(--rar-solid) 55%, white); outline-offset: 3px; }
 .codex-card.expanded {
   z-index: 10;
@@ -2553,19 +2641,23 @@ body {
   transform: scale(1);
   animation: codexAuraShimmer 4.8s ease-in-out infinite;
 }
-.codex-card.rar-4 .codex-effect {
+.codex-card.rar-4 .codex-effect,
+.codex-showcase.rar-4 .codex-showcase-effect {
   background-image: linear-gradient(112deg, transparent 20%, rgba(65,205,255,.26) 48%, transparent 73%), radial-gradient(ellipse at 50% 55%, rgba(36,139,255,.2), transparent 66%), radial-gradient(ellipse at 38% 70%, rgba(75,239,209,.14), transparent 56%);
   mix-blend-mode: screen;
 }
-.codex-card.rar-5 .codex-effect {
+.codex-card.rar-5 .codex-effect,
+.codex-showcase.rar-5 .codex-showcase-effect {
   background-image: linear-gradient(112deg, transparent 20%, rgba(255,214,100,.3) 48%, transparent 73%), radial-gradient(ellipse at 50% 58%, rgba(255,173,52,.22), transparent 66%), radial-gradient(ellipse at 50% 38%, rgba(242,74,52,.12), transparent 52%);
   mix-blend-mode: screen;
 }
-.codex-card.rar-6 .codex-effect {
+.codex-card.rar-6 .codex-effect,
+.codex-showcase.rar-6 .codex-showcase-effect {
   background-image: linear-gradient(112deg, transparent 20%, rgba(173,110,255,.3) 48%, transparent 73%), radial-gradient(ellipse at 50% 56%, rgba(65,124,255,.25), transparent 65%), radial-gradient(ellipse at 58% 40%, rgba(255,255,255,.13), transparent 48%);
   mix-blend-mode: screen;
 }
-.codex-card.rar-7 .codex-effect {
+.codex-card.rar-7 .codex-effect,
+.codex-showcase.rar-7 .codex-showcase-effect {
   background-image: linear-gradient(112deg, transparent 20%, rgba(255,255,255,.42) 48%, transparent 73%), radial-gradient(ellipse at 50% 56%, rgba(255,208,106,.26), transparent 67%), radial-gradient(ellipse at 45% 42%, rgba(255,255,255,.16), transparent 47%);
   mix-blend-mode: screen;
 }
@@ -2637,7 +2729,10 @@ body {
 
 @media (max-width: 620px) {
   .codex-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-  .codex-card { grid-template-rows: 210px auto auto; }
+  .codex-showcase { grid-template-columns: 1fr; min-height: 0; }
+  .codex-showcase-art { min-height: 320px; border-right: 0; border-bottom: 1px solid color-mix(in srgb, var(--rar-solid) 42%, transparent); }
+  .codex-showcase-info { padding: 20px 18px; }
+  .codex-card { grid-template-rows: 210px auto; }
   .codex-card.expanded {
     width: 100%;
     grid-template-columns: 1fr;
@@ -2656,7 +2751,8 @@ body {
 }
 
 @media (max-width: 390px) {
-  .codex-card { grid-template-rows: 180px auto auto; }
+  .codex-showcase-art { min-height: 270px; }
+  .codex-card { grid-template-rows: 180px auto; }
 }
 
 /* ---------- Modal overlays (check-in / honest-time adjustment) ---------- */
