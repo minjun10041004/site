@@ -680,6 +680,9 @@
     '36-paewangdanhongeom.png', '37-cheongryonggeom.png', '38-baengryonggeom.png',
     '39-jeongryonggeom.png', '40-heugryonggeom.png', '41-hwangryonggeom.png',
   ];
+  // GitHub Pages may cache files with the same path for a while. Keep the
+  // artwork revision here so an art replacement is visible immediately.
+  const SWORD_ART_VERSION = '20260910-silhouettes';
 
   /* ---------------- 강화 (검 개별 강화) ----------------
      Drawing a sword you've already discovered gives 별의 조각 instead of
@@ -2754,7 +2757,7 @@
     selectedCodexIndex = index;
     codexShowcase.hidden = false;
     codexShowcase.className = `codex-showcase rar-${s.rarity}`;
-    codexShowcaseImg.src = `img/swords/${SWORD_ART_FILES[index]}`;
+    codexShowcaseImg.src = `img/swords/${SWORD_ART_FILES[index]}?v=${SWORD_ART_VERSION}`;
     codexShowcaseImg.alt = `${s.name} 검 일러스트`;
     codexShowcaseGrade.textContent = RARITIES[s.rarity].name;
     codexShowcaseName.textContent = s.name;
@@ -2815,7 +2818,7 @@
       if (i === swordLevel) card.classList.add('equipped');
 
       const art = node.querySelector('.codex-art-img');
-      art.src = `img/swords/${SWORD_ART_FILES[i]}`;
+      art.src = `img/swords/${SWORD_ART_FILES[i]}?v=${SWORD_ART_VERSION}`;
       art.alt = found ? `${s.name} 검 일러스트` : '';
 
       if (found) {
