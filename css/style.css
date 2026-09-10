@@ -2451,6 +2451,7 @@ body {
   grid-template-rows: auto auto;
   box-shadow: 0 18px 42px -18px var(--rar-glow), 0 0 24px var(--rar-glow);
   transform: none;
+  overflow: visible;
 }
 .codex-card.expanded.expand-left { transform: translateX(calc(-100% - 14px)); }
 .codex-art {
@@ -2491,8 +2492,9 @@ body {
   transition: max-height 0.42s ease, opacity 0.28s ease 0.12s, transform 0.34s ease 0.08s, padding 0.34s ease;
 }
 .codex-card.expanded .codex-detail {
-  max-height: 900px;
+  max-height: 1400px;
   padding: 4px 18px 18px;
+  overflow: visible;
   opacity: 1;
   transform: translateX(0);
 }
@@ -2508,13 +2510,6 @@ body {
   font-weight: 500;
   line-height: 1.55;
   word-break: keep-all;
-}
-.codex-detail-label {
-  margin: 5px 0 -3px;
-  font-size: .59rem;
-  font-weight: 700;
-  letter-spacing: .14em;
-  color: var(--rar-solid);
 }
 .codex-open-hint {
   position: absolute;
@@ -2545,34 +2540,39 @@ body {
 .codex-effect {
   position: absolute;
   z-index: 1;
-  inset: -36%;
+  inset: 0;
   opacity: 0;
   pointer-events: none;
-  transform: scale(.76) rotate(-12deg);
-  transition: opacity .4s ease, transform .7s cubic-bezier(.18,.8,.25,1);
+  transform: scale(.94);
+  background-size: 220% 100%, 100% 100%, 100% 100%;
+  background-position: 0% 50%, 50% 50%, 50% 50%;
+  transition: opacity .45s ease, transform .65s cubic-bezier(.18,.8,.25,1);
 }
-.codex-card.expanded .codex-effect { opacity: 1; transform: scale(1) rotate(0deg); }
+.codex-card.expanded .codex-effect {
+  opacity: 1;
+  transform: scale(1);
+  animation: codexAuraShimmer 4.8s ease-in-out infinite;
+}
 .codex-card.rar-4 .codex-effect {
-  background: repeating-conic-gradient(from 0deg, transparent 0 10deg, rgba(48,182,255,.18) 11deg 13deg, transparent 14deg 26deg), radial-gradient(circle, rgba(46,204,255,.32), transparent 58%);
-  animation: codexDragonAura 9s linear infinite;
+  background-image: linear-gradient(112deg, transparent 20%, rgba(65,205,255,.26) 48%, transparent 73%), radial-gradient(ellipse at 50% 55%, rgba(36,139,255,.2), transparent 66%), radial-gradient(ellipse at 38% 70%, rgba(75,239,209,.14), transparent 56%);
   mix-blend-mode: screen;
 }
 .codex-card.rar-5 .codex-effect {
-  background: radial-gradient(circle, rgba(255,205,84,.42), transparent 30%), repeating-radial-gradient(circle, transparent 0 22px, rgba(255,200,82,.18) 23px 25px, transparent 26px 46px);
-  animation: codexDragonAura 7s linear infinite reverse;
+  background-image: linear-gradient(112deg, transparent 20%, rgba(255,214,100,.3) 48%, transparent 73%), radial-gradient(ellipse at 50% 58%, rgba(255,173,52,.22), transparent 66%), radial-gradient(ellipse at 50% 38%, rgba(242,74,52,.12), transparent 52%);
   mix-blend-mode: screen;
 }
 .codex-card.rar-6 .codex-effect {
-  background: conic-gradient(from 30deg, transparent, rgba(136,92,255,.42), transparent, rgba(56,202,255,.36), transparent), radial-gradient(circle, rgba(255,255,255,.28), transparent 44%);
-  animation: codexDragonAura 5s linear infinite;
+  background-image: linear-gradient(112deg, transparent 20%, rgba(173,110,255,.3) 48%, transparent 73%), radial-gradient(ellipse at 50% 56%, rgba(65,124,255,.25), transparent 65%), radial-gradient(ellipse at 58% 40%, rgba(255,255,255,.13), transparent 48%);
   mix-blend-mode: screen;
 }
 .codex-card.rar-7 .codex-effect {
-  background: radial-gradient(circle at 50% 42%, rgba(255,255,255,.38), transparent 24%), repeating-radial-gradient(circle at 50% 50%, transparent 0 44px, rgba(255,226,131,.16) 46px 48px, transparent 50px 82px);
-  animation: codexDragonAura 3.8s linear infinite;
+  background-image: linear-gradient(112deg, transparent 20%, rgba(255,255,255,.42) 48%, transparent 73%), radial-gradient(ellipse at 50% 56%, rgba(255,208,106,.26), transparent 67%), radial-gradient(ellipse at 45% 42%, rgba(255,255,255,.16), transparent 47%);
   mix-blend-mode: screen;
 }
-@keyframes codexDragonAura { to { transform: scale(1.08) rotate(360deg); } }
+@keyframes codexAuraShimmer {
+  0%, 100% { background-position: 0% 50%, 50% 50%, 50% 50%; }
+  50% { background-position: 100% 50%, 50% 50%, 50% 50%; }
+}
 .codex-card.equipped { outline: 2px solid var(--rar-solid); outline-offset: 2px; }
 .codex-card.equipped::before {
   content: '장착 중';
