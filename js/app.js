@@ -2865,7 +2865,13 @@
      this renders — no separate award step or migration needed. */
   function renderEpithets() {
     epithetGrid.innerHTML = '';
-    const eligible = SWORDS.map((s, i) => ({ ...s, idx: i })).filter((s) => s.epithet);
+    // Same ordering as 보유 검 (등급 먼저, 그 안에서 효율순) via swordPower(),
+    // so a newly added sword's epithet slots into the right spot automatically
+    // instead of needing a manual reorder here.
+    const eligible = SWORDS
+      .map((s, i) => ({ ...s, idx: i }))
+      .filter((s) => s.epithet)
+      .sort((a, b) => swordPower(b.idx) - swordPower(a.idx));
     const earnedCount = eligible.filter((s) => discovered.includes(s.idx)).length;
     epithetProgress.textContent = `${earnedCount} / ${eligible.length}`;
 
