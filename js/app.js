@@ -716,12 +716,14 @@
     '32-amhyangmaehwageom.png', '33-changcheongeom.png', '34-sailgeom.png', '35-banyamyeolmageom.png',
     '36-paewangdanhongeom.png', '37-cheongryonggeom.png', '38-baengryonggeom.png',
     '39-jeongryonggeom.png', '40-heugryonggeom.png', '41-hwangryonggeom.png',
-    // 2026-09-11 추가분 (42-51) — 아트워크 준비 전까지 빈 문자열로 비워둠.
-    '', '', '', '', '', '', '', '', '', '',
+    // 2026-09-11 추가분 (42-51)
+    '42-heomugeom.png', '43-yeokcheona.png', '44-museongdo.png', '45-mangcheongeom.png',
+    '46-sigwol.png', '47-gwimungeom.png', '48-baengyacham.png', '49-muganrin.png',
+    '50-mukcheon.png', '51-yeokmonggeom.png',
   ];
   // GitHub Pages may cache files with the same path for a while. Keep the
   // artwork revision here so an art replacement is visible immediately.
-  const SWORD_ART_VERSION = '20260910-silhouettes';
+  const SWORD_ART_VERSION = '20260911-new-ten';
 
   // A newly added sword can ship without artwork yet -- SWORD_ART_FILES[i]
   // stays an empty string until art is ready. Clearing the <img> src (not
