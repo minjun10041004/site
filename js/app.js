@@ -664,6 +664,43 @@
     { name: '황룡검', hanja: '黃龍劍', rarity: 4, studyBonus: 46667, epithet: '천하를 굽어보는 눈',
       lore: '동서남북 네 용을 거느리고 천지의 중심에 좌정했다는 황룡의 뿔로 벼린 검. 옛 왕조들은 이 검을 지닌 자야말로 하늘의 뜻을 받든 진정한 주인이라 여겨, 서로 손에 넣으려 다투었다고 전해진다.',
       desc: '이 검을 든 자 앞에서는 나머지 네 방위의 기운마저 숨을 죽인다. 다스리기 위한 검이지, 베기 위한 검이 아니다.' },
+
+    /* ---- 2026-09-11 추가분 — 설화검/선검/신병이기/영검에 걸친 10자루.
+       위 용검/광마회귀 오마주와 같은 이유로 반드시 배열 맨 끝에 덧붙인다
+       (등급별 그룹핑은 rarity 값으로만 이뤄지므로 안전). 아트워크는 아직
+       없어 SWORD_ART_FILES에 빈 문자열로 채워 두며, applySwordArt()가
+       빈 값을 만나면 <img> src를 아예 비워 깨진 이미지 아이콘 대신
+       .codex-art의 무지 배경만 보이게 한다. ---- */
+    { name: '허무검', hanja: '虛無劍', rarity: 7, studyBonus: 3466667, epithet: '존재를 지우는 공허',
+      lore: '허무를 처음 논한 어느 도인이, 존재란 실체가 아니라 기억의 총합일 뿐이라는 궤변 끝에 벼려냈다는 신검. 완성되던 날 이후로 그 도인의 이름과 얼굴을 기억하는 이가 아무도 남지 않았다 하며, 오늘날 이 검을 논하는 문헌 어디에도 창시자의 이름은 전해지지 않는다.',
+      desc: '베인 대상은 육신이 아니라 존재의 흔적을 잃는다. 상처 하나 남지 않되, 주변 사람들의 기억 속에서 피해자의 모습이 서서히 흐려져 끝내 지워진다.' },
+    { name: '역천아', hanja: '逆天牙', rarity: 6, studyBonus: 1500000, epithet: '하늘을 물어뜯은 송곳니',
+      lore: '하늘이 정한 순리를 이빨로 물어뜯어야만 진정한 자유가 있다고 믿은 반골(反骨)의 무인이 필생을 바쳐 벼렸다는 검. 완성되던 순간 그를 벼락이 내리쳤으나, 벼락은 검신에 흡수되어 흔적조차 남기지 못했다고 전해진다.',
+      desc: '하늘의 뜻을 물어뜯는 송곳니 같은 검. 사용할수록 검신은 조금씩 짧아지지만, 그 대가로 정해진 운명을 거슬러 불가능했어야 할 결과를 강제로 끌어낸다.' },
+    { name: '무성도', hanja: '無聲刀', rarity: 3, studyBonus: 18400, epithet: '비명조차 베어낸 자',
+      lore: '소리를 삼킨다는 저주받은 광산에서 캐낸 광석으로 벼려졌다는 도. 그 광산에서 일하던 광부들은 하나같이 목소리를 잃었고, 이 도를 처음 손에 쥔 자 역시 스스로 낸 첫 참격 소리조차 듣지 못했다고 전한다.',
+      desc: '휘두르는 순간 소리와 기척을 모두 없앤다. 적은 자신이 베였다는 사실조차 깨닫지 못한 채, 아무 소리 없이 쓰러진다.' },
+    { name: '망천검', hanja: '忘天劍', rarity: 5, studyBonus: 146000, epithet: '천명을 잊은 검',
+      lore: '천명(天命)을 거부하고 스스로 운명을 새로 쓰려 한 반골의 무인이 만들었다는 검. 하늘의 뜻을 따르길 거부한 죄로 그 이름마저 역사에서 지워졌으나, 그가 남긴 검만은 은밀히 전해져 내려온다.',
+      desc: '검을 뽑은 동안 인과율이 흐려져, 예정된 공격과 정해진 운명 모두를 아슬아슬하게 비껴갈 수 있다. 하늘이 다시 정조준하기 전, 그 짧은 틈이 전부다.' },
+    { name: '식월', hanja: '蝕月', rarity: 6, studyBonus: 1730000, epithet: '달을 삼킨 밤',
+      lore: '달빛이 유난히 짙던 밤, 월식(月蝕)이 지는 순간에 맞춰 담금질을 마쳤다는 검. 대장장이는 그날 이후 두 번 다시 달을 보지 못하는 몸이 되었다 하며, 검은 대신 밤마다 주인의 그림자에서 옅은 빛을 빨아들인다.',
+      desc: '달빛을 먹고 자라는 검. 밤이 깊어질수록 검신이 투명해지고, 완전히 어두워진 그믐의 순간이면 눈으로 좇을 수 없는 참격을 만들어낸다.' },
+    { name: '귀문검', hanja: '鬼門劍', rarity: 3, studyBonus: 18800, epithet: '혼을 가두는 저승문',
+      lore: '저승으로 통하는 문 앞에 버려진 원귀들의 한을 그러모아 벼렸다는 요검. 무당의 퇴마사들조차 이 검 앞에서는 경문을 외우다 말고 뒷걸음질 쳤다고 전해진다.',
+      desc: '베인 자의 혼을 저승으로 보내지 않고 검 안에 가둔다. 갇힌 혼들은 다음 희생자에게 끊임없이 속삭이며, 검을 쥔 자를 서서히 저희와 같은 것으로 물들인다.' },
+    { name: '백야참', hanja: '白夜斬', rarity: 6, studyBonus: 1970000, epithet: '끝나지 않는 새벽',
+      lore: '밤에도 해가 지지 않는다는 극야(極夜)의 땅에서 전해졌다는 신검. 어둠이 짙을수록 검신의 빛이 더 밝아진다 하여, 이 검을 지닌 자는 늘 가장 어두운 곳으로만 걸어 들어갔다고 전한다.',
+      desc: '어둠 속에서 더욱 눈부신 검. 한 번 휘두르면 주변이 대낮처럼 밝아지지만, 그 빛을 본 자는 자신이 가장 두려워하던 기억과 마주하게 된다.' },
+    { name: '무간린', hanja: '無間刃', rarity: 5, studyBonus: 149000, epithet: '틈새를 꿰뚫는 무수한 날',
+      lore: '하나의 도신처럼 보이지만 실은 머리카락보다 얇은 수천 개의 칼날이 겹겹이 짜여 이루어졌다는 신병. 벼린 장인은 완성 직전 자신의 손끝마저 그 틈에 베였다고 전해진다.',
+      desc: '하나의 검처럼 보이지만 수많은 얇은 칼날의 틈으로 이루어져, 갑옷과 결계의 틈만을 정확히 찾아 파고든다. 막았다고 여긴 순간, 이미 그 안쪽은 베여 있다.' },
+    { name: '묵천', hanja: '默天', rarity: 7, studyBonus: 3600000, epithet: '천하의 목소리를 잠재우다',
+      lore: '하늘 그 자체를 침묵시키겠다는 오만한 발원 끝에 완성되었다는 전설의 신검. 검이 처음 뽑히던 날, 반경 수십 리 안의 모든 새와 벌레가 일제히 울음을 멈췄다는 기록이 전해진다.',
+      desc: '검을 뽑는 순간 일정 범위 안의 모든 소리와 언어를 빼앗는다. 그 안에서는 주문도 명령도 비명도 소리가 되어 나오지 못한다.' },
+    { name: '역몽검', hanja: '逆夢劍', rarity: 3, studyBonus: 19200, epithet: '악몽을 현실로 베어내다',
+      lore: '꿈과 현실의 경계가 가장 얇아진다는 자시(子時) 삼경에만 벼릴 수 있다는 요검. 이 검을 완성한 대장장이는 이후 다시는 꿈을 꾸지 못하게 되었다고 전해진다.',
+      desc: '꿈과 현실의 경계를 베는 검. 적이 확신하는 현실을 잘라내고, 잠시 동안 그가 두려워하던 악몽을 현실로 끌어낸다.' },
   ];
 
   // File order deliberately matches SWORDS so existing saved sword indices stay untouched.
@@ -679,10 +716,27 @@
     '32-amhyangmaehwageom.png', '33-changcheongeom.png', '34-sailgeom.png', '35-banyamyeolmageom.png',
     '36-paewangdanhongeom.png', '37-cheongryonggeom.png', '38-baengryonggeom.png',
     '39-jeongryonggeom.png', '40-heugryonggeom.png', '41-hwangryonggeom.png',
+    // 2026-09-11 추가분 (42-51) — 아트워크 준비 전까지 빈 문자열로 비워둠.
+    '', '', '', '', '', '', '', '', '', '',
   ];
   // GitHub Pages may cache files with the same path for a while. Keep the
   // artwork revision here so an art replacement is visible immediately.
   const SWORD_ART_VERSION = '20260910-silhouettes';
+
+  // A newly added sword can ship without artwork yet -- SWORD_ART_FILES[i]
+  // stays an empty string until art is ready. Clearing the <img> src (not
+  // just leaving it unset to '') avoids the well-known bug where an empty
+  // src resolves to the current page URL and re-requests it.
+  function applySwordArt(imgEl, index, altWhenFound) {
+    const file = SWORD_ART_FILES[index];
+    if (file) {
+      imgEl.src = `img/swords/${file}?v=${SWORD_ART_VERSION}`;
+      imgEl.alt = altWhenFound;
+    } else {
+      imgEl.removeAttribute('src');
+      imgEl.alt = '';
+    }
+  }
 
   /* ---------------- 강화 (검 개별 강화) ----------------
      Drawing a sword you've already discovered gives 별의 조각 instead of
@@ -2757,8 +2811,7 @@
     selectedCodexIndex = index;
     codexShowcase.hidden = false;
     codexShowcase.className = `codex-showcase rar-${s.rarity}`;
-    codexShowcaseImg.src = `img/swords/${SWORD_ART_FILES[index]}?v=${SWORD_ART_VERSION}`;
-    codexShowcaseImg.alt = `${s.name} 검 일러스트`;
+    applySwordArt(codexShowcaseImg, index, `${s.name} 검 일러스트`);
     codexShowcaseGrade.textContent = RARITIES[s.rarity].name;
     codexShowcaseName.textContent = s.name;
     setEnhanceBadge(codexShowcaseEnhance, swordStars[index] || 0);
@@ -2818,8 +2871,7 @@
       if (i === swordLevel) card.classList.add('equipped');
 
       const art = node.querySelector('.codex-art-img');
-      art.src = `img/swords/${SWORD_ART_FILES[i]}?v=${SWORD_ART_VERSION}`;
-      art.alt = found ? `${s.name} 검 일러스트` : '';
+      applySwordArt(art, i, found ? `${s.name} 검 일러스트` : '');
 
       if (found) {
         card.tabIndex = 0;
