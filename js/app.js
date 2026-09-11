@@ -723,7 +723,7 @@
   ];
   // GitHub Pages may cache files with the same path for a while. Keep the
   // artwork revision here so an art replacement is visible immediately.
-  const SWORD_ART_VERSION = '20260911-sunggu-gwangmyeong-dao-v8';
+  const SWORD_ART_VERSION = '20260911-sunggu-gwangmyeong-prismatic-v9';
 
   // A newly added sword can ship without artwork yet -- SWORD_ART_FILES[i]
   // stays an empty string until art is ready. Clearing the <img> src (not
