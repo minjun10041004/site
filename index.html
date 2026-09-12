@@ -447,10 +447,14 @@
   <section class="tab-panel" id="panel-codex">
     <div class="card codex-card-wrap sword-theme">
       <div class="card-head">
-        <h2><span class="card-icon">📖</span> 검 도감</h2>
+        <h2><span class="card-icon">📖</span> 도감</h2>
         <span class="badge" id="codexProgress">0 / 0</span>
       </div>
-      <p class="codex-note">한 번이라도 뽑은 검만 설정과 설명이 공개돼요.</p>
+      <div class="exam-tab-row" id="codexSubtabs">
+        <button type="button" class="exam-tab active" data-codex="sword">⚔️ 검 도감</button>
+        <button type="button" class="exam-tab" data-codex="gear">🛡️ 장비 도감</button>
+      </div>
+      <p class="codex-note" id="codexNote">한 번이라도 뽑은 검만 설정과 설명이 공개돼요.</p>
       <section class="codex-showcase" id="codexShowcase" hidden aria-live="polite">
         <div class="codex-showcase-art">
           <img id="codexShowcaseImg" alt="" decoding="async">
@@ -713,6 +717,6 @@
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/app.js?v=20260911-new-swords"></script>
+<script src="js/app.js?v=20260912-gear-codex"></script>
 </body>
 </html>

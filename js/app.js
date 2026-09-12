@@ -667,8 +667,8 @@
 
     /* ---- 2026-09-11 추가분 — 설화검/선검/신병이기/영검에 걸친 10자루.
        위 용검/광마회귀 오마주와 같은 이유로 반드시 배열 맨 끝에 덧붙인다
-       (등급별 그룹핑은 rarity 값으로만 이뤄지므로 안전). 아트워크는 아직
-       없어 SWORD_ART_FILES에 빈 문자열로 채워 두며, applySwordArt()가
+       (등급별 그룹핑은 rarity 값으로만 이뤄지므로 안전). 아트워크가 아직
+       없는 동안엔 SWORD_ART_FILES에 빈 문자열로 채워 두며, applyCodexArt()가
        빈 값을 만나면 <img> src를 아예 비워 깨진 이미지 아이콘 대신
        .codex-art의 무지 배경만 보이게 한다. ---- */
     { name: '허무검', hanja: '虛無劍', rarity: 7, studyBonus: 3466667, epithet: '존재를 지우는 공허',
@@ -725,14 +725,19 @@
   // artwork revision here so an art replacement is visible immediately.
   const SWORD_ART_VERSION = '20260911-sunggu-gwangmyeong-rootwork-v10';
 
-  // A newly added sword can ship without artwork yet -- SWORD_ART_FILES[i]
-  // stays an empty string until art is ready. Clearing the <img> src (not
-  // just leaving it unset to '') avoids the well-known bug where an empty
-  // src resolves to the current page URL and re-requests it.
-  function applySwordArt(imgEl, index, altWhenFound) {
-    const file = SWORD_ART_FILES[index];
+  // 장비 도감 아트워크는 아직 없어 전부 빈 슬롯 -- 파일이 생기면 여기
+  // 버전 문자열만 올려서 캐시를 새로 태우면 된다 (검과 동일한 관례).
+  const GEAR_ART_VERSION = '20260912-blank';
+
+  // A newly added sword/gear item can ship without artwork yet -- the art
+  // files array stays an empty string at that index until art is ready.
+  // Clearing the <img> src (not just leaving it unset to '') avoids the
+  // well-known bug where an empty src resolves to the current page URL
+  // and re-requests it.
+  function applyCodexArt(imgEl, artFiles, basePath, version, index, altWhenFound) {
+    const file = artFiles[index];
     if (file) {
-      imgEl.src = `img/swords/${file}?v=${SWORD_ART_VERSION}`;
+      imgEl.src = `${basePath}/${file}?v=${version}`;
       imgEl.alt = altWhenFound;
     } else {
       imgEl.removeAttribute('src');
@@ -2038,6 +2043,8 @@
   const gachaResultsEmpty = el('gachaResultsEmpty');
   const rarityTable = el('rarityTable');
   const swordResultTpl = el('swordResultTemplate');
+  const codexSubtabsEl = el('codexSubtabs');
+  const codexNoteEl = el('codexNote');
   const codexGrid = el('codexGrid');
   const codexProgress = el('codexProgress');
   const codexCardTpl = el('codexCardTemplate');
@@ -2374,6 +2381,10 @@
       desc: '땅을 딛는 감각조차 희미해질 만큼, 구름 위를 걷는 듯한 가벼움이 온몸에 퍼진다.' },
   ];
 
+  // No gear artwork yet -- every slot stays blank (see applyCodexArt below),
+  // same convention as the newest SWORD_ART_FILES entries.
+  const GEAR_ART_FILES = GEAR_ITEMS.map(() => '');
+
   function gearPower(idx) {
     const g = GEAR_ITEMS[idx];
     return g.rarity * 1e9 + g.studyBonus;
@@ -2443,6 +2454,7 @@
     renderGold();
     renderGearResults(results);
     renderGearPanel();
+    renderCodex();
     renderStudyHint();
     renderHeader();
 
@@ -2559,6 +2571,7 @@
     gearLevel = idx;
     queueSave();
     renderGearPanel();
+    renderCodex();
     renderStudyHint();
     renderHeader();
     const g = GEAR_ITEMS[idx];
@@ -2803,34 +2816,56 @@
     }
   });
 
-  /* ---------------- 도감 ---------------- */
+  /* ---------------- 도감 (검 / 장비 공용) ---------------- */
+  let codexMode = 'sword'; // 'sword' | 'gear' — which sub-tab is showing
   let selectedCodexIndex = null;
 
-  function selectCodexSword(index) {
-    const s = SWORDS[index];
-    if (!s || !discovered.includes(index)) return;
+  // Everything that differs between the 검 도감 and 장비 도감 lives here,
+  // so renderCodex()/selectCodexItem() only need to know "which pool" —
+  // adding a third pool later (if it ever happens) means adding one more
+  // entry here, not touching the render/select logic itself.
+  function codexPool() {
+    return codexMode === 'gear'
+      ? {
+          items: GEAR_ITEMS, rarities: GEAR_RARITIES, artFiles: GEAR_ART_FILES,
+          artBase: 'img/gear', artVersion: GEAR_ART_VERSION,
+          discovered: gearDiscovered, equippedIdx: gearLevel, stars: null,
+          incomeAt: gearIncomeAt, unitLabel: '장비', noteLabel: '장비',
+        }
+      : {
+          items: SWORDS, rarities: RARITIES, artFiles: SWORD_ART_FILES,
+          artBase: 'img/swords', artVersion: SWORD_ART_VERSION,
+          discovered, equippedIdx: swordLevel, stars: swordStars,
+          incomeAt: swordIncomeAt, unitLabel: '검', noteLabel: '검',
+        };
+  }
+
+  function selectCodexItem(index) {
+    const pool = codexPool();
+    const s = pool.items[index];
+    if (!s || !pool.discovered.includes(index)) return;
 
     selectedCodexIndex = index;
     codexShowcase.hidden = false;
     codexShowcase.className = `codex-showcase rar-${s.rarity}`;
-    applySwordArt(codexShowcaseImg, index, `${s.name} 검 일러스트`);
-    codexShowcaseGrade.textContent = RARITIES[s.rarity].name;
+    applyCodexArt(codexShowcaseImg, pool.artFiles, pool.artBase, pool.artVersion, index, `${s.name} ${pool.unitLabel} 일러스트`);
+    codexShowcaseGrade.textContent = pool.rarities[s.rarity].name;
     codexShowcaseName.textContent = s.name;
-    setEnhanceBadge(codexShowcaseEnhance, swordStars[index] || 0);
+    setEnhanceBadge(codexShowcaseEnhance, pool.stars ? (pool.stars[index] || 0) : 0);
     codexShowcaseHanja.textContent = `(${s.hanja})`;
     codexShowcaseEpithet.textContent = s.epithet ? `《${s.epithet}》` : '';
     codexShowcaseEpithet.hidden = !s.epithet;
     codexShowcaseQuote.textContent = codexHook(s.desc);
     codexShowcaseLore.textContent = s.lore;
     codexShowcaseDesc.textContent = s.desc;
-    codexShowcaseBonus.textContent = `검 효율 분당 +${swordIncomeAt(index).toLocaleString('ko-KR')}G`;
+    codexShowcaseBonus.textContent = `${pool.unitLabel} 효율 분당 +${pool.incomeAt(index).toLocaleString('ko-KR')}G`;
     codexShowcaseEffect.className = 'codex-showcase-effect';
 
     codexGrid.querySelectorAll('.codex-card').forEach((card) => {
       const selected = Number(card.dataset.swordIndex) === index;
       card.classList.toggle('selected', selected);
       card.setAttribute('aria-selected', String(selected));
-      card.setAttribute('aria-label', selected ? `${s.name} 전시 중` : `${card.dataset.swordName || '검'} 상세 전시`);
+      card.setAttribute('aria-label', selected ? `${s.name} 전시 중` : `${card.dataset.swordName || pool.unitLabel} 상세 전시`);
     });
   }
 
@@ -2850,37 +2885,49 @@
     return `“${firstSentence.trim()}”`;
   }
 
+  codexSubtabsEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.exam-tab');
+    if (!btn || btn.classList.contains('active')) return;
+    codexMode = btn.dataset.codex;
+    codexSubtabsEl.querySelectorAll('.exam-tab').forEach((t) => t.classList.toggle('active', t === btn));
+    selectedCodexIndex = null;
+    renderCodex();
+  });
+
   function renderCodex() {
+    const pool = codexPool();
+    codexNoteEl.textContent = `한 번이라도 뽑은 ${pool.noteLabel}만 설정과 설명이 공개돼요.`;
     codexGrid.innerHTML = '';
-    codexProgress.textContent = `${discovered.length} / ${SWORDS.length}`;
+    codexProgress.textContent = `${pool.discovered.length} / ${pool.items.length}`;
 
-    // Grade order rather than raw array position — later-appended grades
-    // (e.g. 용검) and homage swords tacked onto an earlier grade would
-    // otherwise show up out of order, since SWORDS only guarantees new
-    // entries are appended at the end (see the SWORDS comment above).
-    // A stable sort keeps each grade's own original relative order intact.
-    const bySwordGrade = SWORDS
+    // Grade first, studyBonus (효율) second — both ascending, low to high.
+    // Raw array position can't be trusted for either: new items always get
+    // appended at the very end regardless of grade (see the SWORDS comment
+    // above), so a later grade or a cheaper duplicate can land anywhere in
+    // the array. Sorting on the data itself keeps this correct no matter
+    // where a future addition lands.
+    const byGradeThenEfficiency = pool.items
       .map((s, i) => ({ s, i }))
-      .sort((a, b) => a.s.rarity - b.s.rarity);
+      .sort((a, b) => (a.s.rarity - b.s.rarity) || (a.s.studyBonus - b.s.studyBonus));
 
-    bySwordGrade.forEach(({ s, i }) => {
-      const found = discovered.includes(i);
+    byGradeThenEfficiency.forEach(({ s, i }) => {
+      const found = pool.discovered.includes(i);
       const node = codexCardTpl.content.cloneNode(true);
       const card = node.querySelector('.codex-card');
       card.dataset.swordIndex = i;
       card.classList.add(`rar-${s.rarity}`);
       if (!found) card.classList.add('locked');
-      if (i === swordLevel) card.classList.add('equipped');
+      if (i === pool.equippedIdx) card.classList.add('equipped');
 
       const art = node.querySelector('.codex-art-img');
-      applySwordArt(art, i, found ? `${s.name} 검 일러스트` : '');
+      applyCodexArt(art, pool.artFiles, pool.artBase, pool.artVersion, i, found ? `${s.name} ${pool.unitLabel} 일러스트` : '');
 
       if (found) {
         card.tabIndex = 0;
         card.setAttribute('role', 'button');
         card.dataset.swordName = s.name;
         card.setAttribute('aria-label', `${s.name} 상세 전시`);
-        const selectCard = () => selectCodexSword(i);
+        const selectCard = () => selectCodexItem(i);
         card.addEventListener('click', selectCard);
         card.addEventListener('keydown', (event) => {
           if (event.key === 'Enter' || event.key === ' ') {
@@ -2889,12 +2936,14 @@
           }
         });
       } else {
-        card.setAttribute('aria-label', `${s.name}, 아직 발견하지 못한 검`);
+        card.setAttribute('aria-label', `${s.name}, 아직 발견하지 못한 ${pool.unitLabel}`);
       }
 
-      node.querySelector('.codex-grade').textContent = RARITIES[s.rarity].name;
+      node.querySelector('.codex-grade').textContent = pool.rarities[s.rarity].name;
       node.querySelector('.codex-name-text').textContent = s.name;   // name is always shown
-      setEnhanceBadge(node.querySelector('.codex-enhance-badge'), swordStars[i] || 0);
+      const enhanceBadgeEl = node.querySelector('.codex-enhance-badge');
+      if (pool.stars) setEnhanceBadge(enhanceBadgeEl, pool.stars[i] || 0);
+      else enhanceBadgeEl.hidden = true;
       node.querySelector('.codex-hanja').textContent = found ? `(${s.hanja})` : '(???)';
       const epithetEl = node.querySelector('.codex-epithet');
       if (s.epithet) {
@@ -2905,8 +2954,8 @@
       codexGrid.appendChild(node);
     });
 
-    if (selectedCodexIndex !== null && discovered.includes(selectedCodexIndex)) {
-      selectCodexSword(selectedCodexIndex);
+    if (selectedCodexIndex !== null && pool.discovered.includes(selectedCodexIndex)) {
+      selectCodexItem(selectedCodexIndex);
     } else {
       closeCodexShowcase();
     }
