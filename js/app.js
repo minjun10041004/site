@@ -705,25 +705,25 @@
 
   // File order deliberately matches SWORDS so existing saved sword indices stay untouched.
   const SWORD_ART_FILES = [
-    '00-mokgeom.png', '01-dando.png', '02-hwando.png', '03-cheolgeom.png',
-    '04-yuyeopgeom.png', '05-cheongryugeom.png', '06-hansanggeom.png', '07-buwolgeom.png',
-    '08-maehwageom.png', '09-binghongeom.png', '10-bokmageom.png', '11-noejeonggeom.png',
-    '12-hoageom.png', '13-akhyeonggeom.png', '14-geopmyeolgeom.png', '15-sahyunggeom.png',
-    '16-sunggu.png', '17-seungsa.png', '18-eojang.png', '19-geogweol.png',
-    '20-damro.png', '21-taea.png', '22-yongcheon.png', '23-makya.png',
-    '24-ganjang.png', '25-cheonjumyeolsingeom.png', '26-gaebyeokjohwageom.png', '27-ilsal.png',
-    '28-gwangmyeonggeom.png', '29-pacheongeom.png', '30-jincheonpaedo.png', '31-songmungogeom.png',
-    '32-amhyangmaehwageom.png', '33-changcheongeom.png', '34-sailgeom.png', '35-banyamyeolmageom.png',
-    '36-paewangdanhongeom.png', '37-cheongryonggeom.png', '38-baengryonggeom.png',
-    '39-jeongryonggeom.png', '40-heugryonggeom.png', '41-hwangryonggeom.png',
+    '00-mokgeom.webp', '01-dando.webp', '02-hwando.webp', '03-cheolgeom.webp',
+    '04-yuyeopgeom.webp', '05-cheongryugeom.webp', '06-hansanggeom.webp', '07-buwolgeom.webp',
+    '08-maehwageom.webp', '09-binghongeom.webp', '10-bokmageom.webp', '11-noejeonggeom.webp',
+    '12-hoageom.webp', '13-akhyeonggeom.webp', '14-geopmyeolgeom.webp', '15-sahyunggeom.webp',
+    '16-sunggu.webp', '17-seungsa.webp', '18-eojang.webp', '19-geogweol.webp',
+    '20-damro.webp', '21-taea.webp', '22-yongcheon.webp', '23-makya.webp',
+    '24-ganjang.webp', '25-cheonjumyeolsingeom.webp', '26-gaebyeokjohwageom.webp', '27-ilsal.webp',
+    '28-gwangmyeonggeom.webp', '29-pacheongeom.webp', '30-jincheonpaedo.webp', '31-songmungogeom.webp',
+    '32-amhyangmaehwageom.webp', '33-changcheongeom.webp', '34-sailgeom.webp', '35-banyamyeolmageom.webp',
+    '36-paewangdanhongeom.webp', '37-cheongryonggeom.webp', '38-baengryonggeom.webp',
+    '39-jeongryonggeom.webp', '40-heugryonggeom.webp', '41-hwangryonggeom.webp',
     // 2026-09-11 추가분 (42-51)
-    '42-heomugeom.png', '43-yeokcheona.png', '44-museongdo.png', '45-mangcheongeom.png',
-    '46-sigwol.png', '47-gwimungeom.png', '48-baengyacham.png', '49-muganrin.png',
-    '50-mukcheon.png', '51-yeokmonggeom.png',
+    '42-heomugeom.webp', '43-yeokcheona.webp', '44-museongdo.webp', '45-mangcheongeom.webp',
+    '46-sigwol.webp', '47-gwimungeom.webp', '48-baengyacham.webp', '49-muganrin.webp',
+    '50-mukcheon.webp', '51-yeokmonggeom.webp',
   ];
   // GitHub Pages may cache files with the same path for a while. Keep the
   // artwork revision here so an art replacement is visible immediately.
-  const SWORD_ART_VERSION = '20260911-sunggu-gwangmyeong-rootwork-v10';
+  const SWORD_ART_VERSION = '20260912-webp';
 
   // 장비 도감 아트워크는 아직 없어 전부 빈 슬롯 -- 파일이 생기면 여기
   // 버전 문자열만 올려서 캐시를 새로 태우면 된다 (검과 동일한 관례).
