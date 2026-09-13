@@ -35,6 +35,10 @@
 
   let currentUserId = null;
   let currentUsername = null;
+  // The app_data row's updated_at as of our last load/save -- lets flushSave()
+  // detect "someone else (another tab/device) saved after us" instead of
+  // blindly overwriting a newer save with this tab's possibly-stale state.
+  let lastKnownUpdatedAt = null;
 
   let schedules = [];
   let todosByDate = {};
@@ -163,14 +167,32 @@
 
   async function flushSave() {
     if (!currentUserId) return;
+
+    // Optimistic-concurrency guard: if another tab/device saved after we
+    // last loaded or saved, this tab's in-memory state is stale -- pushing
+    // it now would silently roll back whatever that newer save had. Refuse
+    // instead of clobbering; the user can reload to pick up the latest.
+    if (lastKnownUpdatedAt) {
+      const { data: current } = await sb.from('app_data')
+        .select('updated_at').eq('user_id', currentUserId).maybeSingle();
+      const serverTime = current?.updated_at ? new Date(current.updated_at).getTime() : null;
+      const knownTime = new Date(lastKnownUpdatedAt).getTime();
+      if (serverTime !== null && serverTime !== knownTime) {
+        showToast('⚠️ 다른 기기/탭에서 더 최근에 저장된 데이터가 있어 자동저장을 건너뛰었어요. 새로고침해서 최신 상태를 불러와주세요.');
+        return;
+      }
+    }
+
+    const nowIso = new Date().toISOString();
     const [, { error: rankError }] = await Promise.all([
       sb.from('app_data').upsert({
         user_id: currentUserId,
         data: collectState(),
-        updated_at: new Date().toISOString(),
+        updated_at: nowIso,
       }),
       sb.from('leaderboard').upsert(leaderboardRow()),
     ]);
+    lastKnownUpdatedAt = nowIso;
     // total_draws is a new column — until the matching migration has been
     // run, upserting it fails the whole row (not just that field), which
     // would otherwise silently stop gold/study time from reaching the
@@ -213,8 +235,9 @@
   window.addEventListener('beforeunload', flushSaveIfPending);
 
   async function loadUserState() {
-    const { data } = await sb.from('app_data').select('data').eq('user_id', currentUserId).maybeSingle();
+    const { data } = await sb.from('app_data').select('data, updated_at').eq('user_id', currentUserId).maybeSingle();
     applyState(data && data.data ? data.data : {});
+    lastKnownUpdatedAt = data?.updated_at ?? null;
     // Always resync the leaderboard row on load, not just for brand-new
     // users: study_today/week/month are snapshots written by flushSave(),
     // so a device that was closed across the 5am study-day boundary and
