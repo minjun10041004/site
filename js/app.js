@@ -1205,6 +1205,7 @@
     { min: 15, name: '반짝이는 행복' },
     { min: 20, name: '행복 만렙' },
   ];
+  const HAPPINESS_MAX_PER_DAY = 20;
   function happinessTierIndex(count) {
     let idx = 0;
     for (let i = 0; i < HAPPINESS_TIERS.length; i++) {
@@ -1224,14 +1225,22 @@
     const tier = HAPPINESS_TIERS[tierIdx];
     const nextTier = HAPPINESS_TIERS[tierIdx + 1];
 
+    const atCap = count >= HAPPINESS_MAX_PER_DAY;
+
     happinessIndexEl.textContent = count;
     happinessTierNameEl.textContent = tier.name;
-    happinessTierHintEl.textContent = nextTier
-      ? `${nextTier.min - count}개 더 적으면 "${nextTier.name}"이 돼요`
-      : (count === 0 ? '칭찬과 감사를 적을수록 행복지수가 올라가요' : '오늘 행복지수가 최고조예요! 🎉');
+    happinessTierHintEl.textContent = atCap
+      ? '오늘의 기록을 다 채웠어요! 내일 또 적어주세요 💛'
+      : nextTier
+        ? `${nextTier.min - count}개 더 적으면 "${nextTier.name}"이 돼요`
+        : (count === 0 ? '칭찬과 감사를 적을수록 행복지수가 올라가요' : '오늘 행복지수가 최고조예요! 🎉');
     happinessHeroCard.className = `card happiness-hero-card happiness-tier-${tierIdx}`;
 
-    happinessBadge.textContent = `${count}개`;
+    happinessBadge.textContent = `${count} / ${HAPPINESS_MAX_PER_DAY}`;
+    happinessTextInput.disabled = atCap;
+    happinessTextInput.placeholder = atCap
+      ? '오늘은 다 채우셨어요! 내일 다시 적어주세요'
+      : '오늘 나에게 칭찬할 점, 감사한 점을 적어보세요';
     happinessEmpty.style.display = count ? 'none' : 'block';
     happinessList.innerHTML = '';
     items.forEach((item) => {
@@ -1282,12 +1291,13 @@
     if (!text) return;
     const todayK = todayKey();
     const list = getHappinessFor(todayK);
+    if (list.length >= HAPPINESS_MAX_PER_DAY) return;
     list.push({ id: crypto.randomUUID(), text, createdAt: Date.now() });
     happinessByDate[todayK] = list;
 
-    // 10~20분 사이 랜덤 시간만큼의 현재 분당 골드 효율을 즉시 보상으로 지급.
-    const minutes = 10 + Math.random() * 10;
-    const reward = niceGold(currentStudyIncome() * minutes);
+    // 보유 골드의 4~5% 사이 랜덤 비율만큼을 즉시 보상으로 지급.
+    const rewardRate = 0.04 + Math.random() * 0.01;
+    const reward = niceGold(gold * rewardRate);
     addGold(reward);
 
     happinessForm.reset();
