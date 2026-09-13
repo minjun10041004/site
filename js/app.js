@@ -1318,9 +1318,8 @@
     list.push({ id: crypto.randomUUID(), text, createdAt: Date.now() });
     happinessByDate[todayK] = list;
 
-    // 보유 골드의 4~5% 사이 랜덤 비율만큼을 즉시 보상으로 지급.
-    const rewardRate = 0.04 + Math.random() * 0.01;
-    const reward = niceGold(gold * rewardRate);
+    // 현재 분당 골드 효율의 5분치를 즉시 보상으로 지급.
+    const reward = niceGold(currentStudyIncome() * 5);
     addGold(reward);
 
     happinessForm.reset();
