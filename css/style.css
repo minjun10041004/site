@@ -3120,3 +3120,86 @@ body {
   background: conic-gradient(from 0deg, #ff2d55, #f59e0b, #eab308, #22c55e, #3b82f6, #a855f7, #ff2d55);
   opacity: 0.55;
 }
+
+/* ---------- Happiness (행복) tab ----------
+   A deliberately warm gratitude/glow palette, distinct from the site's
+   cool indigo-cyan identity and from the rarity/cultivation palettes --
+   this tab is about warmth, not power progression. */
+.happiness-hero-card {
+  position: relative;
+  align-items: center;
+  text-align: center;
+  padding: 40px 28px 32px;
+  overflow: hidden;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--happy-a) 18%, var(--surface-solid)), var(--surface-solid));
+  border-color: var(--happy-solid);
+  box-shadow: 0 0 30px var(--happy-glow), var(--shadow);
+  transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+}
+.happiness-effect-layer {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 3;
+}
+.happiness-particle {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  transform: translate(-50%, -50%);
+  animation: happinessParticleFly 1.15s ease-out forwards;
+  will-change: transform, opacity;
+}
+@keyframes happinessParticleFly {
+  0%   { transform: translate(-50%, -50%) translate(0, 0) scale(0.5) rotate(0deg); opacity: 0; }
+  15%  { opacity: 1; }
+  100% { transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(1.2) rotate(200deg); opacity: 0; }
+}
+.happiness-label {
+  position: relative;
+  margin: 0 0 8px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: var(--text-faint);
+}
+.happiness-index {
+  position: relative;
+  margin: 0;
+  font-weight: 600;
+  line-height: 1;
+  font-size: clamp(3.2rem, 11vw, 5rem);
+  color: var(--happy-solid);
+}
+.happiness-tier-name {
+  position: relative;
+  margin: 10px 0 4px;
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--text);
+}
+.happiness-tier-hint {
+  position: relative;
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-faint);
+}
+.happiness-item-icon { font-size: 1rem; flex-shrink: 0; }
+
+.happiness-tier-0 { --happy-a: #94a3b8; --happy-solid: #64748b; --happy-glow: rgba(148, 163, 184, 0.18); }
+.happiness-tier-1 { --happy-a: #fde68a; --happy-solid: #f59e0b; --happy-glow: rgba(245, 158, 11, 0.22); }
+.happiness-tier-2 { --happy-a: #fdba74; --happy-solid: #fb923c; --happy-glow: rgba(251, 146, 60, 0.28); }
+.happiness-tier-3 { --happy-a: #f9a8d4; --happy-solid: #f472b6; --happy-glow: rgba(244, 114, 182, 0.32); }
+.happiness-tier-4 { --happy-a: #d8b4fe; --happy-solid: #a855f7; --happy-glow: rgba(168, 85, 247, 0.36); }
+.happiness-tier-5 {
+  --happy-a: #fde68a;
+  --happy-solid: #f472b6;
+  --happy-glow: rgba(250, 204, 21, 0.4);
+  animation: happinessRainbowPulse 3s ease-in-out infinite;
+}
+@keyframes happinessRainbowPulse {
+  0%, 100% { box-shadow: 0 0 30px rgba(250, 204, 21, 0.4), var(--shadow); }
+  33%      { box-shadow: 0 0 34px rgba(244, 114, 182, 0.42), var(--shadow); }
+  66%      { box-shadow: 0 0 34px rgba(168, 85, 247, 0.4), var(--shadow); }
+}

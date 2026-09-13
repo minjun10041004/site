@@ -39,6 +39,7 @@
   let schedules = [];
   let todosByDate = {};
   let examChecklist = []; // { id, text, done, subjectId } — a flat list, not date-scoped
+  let happinessByDate = {}; // { [dateKey]: [{ id, text, createdAt }] } — 칭찬/감사 일기, resets daily like todos
   let examSubjects = []; // { id, name } — user-defined tabs to split the checklist by subject
   let activeExamSubjectId = null; // null = "전체" (shows every item, tagged or not)
   let gold = 1000;
@@ -64,7 +65,7 @@
 
   function collectState() {
     return {
-      schedules, todosByDate, examChecklist, examSubjects, gold, subjects, studyByDate, activeSession,
+      schedules, todosByDate, examChecklist, examSubjects, happinessByDate, gold, subjects, studyByDate, activeSession,
       realmLevel, swordLevel, discovered, swordTableVersion: SWORD_TABLE_VERSION,
       nickname, avatar, starFragments, swordStars, totalDraws,
       gearLevel, gearDiscovered, gearTableVersion: GEAR_TABLE_VERSION,
@@ -76,6 +77,7 @@
     todosByDate = data.todosByDate ?? {};
     examChecklist = Array.isArray(data.examChecklist) ? data.examChecklist : [];
     examSubjects = Array.isArray(data.examSubjects) ? data.examSubjects : [];
+    happinessByDate = data.happinessByDate ?? {};
     subjects = data.subjects ?? [];
     studyByDate = data.studyByDate ?? {};
     activeSession = data.activeSession ?? null;
@@ -313,6 +315,18 @@
   const examChecklistBadge = el('examChecklistBadge');
   const examChecklistItemTpl = el('examChecklistItemTemplate');
 
+  const happinessHeroCard = el('happinessHeroCard');
+  const happinessEffectLayer = el('happinessEffectLayer');
+  const happinessIndexEl = el('happinessIndex');
+  const happinessTierNameEl = el('happinessTierName');
+  const happinessTierHintEl = el('happinessTierHint');
+  const happinessForm = el('happinessForm');
+  const happinessTextInput = el('happinessText');
+  const happinessList = el('happinessList');
+  const happinessEmpty = el('happinessEmpty');
+  const happinessBadge = el('happinessBadge');
+  const happinessItemTpl = el('happinessItemTemplate');
+
   const themeSwitch = el('themeSwitch');
 
   const goldAmountEl = el('goldAmount');
@@ -320,6 +334,7 @@
   const tabPanels = {
     main: el('panel-main'),
     study: el('panel-study'),
+    happiness: el('panel-happiness'),
     realm: el('panel-realm'),
     sword: el('panel-sword'),
     gear: el('panel-gear'),
@@ -1175,6 +1190,110 @@
     queueSave();
     examChecklistForm.reset();
     renderExamChecklist();
+  });
+
+  /* ---------------- 행복 (칭찬 & 감사 일기) ----------------
+     Resets daily like the todo list (todayKey(), not the 5am-shifted
+     studyDayKey()) since this is a reflection journal, not a study-time
+     metric. The tier ladder is purely a function of today's entry count,
+     so it never needs migrating when entries are added or removed. */
+  const HAPPINESS_TIERS = [
+    { min: 0,  name: '고요한 하루' },
+    { min: 1,  name: '소소한 행복' },
+    { min: 5,  name: '몽글몽글한 행복' },
+    { min: 10, name: '넘치는 행복' },
+    { min: 15, name: '반짝이는 행복' },
+    { min: 20, name: '행복 만렙' },
+  ];
+  function happinessTierIndex(count) {
+    let idx = 0;
+    for (let i = 0; i < HAPPINESS_TIERS.length; i++) {
+      if (count >= HAPPINESS_TIERS[i].min) idx = i;
+    }
+    return idx;
+  }
+  function getHappinessFor(dateKey) {
+    return happinessByDate[dateKey] || [];
+  }
+
+  function renderHappiness() {
+    const todayK = todayKey();
+    const items = getHappinessFor(todayK);
+    const count = items.length;
+    const tierIdx = happinessTierIndex(count);
+    const tier = HAPPINESS_TIERS[tierIdx];
+    const nextTier = HAPPINESS_TIERS[tierIdx + 1];
+
+    happinessIndexEl.textContent = count;
+    happinessTierNameEl.textContent = tier.name;
+    happinessTierHintEl.textContent = nextTier
+      ? `${nextTier.min - count}개 더 적으면 "${nextTier.name}"이 돼요`
+      : (count === 0 ? '칭찬과 감사를 적을수록 행복지수가 올라가요' : '오늘 행복지수가 최고조예요! 🎉');
+    happinessHeroCard.className = `card happiness-hero-card happiness-tier-${tierIdx}`;
+
+    happinessBadge.textContent = `${count}개`;
+    happinessEmpty.style.display = count ? 'none' : 'block';
+    happinessList.innerHTML = '';
+    items.forEach((item) => {
+      const node = happinessItemTpl.content.cloneNode(true);
+      node.querySelector('.todo-text').textContent = item.text;
+      const delBtn = node.querySelector('.delete-btn');
+      delBtn.addEventListener('click', () => {
+        happinessByDate[todayK] = getHappinessFor(todayK).filter((x) => x.id !== item.id);
+        queueSave();
+        renderHappiness();
+      });
+      happinessList.appendChild(node);
+    });
+  }
+
+  // Confetti-ish burst scaled to the tier just reached — pure CSS/JS,
+  // matching the codebase's no-dependency approach (see the 강화 burst
+  // effect above for the same one-shot-animation pattern at smaller scale).
+  const HAPPINESS_EFFECT_BY_TIER = [
+    { count: 0 },
+    { count: 5,  emojis: ['✨'] },
+    { count: 8,  emojis: ['✨', '💛'] },
+    { count: 12, emojis: ['✨', '💛', '🌟'] },
+    { count: 16, emojis: ['✨', '💛', '🌟', '🎉'] },
+    { count: 22, emojis: ['✨', '💛', '🌟', '🎉', '💖'] },
+  ];
+  function spawnHappinessEffect(tierIdx) {
+    const cfg = HAPPINESS_EFFECT_BY_TIER[Math.min(tierIdx, HAPPINESS_EFFECT_BY_TIER.length - 1)];
+    for (let i = 0; i < cfg.count; i++) {
+      const span = document.createElement('span');
+      span.className = 'happiness-particle';
+      span.textContent = cfg.emojis[Math.floor(Math.random() * cfg.emojis.length)];
+      const angle = (Math.random() * 2 - 1) * 70; // degrees off straight-up
+      const distance = 55 + Math.random() * 70;
+      const rad = (angle * Math.PI) / 180;
+      span.style.setProperty('--dx', `${Math.sin(rad) * distance}px`);
+      span.style.setProperty('--dy', `${-Math.abs(Math.cos(rad)) * distance - 30}px`);
+      span.style.animationDelay = `${Math.random() * 0.2}s`;
+      span.style.fontSize = `${1 + Math.random() * 0.6}rem`;
+      happinessEffectLayer.appendChild(span);
+      span.addEventListener('animationend', () => span.remove());
+    }
+  }
+
+  happinessForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = happinessTextInput.value.trim();
+    if (!text) return;
+    const todayK = todayKey();
+    const list = getHappinessFor(todayK);
+    list.push({ id: crypto.randomUUID(), text, createdAt: Date.now() });
+    happinessByDate[todayK] = list;
+
+    // 10~20분 사이 랜덤 시간만큼의 현재 분당 골드 효율을 즉시 보상으로 지급.
+    const minutes = 10 + Math.random() * 10;
+    const reward = niceGold(currentStudyIncome() * minutes);
+    addGold(reward);
+
+    happinessForm.reset();
+    renderHappiness();
+    spawnHappinessEffect(happinessTierIndex(list.length));
+    showToast(`💛 기록 완료! ${reward.toLocaleString('ko-KR')}G를 획득했어요`);
   });
 
   /* ---------------- Toast ---------------- */
@@ -3111,6 +3230,7 @@
     renderHeader();
     renderExamSubjectTabs();
     renderExamChecklist();
+    renderHappiness();
 
     renderGold();
     renderSubjects();

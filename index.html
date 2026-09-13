@@ -26,7 +26,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500&family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260910-sword-art">
+<link rel="stylesheet" href="css/style.css?v=20260913-happiness">
 </head>
 <body>
 
@@ -92,6 +92,7 @@
     <nav class="tab-nav" id="tabNav">
       <button class="tab-btn active" data-tab="main">🏠 메인</button>
       <button class="tab-btn" data-tab="study">⏱️ 공부 시간</button>
+      <button class="tab-btn" data-tab="happiness">😊 행복</button>
       <button class="tab-btn" data-tab="realm">🧘 경지</button>
       <button class="tab-btn" data-tab="sword">⚔️ 검 뽑기</button>
       <button class="tab-btn" data-tab="gear">🛡️ 장비 뽑기</button>
@@ -270,6 +271,34 @@
     <div class="card today-total-card">
       <p class="today-total-label">오늘 총 공부시간</p>
       <div class="today-total-display" id="todayTotalDisplay">00:00:00</div>
+    </div>
+  </section>
+
+  <!-- Happiness (행복) Tab -->
+  <section class="tab-panel" id="panel-happiness">
+    <div class="card happiness-hero-card" id="happinessHeroCard">
+      <div class="happiness-effect-layer" id="happinessEffectLayer" aria-hidden="true"></div>
+      <p class="happiness-label">오늘의 행복지수</p>
+      <div class="happiness-index" id="happinessIndex">0</div>
+      <p class="happiness-tier-name" id="happinessTierName">고요한 하루</p>
+      <p class="happiness-tier-hint" id="happinessTierHint">칭찬과 감사를 적을수록 행복지수가 올라가요</p>
+    </div>
+
+    <div class="card happiness-list-card">
+      <div class="card-head">
+        <h2><span class="card-icon">😊</span> 칭찬 &amp; 감사 일기</h2>
+        <span class="badge" id="happinessBadge">0개</span>
+      </div>
+
+      <ul class="todo-list" id="happinessList">
+        <!-- rendered by JS -->
+      </ul>
+
+      <form id="happinessForm" class="add-row">
+        <span class="add-row-plus">+</span>
+        <input type="text" id="happinessText" placeholder="오늘 나에게 칭찬할 점, 감사한 점을 적어보세요" required maxlength="120">
+      </form>
+      <p class="empty-state" id="happinessEmpty">아직 적은 게 없어요. 작은 것도 좋아요 🌱</p>
     </div>
   </section>
 
@@ -637,6 +666,14 @@
   </li>
 </template>
 
+<template id="happinessItemTemplate">
+  <li class="todo-item happiness-item">
+    <span class="happiness-item-icon" aria-hidden="true">💛</span>
+    <span class="todo-text"></span>
+    <button class="icon-btn delete-btn" title="삭제">✕</button>
+  </li>
+</template>
+
 <template id="examChecklistItemTemplate">
   <li class="todo-item">
     <button class="check-btn" title="완료 표시"></button>
@@ -717,6 +754,6 @@
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/app.js?v=20260912-webp-art"></script>
+<script src="js/app.js?v=20260913-happiness"></script>
 </body>
 </html>
