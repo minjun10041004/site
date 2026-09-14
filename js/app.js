@@ -1268,12 +1268,6 @@
     items.forEach((item) => {
       const node = happinessItemTpl.content.cloneNode(true);
       node.querySelector('.todo-text').textContent = item.text;
-      const delBtn = node.querySelector('.delete-btn');
-      delBtn.addEventListener('click', () => {
-        happinessByDate[todayK] = getHappinessFor(todayK).filter((x) => x.id !== item.id);
-        queueSave();
-        renderHappiness();
-      });
       happinessList.appendChild(node);
     });
   }
