@@ -763,9 +763,8 @@
   // artwork revision here so an art replacement is visible immediately.
   const SWORD_ART_VERSION = '20260912-webp';
 
-  // 장비 도감 아트워크는 아직 없어 전부 빈 슬롯 -- 파일이 생기면 여기
-  // 버전 문자열만 올려서 캐시를 새로 태우면 된다 (검과 동일한 관례).
-  const GEAR_ART_VERSION = '20260912-blank';
+  // Gear artwork follows the same cache-busting convention as sword art.
+  const GEAR_ART_VERSION = '20260914-webp';
 
   // A newly added sword/gear item can ship without artwork yet -- the art
   // files array stays an empty string at that index until art is ready.
@@ -2532,9 +2531,18 @@
       desc: '땅을 딛는 감각조차 희미해질 만큼, 구름 위를 걷는 듯한 가벼움이 온몸에 퍼진다.' },
   ];
 
-  // No gear artwork yet -- every slot stays blank (see applyCodexArt below),
-  // same convention as the newest SWORD_ART_FILES entries.
-  const GEAR_ART_FILES = GEAR_ITEMS.map(() => '');
+  // File order deliberately matches GEAR_ITEMS so existing saved gear
+  // indices stay untouched. Assets are WebP to keep the codex lightweight.
+  const GEAR_ART_FILES = [
+    '00-maui.webp', '01-jipsin.webp', '02-mokgap.webp', '03-mumyeong-gakban.webp',
+    '04-yeonsa-mubok.webp', '05-quaenghaengri.webp', '06-yeonhwan-gwongap.webp', '07-deungpae-howan.webp',
+    '08-baengro-gapju.webp', '09-cheongpung-gakban.webp', '10-banseok-gwongap.webp', '11-yuun-mubok.webp',
+    '12-hwarin-gapju.webp', '13-eunha-gakban.webp', '14-noejeon-gwongap.webp', '15-hyeonmu-howan.webp',
+    '16-bonghwang-ui.webp', '17-girin-gapju.webp', '18-cheonma-gakban.webp', '19-baekho-gwongap.webp',
+    '20-cheongryong-howan.webp', '21-muyeongsingap.webp', '22-pageuk-gwongap.webp', '23-manrijilpunghwa.webp',
+    '24-bulgoegeumgangsin.webp', '25-cheongojeilsinche.webp', '26-changse-gapju.webp', '27-johwa-gakban.webp',
+    '28-gaebyeok-gwongap.webp', '29-taegeuk-howan.webp', '30-deungseon-ui.webp', '31-biseonhwa.webp',
+  ];
 
   function gearPower(idx) {
     const g = GEAR_ITEMS[idx];
