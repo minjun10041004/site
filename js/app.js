@@ -77,6 +77,7 @@
   let activeEpithetSwordId = null; // 프로필에 대표로 표시할 별호의 검 id
   let totalSummons = 0;            // 누적 소환 횟수
   let boostRemainingSeconds = 0;   // 성휘 부스트 -- 남은 2배 적용 실측정 시간(초)
+  let boostGrantedOnce = false;    // 계정당 1회, 최근 30일 공부시간 기준 부스트를 이미 지급했는지
 
   // 2026-09 네벨라크 개편 저장 포맷 버전. 이 값이 없거나 다르면(=개편 이전
   // 무협 시대 저장분) 아래 성장/재화 필드는 전부 기본값에서 새로 시작한다.
@@ -93,7 +94,7 @@
       gold, resonanceFragments, starCores, constellationSeals,
       equippedSwordId, discoveredSwordIds, swordEnhanceLv, swordResonanceMin, swordResonanceStage, pityStreak,
       claimedDailyQuests, claimedWeeklyQuests, claimedRegions, activeEpithetSwordId, totalSummons,
-      boostRemainingSeconds,
+      boostRemainingSeconds, boostGrantedOnce,
     };
   }
 
@@ -121,7 +122,19 @@
     starCores = Number.isFinite(nebelac.starCores) ? Math.max(0, Math.floor(nebelac.starCores)) : 0;
     constellationSeals = Number.isFinite(nebelac.constellationSeals) ? Math.max(0, Math.floor(nebelac.constellationSeals)) : 0;
     totalSummons = Number.isFinite(nebelac.totalSummons) ? Math.max(0, Math.floor(nebelac.totalSummons)) : 0;
-    boostRemainingSeconds = Number.isFinite(nebelac.boostRemainingSeconds) ? Math.max(0, Math.floor(nebelac.boostRemainingSeconds)) : 0;
+
+    // 성휘 부스트: 계정당 딱 한 번, "지금 기준"(이 저장분을 처음 불러오는
+    // 순간) 최근 30일 공부시간을 그대로 부스트 예산으로 지급한다. 반복
+    // 발동 가능한 버튼이 아니라 일회성 업데이트이므로, boostGrantedOnce가
+    // 아직 없는 계정(기존 유저 전원 포함)에서만 한 번 지급하고 바로
+    // 플래그를 세운다 -- 이후 로그인/새로고침에서는 다시 지급되지 않는다.
+    boostGrantedOnce = !!nebelac.boostGrantedOnce;
+    if (!boostGrantedOnce) {
+      boostRemainingSeconds = sumStudySecondsRolling(30);
+      boostGrantedOnce = true;
+    } else {
+      boostRemainingSeconds = Number.isFinite(nebelac.boostRemainingSeconds) ? Math.max(0, Math.floor(nebelac.boostRemainingSeconds)) : 0;
+    }
 
     equippedSwordId = validSwordId(nebelac.equippedSwordId) ? nebelac.equippedSwordId : PRACTICE_SWORD.id;
     discoveredSwordIds = Array.isArray(nebelac.discoveredSwordIds)
@@ -605,7 +618,6 @@
   const journeyAchievementList = el('journeyAchievementList');
   const boostBadge = el('boostBadge');
   const boostDesc = el('boostDesc');
-  const boostStartBtn = el('boostStartBtn');
 
   /* ---------------- 기록 (행복 + 업적) ---------------- */
   const recordAchievementList = el('recordAchievementList');
@@ -1241,19 +1253,11 @@
   }
 
   /* ---------------- 성휘 부스트 ----------------
-     "지금 기준" 최근 30일 공부시간을 그대로 부스트 예산(초)으로 떠서,
-     그만큼의 실측정 공부시간 동안 분당 성휘 수입이 2배가 된다. 예산은
-     활성화한 그 순간의 30일 누적을 스냅샷으로 고정한다 -- 이후 그날그날
-     달라지는 30일 롤링 값을 따라가지 않는다. */
-  function boostBudgetPreview() { return sumStudySecondsRolling(30); }
-  function canStartBoost() { return boostRemainingSeconds <= 0 && boostBudgetPreview() > 0; }
-  function startBoost() {
-    if (!canStartBoost()) return false;
-    boostRemainingSeconds = boostBudgetPreview();
-    queueSave();
-    return true;
-  }
-  // 이번 측정 시간 중 부스트가 적용되는 초를 소비하고 돌려준다.
+     계정당 딱 한 번, 이 업데이트를 처음 불러오는 "지금 기준" 최근 30일
+     공부시간을 그대로 부스트 예산(초)으로 지급한다(applyState 참고).
+     버튼으로 반복 발동하는 게 아니라 일회성 지급이며, 그만큼의 실측정
+     공부시간 동안 분당 성휘 수입이 2배가 된다.
+     이번 측정 시간 중 부스트가 적용되는 초를 소비하고 돌려준다. */
   function consumeBoostSeconds(seconds) {
     const boosted = Math.min(seconds, boostRemainingSeconds);
     boostRemainingSeconds -= boosted;
@@ -1721,30 +1725,19 @@
     showToast(`🗺️ ${r.name} 해금! ${rewardText}`);
   });
 
+  // 버튼으로 켜는 게 아니라 계정당 한 번 자동으로 지급되는 일회성
+  // 보너스라, 이 카드는 순수 안내용이다 (진행 중 / 이미 다 썼음 두 상태뿐).
   function renderBoostCard() {
     if (boostRemainingSeconds > 0) {
       boostBadge.textContent = '진행 중';
       boostBadge.className = 'badge boost-active';
-      boostDesc.textContent = `남은 2배 적용 시간: ${formatDurationLabel(boostRemainingSeconds)} — 이 시간만큼 실제로 공부를 측정하면 그동안 분당 성휘가 2배예요.`;
-      boostStartBtn.disabled = true;
-      boostStartBtn.textContent = '부스트 진행 중';
+      boostDesc.textContent = `업데이트 기념 일회성 성휘 부스트가 적용 중이에요. 남은 2배 적용 시간: ${formatDurationLabel(boostRemainingSeconds)} — 이 시간만큼 실제로 공부를 측정하면 그동안 분당 성휘가 2배예요.`;
     } else {
-      const budget = boostBudgetPreview();
-      boostBadge.textContent = '비활성';
+      boostBadge.textContent = '완료';
       boostBadge.className = 'badge';
-      boostDesc.textContent = budget > 0
-        ? `지금 시작하면 최근 30일 공부시간(${formatDurationLabel(budget)})만큼의 다음 실측정 공부시간 동안 분당 성휘가 2배가 돼요.`
-        : '최근 30일 동안 측정된 공부시간이 없어요. 공부를 기록하면 부스트를 시작할 수 있어요.';
-      boostStartBtn.disabled = budget <= 0;
-      boostStartBtn.textContent = budget > 0 ? `부스트 시작하기 (${formatDurationLabel(budget)})` : '부스트 시작하기';
+      boostDesc.textContent = '업데이트 기념 일회성 성휘 부스트를 모두 사용했어요.';
     }
   }
-  boostStartBtn.addEventListener('click', () => {
-    if (!startBoost()) return;
-    renderBoostCard();
-    renderStudyHint();
-    showToast(`⚡ 성휘 부스트 시작! 다음 ${formatDurationLabel(boostRemainingSeconds)} 동안 분당 성휘가 2배예요.`);
-  });
 
   function renderJourneyPanel() {
     journeyCumulative.textContent = formatDurationLabel(sumStudySecondsAllTime());

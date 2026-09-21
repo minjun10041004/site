@@ -3477,7 +3477,6 @@ body {
   color: var(--gold);
   border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
 }
-#boostStartBtn { margin-top: 12px; width: 100%; }
 .boost-note {
   display: inline-block;
   margin-top: 4px;
