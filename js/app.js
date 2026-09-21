@@ -1283,6 +1283,13 @@
       ? `${reward.base.toLocaleString('ko-KR')}(+${reward.bonus.toLocaleString('ko-KR')})`
       : `+${reward.base.toLocaleString('ko-KR')}`;
   }
+  // 분당/시간당 성휘처럼 "실제 보상"이 아니라 순수 수치를 보여주는 자리에서,
+  // 부스트가 켜져 있으면 같은 base(+bonus) 표기를 그대로 적용한다.
+  function formatBoostedAmount(amount) {
+    return boostRemainingSeconds > 0
+      ? `${amount.toLocaleString('ko-KR')}(+${amount.toLocaleString('ko-KR')})`
+      : amount.toLocaleString('ko-KR');
+  }
 
   /* ---------------- 업적 (공부시간 · 검 수집 · 공명 · 여정 완주) ---------------- */
   const ACHIEVEMENTS = [
@@ -1333,7 +1340,9 @@
       mainSwordResonanceBadge.textContent = stage.key === 'silent' ? '' : stage.name;
       mainSwordResonanceBadge.hidden = stage.key === 'silent';
     }
-    if (mainSwordIncome) mainSwordIncome.textContent = `분당 +${currentStudyIncome().toLocaleString('ko-KR')} 성휘`;
+    if (mainSwordIncome) {
+      mainSwordIncome.textContent = `분당 +${formatBoostedAmount(currentStudyIncome())} 성휘`;
+    }
   }
 
   /* ---------------- UI: 검의 전당 (소환 + 보유 검 + 천명 게이지) ---------------- */
@@ -2025,12 +2034,14 @@
 
     // 총 분당 성휘 = 기본 600 + 장착 검 효율. 탭마다 같은 값을 보여줄 수
     // 있도록 currentStudyIncome() 하나를 여기서도 그대로 재사용한다.
+    // 부스트가 켜져 있으면 46,800(+46,800)처럼 base(+bonus) 표기로 보여준다.
     const swordPart = swordIncomeAt(equippedSwordId);
     const total = currentStudyIncome();
-    incomePerMinute.textContent = `${total.toLocaleString('ko-KR')}`;
-    incomePerMinuteLabel.textContent =
-      `분당 성휘 (기본 ${BASE_INCOME_PER_MIN.toLocaleString('ko-KR')} + 검 효율 ${swordPart.toLocaleString('ko-KR')})`;
-    incomePerHour.textContent = `${(total * 60).toLocaleString('ko-KR')}`;
+    incomePerMinute.textContent = formatBoostedAmount(total);
+    incomePerMinuteLabel.textContent = boostRemainingSeconds > 0
+      ? `분당 성휘 (기본 ${BASE_INCOME_PER_MIN.toLocaleString('ko-KR')} + 검 효율 ${swordPart.toLocaleString('ko-KR')}) · ⚡ 부스트 중 (남은 ${formatDurationLabel(boostRemainingSeconds)})`
+      : `분당 성휘 (기본 ${BASE_INCOME_PER_MIN.toLocaleString('ko-KR')} + 검 효율 ${swordPart.toLocaleString('ko-KR')})`;
+    incomePerHour.textContent = formatBoostedAmount(total * 60);
 
     renderMainPanel();
   }
