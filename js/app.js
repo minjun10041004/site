@@ -589,7 +589,16 @@
   const journeySeals = el('journeySeals');
   const journeyDailyList = el('journeyDailyList');
   const journeyWeeklyList = el('journeyWeeklyList');
-  const journeyRegionList = el('journeyRegionList');
+  const journeyRegionBadge = el('journeyRegionBadge');
+  const regionPrevBtn = el('regionPrevBtn');
+  const regionNextBtn = el('regionNextBtn');
+  const regionSlide = el('regionSlide');
+  const regionImg = el('regionImg');
+  const regionPlaceholder = el('regionPlaceholder');
+  const regionName = el('regionName');
+  const regionDesc = el('regionDesc');
+  const regionStatus = el('regionStatus');
+  const regionClaimBtn = el('regionClaimBtn');
   const journeyAchievementList = el('journeyAchievementList');
 
   /* ---------------- 기록 (행복 + 업적) ---------------- */
@@ -826,18 +835,30 @@
 
   /* ---------------- 여정 지도 — 누적 공부시간으로 지역 해금 ---------------- */
   const JOURNEY_REGIONS = [
-    { id: 'frost-library',    name: '빙결 도서관',   minMinutes: 0 },
-    { id: 'night-alley',      name: '밤의 골목',     minMinutes: 300 },
-    { id: 'thunder-plateau',  name: '폭뢰 고원',     minMinutes: 900 },
-    { id: 'crimson-sanctum',  name: '붉은 달 성역',  minMinutes: 1800 },
-    { id: 'starsea-port',     name: '별바다 항구',   minMinutes: 3000 },
-    { id: 'dragonbone-desert',name: '용골 사막',     minMinutes: 4800 },
-    { id: 'life-cathedral',   name: '생명의 성당',   minMinutes: 7200 },
-    { id: 'fallen-star-crater',name:'추락성 분화구', minMinutes: 10000 },
-    { id: 'mirror-desert',    name: '거울 사막',     minMinutes: 14000 },
-    { id: 'sunken-kingdom',   name: '침몰 왕국',     minMinutes: 19000 },
-    { id: 'border-city',      name: '경계 도시',     minMinutes: 25000 },
-    { id: 'last-gate',        name: '마지막 문',     minMinutes: 32000 },
+    { id: 'frost-library', name: '빙결 도서관', minMinutes: 0, image: '', imageAlt: '이미지 준비 중',
+      desc: '서리로 뒤덮인 고대 지식의 전당. 얼어붙은 책장 사이로 낮게 울리는 바람 소리가 들린다.' },
+    { id: 'night-alley', name: '밤의 골목', minMinutes: 300, image: '', imageAlt: '이미지 준비 중',
+      desc: '가로등 하나 없는 뒷골목. 그림자들이 소리 없이 움직인다는 소문이 돈다.' },
+    { id: 'thunder-plateau', name: '폭뢰 고원', minMinutes: 900, image: '', imageAlt: '이미지 준비 중',
+      desc: '하늘이 갈라질 때마다 번개가 대지를 두드리는 황량한 고원.' },
+    { id: 'crimson-sanctum', name: '붉은 달 성역', minMinutes: 1800, image: '', imageAlt: '이미지 준비 중',
+      desc: '매달 한 번 달이 핏빛으로 물드는, 오랫동안 봉인되어 온 성소.' },
+    { id: 'starsea-port', name: '별바다 항구', minMinutes: 3000, image: '', imageAlt: '이미지 준비 중',
+      desc: '밤하늘이 그대로 바다에 비치는 신비로운 항구 도시.' },
+    { id: 'dragonbone-desert', name: '용골 사막', minMinutes: 4800, image: '', imageAlt: '이미지 준비 중',
+      desc: '멸종한 고대 용들의 뼈가 모래 위로 드러난 광활한 사막.' },
+    { id: 'life-cathedral', name: '생명의 성당', minMinutes: 7200, image: '', imageAlt: '이미지 준비 중',
+      desc: '시들지 않는 꽃들로 뒤덮인, 치유의 기운이 감도는 성당.' },
+    { id: 'fallen-star-crater', name: '추락성 분화구', minMinutes: 10000, image: '', imageAlt: '이미지 준비 중',
+      desc: '하늘에서 떨어진 별의 파편이 남긴 거대한 분화구.' },
+    { id: 'mirror-desert', name: '거울 사막', minMinutes: 14000, image: '', imageAlt: '이미지 준비 중',
+      desc: '걸음마다 다른 자신의 모습이 비치는 기이한 모래벌판.' },
+    { id: 'sunken-kingdom', name: '침몰 왕국', minMinutes: 19000, image: '', imageAlt: '이미지 준비 중',
+      desc: '바닷속에 가라앉은 채로도 여전히 불빛이 새어 나오는 옛 왕국.' },
+    { id: 'border-city', name: '경계 도시', minMinutes: 25000, image: '', imageAlt: '이미지 준비 중',
+      desc: '균열과 인간 세계의 경계에 세워진, 모든 세력이 뒤섞이는 도시.' },
+    { id: 'last-gate', name: '마지막 문', minMinutes: 32000, image: '', imageAlt: '이미지 준비 중',
+      desc: '천공의 상처로 이어지는 마지막 관문. 그 너머에서 돌아온 이는 아무도 없다.' },
   ];
   // 지역 해금 자체는 분당 성휘 수입을 올리지 않는다 — 해금 시 받는 1회성
   // 보상만 있다 (스펙에 정확한 수치가 없어 완만한 기본값으로 채움).
@@ -1279,14 +1300,7 @@
     summonBtn1.disabled = gold < SUMMON_COST_SINGLE;
     summonBtn10.disabled = gold < SUMMON_COST_TEN;
 
-    gradeChanceTable.innerHTML = '';
-    SWORD_GRADES.forEach((g, i) => {
-      const count = NEBELAC_SWORDS.filter((s) => s.grade === g.key).length;
-      const li = document.createElement('li');
-      li.className = `rarity-row rar-${i}`;
-      li.innerHTML = `<span class="rarity-name">${g.name}<small>${g.hanja}</small></span><span class="rarity-chance">${g.chance}%</span><span class="rarity-count">${count}종</span>`;
-      gradeChanceTable.appendChild(li);
-    });
+    renderGradeChanceTable();
 
     pityList.innerHTML = '';
     PITY_RULES.forEach((rule) => {
@@ -1340,6 +1354,53 @@
       sealRedeemList.appendChild(li);
     });
   }
+
+  // 등급 행을 누르면 그 등급에 속한 검 목록이 아래로 펼쳐진다 (예전 검 뽑기
+  // 탭에 있던 상호작용을 새 등급별 확률 표에 그대로 복원한 것).
+  let expandedGradeIdx = null;
+  function renderGradeChanceTable() {
+    gradeChanceTable.innerHTML = '';
+    SWORD_GRADES.forEach((g, i) => {
+      const swordsInGrade = NEBELAC_SWORDS.filter((s) => s.grade === g.key);
+      const isOpen = expandedGradeIdx === i;
+
+      const group = document.createElement('li');
+      group.className = 'rarity-group';
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `rarity-row rar-${i}${isOpen ? ' open' : ''}`;
+      btn.dataset.grade = String(i);
+      btn.setAttribute('aria-expanded', String(isOpen));
+      btn.innerHTML = `
+        <span class="rarity-name">${g.name}<small>${g.hanja}</small></span>
+        <span class="rarity-chance">${g.chance}%</span>
+        <span class="rarity-count">${swordsInGrade.length}종</span>
+        <span class="rarity-caret">▾</span>`;
+      group.appendChild(btn);
+
+      const sub = document.createElement('ul');
+      sub.className = `rarity-sword-list${isOpen ? ' show' : ''}`;
+      swordsInGrade.forEach((s, j) => {
+        const owned = discoveredSwordIds.includes(s.id);
+        const item = document.createElement('li');
+        item.className = `rarity-sword-item${owned ? '' : ' undiscovered'}`;
+        item.style.animationDelay = isOpen ? `${j * 30}ms` : '0ms';
+        item.innerHTML = `<span class="rarity-sword-name">${s.name}</span><span class="rarity-sword-hanja">${s.title}</span><span class="rarity-sword-income">분당 +${s.baseIncome.toLocaleString('ko-KR')} 성휘</span>`;
+        sub.appendChild(item);
+      });
+      group.appendChild(sub);
+
+      gradeChanceTable.appendChild(group);
+    });
+  }
+  gradeChanceTable.addEventListener('click', (e) => {
+    const btn = e.target.closest('.rarity-row');
+    if (!btn) return;
+    const i = Number(btn.dataset.grade);
+    expandedGradeIdx = expandedGradeIdx === i ? null : i;
+    renderGradeChanceTable();
+  });
 
   function renderHallOwnedList() {
     const equippedIncome = swordIncomeAt(equippedSwordId);
@@ -1546,6 +1607,66 @@
   }
 
   /* ---------------- UI: 여정 ---------------- */
+  /* 지역 캐러셀 -- 현재 보고 있는 지역 하나만 크게 보여주고 화살표로
+     이전/다음 지역을 넘긴다. null이면 아직 초기화 전(첫 렌더에서 여정의
+     최전선으로 맞춰짐). */
+  let journeyViewIndex = null;
+
+  function fillRegionSlide() {
+    const r = JOURNEY_REGIONS[journeyViewIndex];
+    const unlocked = isRegionUnlocked(r);
+    const claimed = claimedRegions.includes(r.id);
+    const rewardText = r.minMinutes > 0 ? `성핵 +${JOURNEY_REGION_REWARD_CORE}` : '시작 지역';
+
+    journeyRegionBadge.textContent = `${journeyViewIndex + 1} / ${JOURNEY_REGIONS.length}`;
+    applySwordArt(regionImg, regionPlaceholder, unlocked ? r : null);
+    regionName.textContent = unlocked ? r.name : '???';
+    regionDesc.textContent = unlocked ? r.desc : '아직 발을 들이지 못한 땅. 공부시간을 더 채우면 모습을 드러낸다.';
+    regionStatus.textContent = unlocked ? rewardText : `누적 ${formatDurationLabel(r.minMinutes * 60)} 필요`;
+    regionClaimBtn.disabled = !unlocked || claimed;
+    regionClaimBtn.textContent = claimed ? '수령 완료' : unlocked ? '수령하기' : '잠김';
+
+    regionPrevBtn.disabled = journeyViewIndex === 0;
+    regionNextBtn.disabled = journeyViewIndex === JOURNEY_REGIONS.length - 1;
+  }
+
+  // direction: 'left'|'right' -- 화살표로 넘길 때만 부드러운 슬라이드
+  // 애니메이션을 준다. 수령 등으로 같은 지역을 다시 그릴 때는 애니메이션 없이.
+  function renderRegionSlide(direction) {
+    if (!direction) { fillRegionSlide(); return; }
+    const outClass = direction === 'right' ? 'slide-out-left' : 'slide-out-right';
+    const inClass = direction === 'right' ? 'slide-in-right' : 'slide-in-left';
+    regionSlide.classList.add(outClass);
+    setTimeout(() => {
+      fillRegionSlide();
+      regionSlide.classList.remove(outClass);
+      regionSlide.classList.add(inClass);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => regionSlide.classList.remove(inClass));
+      });
+    }, 180);
+  }
+
+  function goToRegion(delta) {
+    if (journeyViewIndex === null) return;
+    const next = Math.min(JOURNEY_REGIONS.length - 1, Math.max(0, journeyViewIndex + delta));
+    if (next === journeyViewIndex) return;
+    journeyViewIndex = next;
+    renderRegionSlide(delta > 0 ? 'right' : 'left');
+  }
+  regionPrevBtn.addEventListener('click', () => goToRegion(-1));
+  regionNextBtn.addEventListener('click', () => goToRegion(1));
+  regionClaimBtn.addEventListener('click', () => {
+    const r = JOURNEY_REGIONS[journeyViewIndex];
+    if (!r || !claimRegionReward(r)) return;
+    const rewardText = r.minMinutes > 0 ? `성핵 +${JOURNEY_REGION_REWARD_CORE}` : '시작 지역';
+    fillRegionSlide();
+    journeyCores.textContent = `${starCores.toLocaleString('ko-KR')}개`;
+    renderAchievementsInto(journeyAchievementList);
+    renderAchievementsInto(recordAchievementList);
+    showToast(`🗺️ ${r.name} 해금! ${rewardText}`);
+  });
+
   function renderJourneyPanel() {
     journeyCumulative.textContent = formatDurationLabel(sumStudySecondsAllTime());
     journeyCores.textContent = `${starCores.toLocaleString('ko-KR')}개`;
@@ -1596,26 +1717,12 @@
       journeyWeeklyList.appendChild(li);
     });
 
-    journeyRegionList.innerHTML = '';
-    JOURNEY_REGIONS.forEach((r) => {
-      const unlocked = isRegionUnlocked(r);
-      const claimed = claimedRegions.includes(r.id);
-      const li = document.createElement('li');
-      li.className = `region-row${unlocked ? ' unlocked' : ' locked'}`;
-      const rewardText = r.minMinutes > 0 ? `성핵 +${JOURNEY_REGION_REWARD_CORE}` : '시작 지역';
-      li.innerHTML = `
-        <div class="region-info">
-          <span class="region-name">${unlocked ? r.name : '???'}</span>
-          <span class="region-threshold">${unlocked ? rewardText : `누적 ${formatDurationLabel(r.minMinutes * 60)} 필요`}</span>
-        </div>
-        <button type="button" class="chip-btn region-claim-btn" ${!unlocked || claimed ? 'disabled' : ''}>${claimed ? '수령 완료' : unlocked ? '수령하기' : '잠김'}</button>`;
-      li.querySelector('.region-claim-btn').addEventListener('click', () => {
-        if (!claimRegionReward(r)) return;
-        renderJourneyPanel();
-        showToast(`🗺️ ${r.name} 해금! ${rewardText}`);
-      });
-      journeyRegionList.appendChild(li);
-    });
+    // 처음 열 때는 아직 도달하지 못한 다음 지역(=여정의 최전선)을 보여준다.
+    if (journeyViewIndex === null) {
+      const nextLockedIdx = JOURNEY_REGIONS.findIndex((r) => !isRegionUnlocked(r));
+      journeyViewIndex = nextLockedIdx === -1 ? JOURNEY_REGIONS.length - 1 : nextLockedIdx;
+    }
+    renderRegionSlide();
 
     renderAchievementsInto(journeyAchievementList);
     renderAchievementsInto(recordAchievementList);

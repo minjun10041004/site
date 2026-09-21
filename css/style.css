@@ -1,28 +1,29 @@
-/* ============ Vivid Tech Gradient theme ============
-   Modern white-background identity: crisp off-white pages, an indigo→cyan
-   gradient reserved for the hero banner / timer / primary actions, plain
-   white cards with soft shadows. The toggle keeps both states inside this
-   identity — "Day" (toggle off) is the brighter of the two, "Dusk" (toggle
-   on) a touch dimmer/grayer — never a return to the old dark neon theme. */
+/* ============ 네벨라크 (Nevelac) 아트 디렉션 ============
+   "균열 너머의 서고" -- 낮에는 볕이 드는 오래된 코덱스(양피지·잉크·
+   금박), 밤에는 별빛 도는 심연(유물함 가죽·균열보랏빛·성물의 금).
+   토글은 밝기만 바꾸는 게 아니라 실제로 두 세계를 오간다: "낮의 서고"
+   (토글 off, 기본 :root)와 "밤의 심연"(토글 on, [data-theme="dark"],
+   index.html 기본값). 변수명은 기존 컴포넌트 전체가 이미 참조하고 있어
+   그대로 재사용 -- 값만 새 팔레트로 교체한다. */
 :root {
-  --bg-a: #fefeff;
-  --bg-b: #f6f7fb;
-  --surface: #ffffff;
-  --surface-solid: #ffffff;
-  --border: #eceef4;
-  --text: #14151f;
-  --text-soft: #5a5d6e;
-  --text-faint: #8b8fa3;
-  --accent: #4f46e5;
-  --accent-2: #06b6d4;
-  --accent-3: #06b6d4;
-  --danger: #ef4444;
-  --gold: #d69a1f;
-  --gold-2: #f0b429;
-  --quote-color: #ffffff;
-  --quote-glow: rgba(0, 0, 0, 0.18);
-  --shadow: 0 20px 40px -24px rgba(79, 70, 229, 0.28);
-  --shadow-sm: 0 8px 20px -14px rgba(79, 70, 229, 0.22);
+  --bg-a: #f6f0dc;
+  --bg-b: #ece0bf;
+  --surface: #fbf7ec;
+  --surface-solid: #fbf7ec;
+  --border: #e4d9b8;
+  --text: #241f2e;
+  --text-soft: #5c5570;
+  --text-faint: #8a83a0;
+  --accent: #6a56e0;
+  --accent-2: #2f9e8f;
+  --accent-3: #2f9e8f;
+  --danger: #c1495a;
+  --gold: #a9762c;
+  --gold-2: #c99542;
+  --quote-color: #fbf7ec;
+  --quote-glow: rgba(36, 31, 46, 0.25);
+  --shadow: 0 20px 40px -24px rgba(106, 86, 32, 0.28);
+  --shadow-sm: 0 8px 20px -14px rgba(106, 86, 32, 0.22);
   --radius-lg: 24px;
   --radius-md: 16px;
   --radius-sm: 12px;
@@ -30,25 +31,25 @@
 }
 
 [data-theme="dark"] {
-  --bg-a: #f5f6fa;
-  --bg-b: #eef0f6;
-  --surface: #ffffff;
-  --surface-solid: #ffffff;
-  --border: #e2e4ee;
-  --text: #14151f;
-  --text-soft: #5a5d6e;
-  --text-faint: #8b8fa3;
-  --accent: #4f46e5;
-  --accent-2: #06b6d4;
-  --accent-3: #06b6d4;
-  --danger: #ef4444;
-  --gold: #d69a1f;
-  --gold-2: #f0b429;
-  --quote-color: #ffffff;
-  --quote-glow: rgba(0, 0, 0, 0.2);
-  --shadow: 0 20px 40px -22px rgba(79, 70, 229, 0.3);
-  --shadow-sm: 0 8px 20px -14px rgba(79, 70, 229, 0.24);
-  color-scheme: light;
+  --bg-a: #0a0c16;
+  --bg-b: #12101c;
+  --surface: #1b1728;
+  --surface-solid: #1b1728;
+  --border: rgba(224, 181, 108, 0.22);
+  --text: #ece7f5;
+  --text-soft: #b0a9cc;
+  --text-faint: #756e93;
+  --accent: #a292ff;
+  --accent-2: #4fc3b0;
+  --accent-3: #4fc3b0;
+  --danger: #e06478;
+  --gold: #e0b56c;
+  --gold-2: #f0c785;
+  --quote-color: #ece7f5;
+  --quote-glow: rgba(0, 0, 0, 0.4);
+  --shadow: 0 20px 40px -22px rgba(162, 146, 255, 0.35);
+  --shadow-sm: 0 8px 20px -14px rgba(162, 146, 255, 0.28);
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -104,7 +105,7 @@ body {
 .hero {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(120deg, #4f46e5 0%, #6366f1 45%, #06b6d4 100%);
+  background: linear-gradient(120deg, #4b3aa8 0%, #7c56d6 45%, #c9954a 100%);
   border: none;
   border-radius: var(--radius-lg);
   padding: 28px 30px 32px;
@@ -639,8 +640,8 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(79, 70, 229, 0.08);
-  border: 1px solid rgba(79, 70, 229, 0.14);
+  background: color-mix(in srgb, var(--gold) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold) 24%, transparent);
   border-radius: 999px;
   padding: 6px 14px 6px 10px;
   font-size: 0.8rem;
@@ -752,7 +753,7 @@ body {
   padding: 64px 28px;
   min-height: 460px;
   justify-content: center;
-  background: linear-gradient(120deg, #4f46e5 0%, #6366f1 45%, #06b6d4 100%);
+  background: linear-gradient(120deg, #4b3aa8 0%, #7c56d6 45%, #c9954a 100%);
   border: none;
   color: #fff;
 }
@@ -776,7 +777,7 @@ body {
 }
 .timer-card .btn-measure {
   background: #fff;
-  color: #4338ca;
+  color: #5b3fa8;
 }
 .timer-card .btn-rest {
   background: transparent;
@@ -1913,21 +1914,26 @@ body {
    신병이기 molten gold · 신화 prismatic · 설화 blackened steel with a
    flowing chrome sheen. Every grade gets a stronger glow and a busier
    sheen than the one below it. */
-.rar-0 { --rar-a: #9aa4b5; --rar-b: #e8edf5; --rar-solid: #64748b; --rar-deep: #334155; --rar-glow: rgba(148, 163, 184, 0.5); }
-.rar-1 { --rar-a: #22c55e; --rar-b: #bbf7d0; --rar-solid: #16a34a; --rar-deep: #14532d; --rar-glow: rgba(34, 197, 94, 0.55); }
-.rar-2 { --rar-a: #3b82f6; --rar-b: #bfdbfe; --rar-solid: #2563eb; --rar-deep: #1e3a8a; --rar-glow: rgba(59, 130, 246, 0.6); }
-.rar-3 { --rar-a: #a855f7; --rar-b: #e9d5ff; --rar-solid: #9333ea; --rar-deep: #581c87; --rar-glow: rgba(168, 85, 247, 0.65); }
-.rar-4 { --rar-a: #2dd4bf; --rar-b: #99f6e4; --rar-solid: #0d9488; --rar-deep: #134e4a; --rar-glow: rgba(45, 212, 191, 0.65); }
-.rar-5 { --rar-a: #f59e0b; --rar-b: #fde68a; --rar-solid: #d97706; --rar-deep: #7c2d12; --rar-glow: rgba(245, 158, 11, 0.7); }
-.rar-6 { --rar-a: #ff2d55; --rar-b: #7cf5ff; --rar-solid: #e11d48; --rar-deep: #701a3a; --rar-glow: rgba(255, 77, 109, 0.75); }
-.rar-7 { --rar-a: #18181b; --rar-b: #3f3f46; --rar-solid: #000000; --rar-deep: #000000; --rar-glow: rgba(226, 232, 240, 0.55); }
-[data-theme="dark"] .rar-0 { --rar-solid: #94a3b8; }
-[data-theme="dark"] .rar-1 { --rar-solid: #22c55e; }
-[data-theme="dark"] .rar-2 { --rar-solid: #3b82f6; }
-[data-theme="dark"] .rar-3 { --rar-solid: #a855f7; }
-[data-theme="dark"] .rar-4 { --rar-solid: #2dd4bf; }
-[data-theme="dark"] .rar-5 { --rar-solid: #f59e0b; }
-[data-theme="dark"] .rar-6 { --rar-solid: #ff4d6d; }
+/* 네벨라크 등급 8색 -- 무지개 순서가 아니라 등급의 "재질"에서 가져온
+   색상표 (잔광의 재, 각성의 이끼, 성유의 별빛, 용맥의 옥, 금서의 핏빛,
+   왕관의 금, 천성의 보랏빛, 원초의 무지갯빛 공허). 왕관급/천성급이 아래
+   테마 토큰의 --gold/--accent와 같은 계열인 건 의도 -- 가장 귀한 검일수록
+   UI 자체의 색을 입는다. */
+.rar-0 { --rar-a: #a5a4b8; --rar-b: #e4e3ee; --rar-solid: #8b8a9e; --rar-deep: #4a4959; --rar-glow: rgba(139, 138, 158, 0.5); }
+.rar-1 { --rar-a: #6bbf66; --rar-b: #c9ecc4; --rar-solid: #4f9a4a; --rar-deep: #245a22; --rar-glow: rgba(79, 154, 74, 0.55); }
+.rar-2 { --rar-a: #7cbbe6; --rar-b: #cfe8f8; --rar-solid: #4f96c6; --rar-deep: #235478; --rar-glow: rgba(79, 150, 198, 0.6); }
+.rar-3 { --rar-a: #3fb3a2; --rar-b: #bdeae2; --rar-solid: #1f8f7f; --rar-deep: #0f4d44; --rar-glow: rgba(31, 143, 127, 0.6); }
+.rar-4 { --rar-a: #c4587e; --rar-b: #f0c9d7; --rar-solid: #a23057; --rar-deep: #591830; --rar-glow: rgba(162, 48, 87, 0.65); }
+.rar-5 { --rar-a: #e0b56c; --rar-b: #f3e3c4; --rar-solid: #c99542; --rar-deep: #7a5a22; --rar-glow: rgba(201, 149, 66, 0.7); }
+.rar-6 { --rar-a: #9188e8; --rar-b: #ddd8fa; --rar-solid: #6d5fd6; --rar-deep: #372e78; --rar-glow: rgba(109, 95, 214, 0.7); }
+.rar-7 { --rar-a: #3a2d5c; --rar-b: #574a80; --rar-solid: #000000; --rar-deep: #000000; --rar-glow: rgba(160, 120, 200, 0.55); }
+[data-theme="dark"] .rar-0 { --rar-solid: #a5a4b8; }
+[data-theme="dark"] .rar-1 { --rar-solid: #6bbf66; }
+[data-theme="dark"] .rar-2 { --rar-solid: #7cc4ef; }
+[data-theme="dark"] .rar-3 { --rar-solid: #3fb3a2; }
+[data-theme="dark"] .rar-4 { --rar-solid: #c4587e; }
+[data-theme="dark"] .rar-5 { --rar-solid: #e0b56c; }
+[data-theme="dark"] .rar-6 { --rar-solid: #a292ff; }
 [data-theme="dark"] .rar-7 { --rar-solid: #000000; }
 
 /* The gloss band that sweeps a sword's name has to be lighter than the
@@ -3368,8 +3374,8 @@ body {
   gap: 20px;
   margin: 20px 0;
 }
-.quest-list, .region-list, .achievement-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-.quest-row, .region-row {
+.quest-list, .achievement-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.quest-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -3379,12 +3385,72 @@ body {
   border: 1px solid var(--border);
   background: var(--surface);
 }
-.quest-row.claimed, .region-row.unlocked { border-color: var(--accent-2); }
-.region-row.locked { opacity: 0.6; }
-.quest-info, .region-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.quest-label, .region-name { font-weight: 500; color: var(--text); font-size: 0.88rem; }
-.quest-reward, .region-threshold { font-size: 0.74rem; color: var(--text-faint); }
-.quest-claim-btn, .region-claim-btn { white-space: nowrap; }
+.quest-row.claimed { border-color: var(--accent-2); }
+.quest-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.quest-label { font-weight: 500; color: var(--text); font-size: 0.88rem; }
+.quest-reward { font-size: 0.74rem; color: var(--text-faint); }
+.quest-claim-btn { white-space: nowrap; }
+
+/* ---------------- 여정: 지역 캐러셀 ---------------- */
+.region-viewer {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.region-nav-btn {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-soft);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: filter 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.region-nav-btn:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); filter: brightness(1.05); }
+.region-nav-btn:disabled { opacity: 0.35; cursor: default; }
+
+.region-viewport { flex: 1; overflow: hidden; min-width: 0; }
+.region-slide {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: transform 0.22s ease, opacity 0.22s ease;
+}
+.region-slide.slide-out-left  { transform: translateX(-26px); opacity: 0; }
+.region-slide.slide-out-right { transform: translateX(26px);  opacity: 0; }
+.region-slide.slide-in-left   { transform: translateX(26px);  opacity: 0; }
+.region-slide.slide-in-right  { transform: translateX(-26px); opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .region-slide { transition: none; }
+  .region-slide.slide-out-left, .region-slide.slide-out-right,
+  .region-slide.slide-in-left, .region-slide.slide-in-right { transform: none; opacity: 1; }
+}
+
+.region-art-box { width: 100%; aspect-ratio: 16 / 9; max-height: 260px; margin: 0; }
+.region-detail { display: flex; flex-direction: column; gap: 8px; }
+.region-detail-name {
+  font-family: 'Noto Serif KR', serif;
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: var(--text);
+}
+.region-detail-desc { margin: 0; font-size: 0.88rem; line-height: 1.7; color: var(--text-soft); }
+.region-detail-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+}
+.region-detail-status { font-size: 0.78rem; color: var(--text-faint); }
+@media (max-width: 560px) {
+  .region-viewer { gap: 8px; }
+  .region-nav-btn { width: 34px; height: 34px; }
+}
 
 .achievement-item {
   display: flex;
