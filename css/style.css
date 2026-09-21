@@ -655,13 +655,20 @@ body {
 }
 .gold-icon {
   display: inline-block;
-  width: 0.95em;
-  height: 1em;
-  min-width: 14px;
-  min-height: 15px;
+  width: 1.05em;
+  height: 1.05em;
+  min-width: 16px;
+  min-height: 16px;
   vertical-align: -0.15em;
-  background: url('../img/gold-coin.png') no-repeat center / contain;
-  filter: drop-shadow(0 0 3px rgba(255, 215, 90, 0.7)) drop-shadow(0 0 6px rgba(255, 199, 44, 0.4));
+  background: url('../img/seonghwi-white.png') no-repeat center / contain;
+  /* Four tight shadows form a dark contour, so the pale Seonghwi mineral
+     stays legible over both light cards and dark fantasy surfaces. */
+  filter:
+    drop-shadow(1px 0 0 rgba(13, 19, 33, 0.92))
+    drop-shadow(-1px 0 0 rgba(13, 19, 33, 0.92))
+    drop-shadow(0 1px 0 rgba(13, 19, 33, 0.92))
+    drop-shadow(0 -1px 0 rgba(13, 19, 33, 0.92))
+    drop-shadow(0 0 3px rgba(226, 236, 255, 0.7));
 }
 
 .tab-nav {
