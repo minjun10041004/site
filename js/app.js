@@ -46,33 +46,52 @@
   let happinessByDate = {}; // { [dateKey]: [{ id, text, createdAt }] } — 칭찬/감사 일기, resets daily like todos
   let examSubjects = []; // { id, name } — user-defined tabs to split the checklist by subject
   let activeExamSubjectId = null; // null = "전체" (shows every item, tagged or not)
-  let gold = 1000;
   let subjects = [];
   let studyByDate = {};
   let activeSession = null;
-  let realmLevel = 0;
-  let swordLevel = 0;      // index of the equipped sword in SWORDS
-  let discovered = [0];    // sword indices ever drawn (도감 unlock state)
   let nickname = '';       // shown on the leaderboard instead of the account id, once set
   let avatar = null;       // small data URL, or null for the placeholder icon
-  let starFragments = 0;   // 별의 조각 — earned by drawing a sword you already own
-  let swordStars = {};     // { [swordIdx]: 0-10 } — 강화 level per individually owned sword
-  let totalDraws = 0;      // lifetime count of swords drawn (검 뽑기 tab), for the 랭킹 tab
-  let gearLevel = 0;       // index of the equipped item in GEAR_ITEMS (장비 뽑기 tab)
-  let gearDiscovered = [0]; // GEAR_ITEMS indices ever drawn
 
-  /* Bumped whenever the sword table is reshaped, so stale sword indices
-     from an older layout can't silently point at the wrong blade. */
-  const SWORD_TABLE_VERSION = 3;
-  // Same guard, for GEAR_ITEMS (장비 뽑기 tab).
-  const GEAR_TABLE_VERSION = 1;
+  /* ---------------- 네벨라크 성장/재화 상태 ----------------
+     2026-09 개편으로 무협 시대의 경지/검/장비/강화 데이터(골드 포함)는
+     전부 폐기한다 — 사용자 요청에 따라 이전 값은 그대로 삭제되고, 공부
+     기록(studyByDate/subjects 등, 위 섹션)만 유지된다. 아래는 전부 이
+     개편 이후 기본값에서 새로 시작한다. */
+  let gold = 0;                    // 성휘 (기존 골드 변수명을 그대로 재사용)
+  let resonanceFragments = 0;      // 공명 파편
+  let starCores = 0;               // 성핵
+  let constellationSeals = 0;      // 별자리 인장
+  // 'practice-sword' 문자열 리터럴을 직접 쓰는 이유: PRACTICE_SWORD 상수는
+  // 파일 뒤쪽(검 도감 섹션)에서 선언되므로, 최상위 스코프에서 바로 실행되는
+  // 이 초기값 대입 시점에는 아직 TDZ(temporal dead zone) 안에 있어
+  // PRACTICE_SWORD.id로 참조하면 throw 한다.
+  let equippedSwordId = 'practice-sword';
+  let discoveredSwordIds = ['practice-sword'];
+  let swordEnhanceLv = {};         // { [swordId]: 0-10 }
+  let swordResonanceMin = {};      // { [swordId]: 누적 실공부 분 (해당 검 장착 중일 때만 누적) }
+  let swordResonanceStage = {};    // { [swordId]: 0-4 } — 공부시간 충족 후 파편·성핵을 써서 확정한 단계
+  let pityStreak = {};             // { [PITY_RULES.key]: 연속 미달 횟수 }
+  let claimedDailyQuests = {};     // { [dateKey]: questId[] }
+  let claimedWeeklyQuests = {};    // { [weekKey]: questId[] }
+  let claimedRegions = [];         // 해금 보상을 수령한 지역 id[]
+  let activeEpithetSwordId = null; // 프로필에 대표로 표시할 별호의 검 id
+  let totalSummons = 0;            // 누적 소환 횟수
+
+  // 2026-09 네벨라크 개편 저장 포맷 버전. 이 값이 없거나 다르면(=개편 이전
+  // 무협 시대 저장분) 아래 성장/재화 필드는 전부 기본값에서 새로 시작한다.
+  // gold처럼 이전 시스템과 같은 필드명을 그대로 재사용하는 값이 있어서,
+  // 이 버전 검사 없이는 옛 골드(예: 9,999,999)가 새 성휘 잔액으로 그대로
+  // 새어 들어오는 사고가 난다 -- 실제로 테스트에서 이 문제를 발견해 추가함.
+  const NEVELAC_STATE_VERSION = 1;
 
   function collectState() {
     return {
-      schedules, todosByDate, examChecklist, examSubjects, happinessByDate, gold, subjects, studyByDate, activeSession,
-      realmLevel, swordLevel, discovered, swordTableVersion: SWORD_TABLE_VERSION,
-      nickname, avatar, starFragments, swordStars, totalDraws,
-      gearLevel, gearDiscovered, gearTableVersion: GEAR_TABLE_VERSION,
+      schedules, todosByDate, examChecklist, examSubjects, happinessByDate, subjects, studyByDate, activeSession,
+      nickname, avatar,
+      nevelacVersion: NEVELAC_STATE_VERSION,
+      gold, resonanceFragments, starCores, constellationSeals,
+      equippedSwordId, discoveredSwordIds, swordEnhanceLv, swordResonanceMin, swordResonanceStage, pityStreak,
+      claimedDailyQuests, claimedWeeklyQuests, claimedRegions, activeEpithetSwordId, totalSummons,
     };
   }
 
@@ -85,48 +104,93 @@
     subjects = data.subjects ?? [];
     studyByDate = data.studyByDate ?? {};
     activeSession = data.activeSession ?? null;
-    realmLevel = Number.isFinite(data.realmLevel) ? Math.floor(data.realmLevel) : 0;
-    realmLevel = Math.min(Math.max(realmLevel, 0), REALMS.length - 1);
-
-    if (data.swordTableVersion === SWORD_TABLE_VERSION) {
-      swordLevel = data.swordLevel ?? 0;
-      discovered = Array.isArray(data.discovered) && data.discovered.length ? data.discovered : [0];
-    } else {
-      // Pre-gacha save: the old index meant a rung on a different ladder.
-      swordLevel = 0;
-      discovered = [0];
-    }
-    swordLevel = Math.min(Math.max(swordLevel, 0), SWORDS.length - 1);
-    discovered = [...new Set(discovered.filter((i) => i >= 0 && i < SWORDS.length))];
-    if (!discovered.includes(swordLevel)) discovered.push(swordLevel);
-
-    if (data.gearTableVersion === GEAR_TABLE_VERSION) {
-      gearLevel = data.gearLevel ?? 0;
-      gearDiscovered = Array.isArray(data.gearDiscovered) && data.gearDiscovered.length ? data.gearDiscovered : [0];
-    } else {
-      gearLevel = 0;
-      gearDiscovered = [0];
-    }
-    gearLevel = Math.min(Math.max(gearLevel, 0), GEAR_ITEMS.length - 1);
-    gearDiscovered = [...new Set(gearDiscovered.filter((i) => i >= 0 && i < GEAR_ITEMS.length))];
-    if (!gearDiscovered.includes(gearLevel)) gearDiscovered.push(gearLevel);
 
     nickname = typeof data.nickname === 'string' ? data.nickname.slice(0, 16) : '';
     avatar = isSafeAvatarUrl(data.avatar) ? data.avatar : null;
 
-    gold = Number.isFinite(data.gold) ? Math.max(0, Math.floor(data.gold)) : 1000;
-    starFragments = Number.isFinite(data.starFragments) ? Math.max(0, Math.floor(data.starFragments)) : 0;
-    totalDraws = Number.isFinite(data.totalDraws) ? Math.max(0, Math.floor(data.totalDraws)) : 0;
-    swordStars = {};
-    if (data.swordStars && typeof data.swordStars === 'object') {
-      for (const key of Object.keys(data.swordStars)) {
-        const idx = Number(key);
-        const level = Math.floor(data.swordStars[key]);
-        if (Number.isInteger(idx) && idx >= 0 && idx < SWORDS.length && Number.isFinite(level) && level > 0) {
-          swordStars[idx] = Math.min(ENHANCE_MAX_STARS, level);
+    const validSwordId = (id) => id === PRACTICE_SWORD.id || !!nebelacSwordById(id);
+    // 개편 이전 저장분은 nevelacVersion이 없으므로 nebelac이 빈 객체({})를
+    // 넘겨받은 것처럼 취급한다 -- 아래 모든 Number.isFinite/typeof 검사가
+    // 자연스럽게 실패해 기본값으로 떨어진다.
+    const nebelac = data.nevelacVersion === NEVELAC_STATE_VERSION ? data : {};
+
+    gold = Number.isFinite(nebelac.gold) ? Math.max(0, Math.floor(nebelac.gold)) : 0;
+    resonanceFragments = Number.isFinite(nebelac.resonanceFragments) ? Math.max(0, Math.floor(nebelac.resonanceFragments)) : 0;
+    starCores = Number.isFinite(nebelac.starCores) ? Math.max(0, Math.floor(nebelac.starCores)) : 0;
+    constellationSeals = Number.isFinite(nebelac.constellationSeals) ? Math.max(0, Math.floor(nebelac.constellationSeals)) : 0;
+    totalSummons = Number.isFinite(nebelac.totalSummons) ? Math.max(0, Math.floor(nebelac.totalSummons)) : 0;
+
+    equippedSwordId = validSwordId(nebelac.equippedSwordId) ? nebelac.equippedSwordId : PRACTICE_SWORD.id;
+    discoveredSwordIds = Array.isArray(nebelac.discoveredSwordIds)
+      ? [...new Set(nebelac.discoveredSwordIds.filter(validSwordId))]
+      : [];
+    if (!discoveredSwordIds.includes(PRACTICE_SWORD.id)) discoveredSwordIds.unshift(PRACTICE_SWORD.id);
+    if (!discoveredSwordIds.includes(equippedSwordId)) discoveredSwordIds.push(equippedSwordId);
+
+    swordEnhanceLv = {};
+    if (nebelac.swordEnhanceLv && typeof nebelac.swordEnhanceLv === 'object') {
+      for (const id of Object.keys(nebelac.swordEnhanceLv)) {
+        const lv = Math.floor(nebelac.swordEnhanceLv[id]);
+        if (validSwordId(id) && Number.isFinite(lv) && lv > 0) {
+          swordEnhanceLv[id] = Math.min(ENHANCE_MAX_LEVEL, lv);
         }
       }
     }
+
+    swordResonanceMin = {};
+    if (nebelac.swordResonanceMin && typeof nebelac.swordResonanceMin === 'object') {
+      for (const id of Object.keys(nebelac.swordResonanceMin)) {
+        const min = Number(nebelac.swordResonanceMin[id]);
+        if (validSwordId(id) && Number.isFinite(min) && min > 0) {
+          swordResonanceMin[id] = min;
+        }
+      }
+    }
+
+    swordResonanceStage = {};
+    if (nebelac.swordResonanceStage && typeof nebelac.swordResonanceStage === 'object') {
+      for (const id of Object.keys(nebelac.swordResonanceStage)) {
+        const stage = Math.floor(nebelac.swordResonanceStage[id]);
+        if (validSwordId(id) && Number.isFinite(stage) && stage > 0) {
+          swordResonanceStage[id] = Math.min(RESONANCE_MAX_STAGE, stage);
+        }
+      }
+    }
+
+    pityStreak = {};
+    if (nebelac.pityStreak && typeof nebelac.pityStreak === 'object') {
+      for (const rule of PITY_RULES) {
+        const v = Math.floor(nebelac.pityStreak[rule.key]);
+        pityStreak[rule.key] = Number.isFinite(v) && v > 0 ? v : 0;
+      }
+    } else {
+      for (const rule of PITY_RULES) pityStreak[rule.key] = 0;
+    }
+
+    const validQuestIds = new Set([...DAILY_QUESTS.map((q) => q.id), ...WEEKLY_QUESTS.map((q) => q.id)]);
+    claimedDailyQuests = {};
+    if (nebelac.claimedDailyQuests && typeof nebelac.claimedDailyQuests === 'object') {
+      for (const dateKey of Object.keys(nebelac.claimedDailyQuests)) {
+        const list = nebelac.claimedDailyQuests[dateKey];
+        if (Array.isArray(list)) claimedDailyQuests[dateKey] = list.filter((id) => validQuestIds.has(id));
+      }
+    }
+    claimedWeeklyQuests = {};
+    if (nebelac.claimedWeeklyQuests && typeof nebelac.claimedWeeklyQuests === 'object') {
+      for (const weekKey of Object.keys(nebelac.claimedWeeklyQuests)) {
+        const list = nebelac.claimedWeeklyQuests[weekKey];
+        if (Array.isArray(list)) claimedWeeklyQuests[weekKey] = list.filter((id) => validQuestIds.has(id));
+      }
+    }
+
+    const validRegionIds = new Set(JOURNEY_REGIONS.map((r) => r.id));
+    claimedRegions = Array.isArray(nebelac.claimedRegions)
+      ? [...new Set(nebelac.claimedRegions.filter((id) => validRegionIds.has(id)))]
+      : [];
+
+    activeEpithetSwordId = typeof nebelac.activeEpithetSwordId === 'string' && nebelacSwordById(nebelac.activeEpithetSwordId)
+      ? nebelac.activeEpithetSwordId
+      : null;
   }
 
   function sumStudySecondsForDate(dateKey) {
@@ -148,19 +212,32 @@
     return total;
   }
 
+  // 검 22종 중 실제로 보유한 종수 (시작 검 무명의 연습검은 수집 대상이 아님).
+  function nebelacDiscoveredCount() {
+    return discoveredSwordIds.filter((id) => id !== PRACTICE_SWORD.id).length;
+  }
+  // 보유한 검 중 도달한 최고 공명 단계 (0=고요 ~ 4=완전공명).
+  function maxResonanceStage() {
+    let max = 0;
+    for (const id of discoveredSwordIds) {
+      if (id === PRACTICE_SWORD.id) continue;
+      max = Math.max(max, resonanceStageIndexFor(id));
+    }
+    return max;
+  }
+
   function leaderboardRow() {
     return {
       user_id: currentUserId,
       username: currentUsername,
       nickname: nickname || null,
       avatar,
-      realm_level: realmLevel,
-      sword_level: swordLevel,
-      gold,
       study_today: sumStudySecondsForDate(studyDayKey()),
       study_week: sumStudySecondsRolling(7),
       study_month: sumStudySecondsRolling(30),
-      total_draws: totalDraws,
+      study_total: sumStudySecondsAllTime(),
+      sword_collection: nebelacDiscoveredCount(),
+      max_resonance_stage: maxResonanceStage(),
       updated_at: new Date().toISOString(),
     };
   }
@@ -199,8 +276,13 @@
     // leaderboard too. Retry once without it so everything else still
     // syncs in the meantime.
     if (rankError) {
-      const { total_draws, ...withoutTotalDraws } = leaderboardRow();
-      await sb.from('leaderboard').upsert(withoutTotalDraws);
+      // study_total/sword_collection/max_resonance_stage are new columns —
+      // until the matching migration has run on the DB, upserting them
+      // fails the whole row (not just those fields), which would otherwise
+      // silently stop study_today/week/month from reaching the leaderboard
+      // too. Retry once without them so everything else still syncs.
+      const { study_total, sword_collection, max_resonance_stage, ...withoutNewCols } = leaderboardRow();
+      await sb.from('leaderboard').upsert(withoutNewCols);
     }
   }
 
@@ -357,13 +439,11 @@
   const tabPanels = {
     main: el('panel-main'),
     study: el('panel-study'),
-    happiness: el('panel-happiness'),
-    realm: el('panel-realm'),
-    sword: el('panel-sword'),
-    gear: el('panel-gear'),
-    enhance: el('panel-enhance'),
+    journey: el('panel-journey'),
+    hall: el('panel-hall'),
+    growth: el('panel-growth'),
     codex: el('panel-codex'),
-    epithet: el('panel-epithet'),
+    record: el('panel-record'),
     profile: el('panel-profile'),
     ranking: el('panel-ranking'),
     settings: el('panel-settings'),
@@ -404,19 +484,23 @@
   const subjectTextInput = el('subjectText');
   const subjectItemTpl = el('subjectItemTemplate');
 
-  const ladderRowTpl = el('ladderRowTemplate');
-
   const avatarCircle = el('avatarCircle');
   const avatarImg = el('avatarImg');
   const avatarPlaceholder = el('avatarPlaceholder');
   const avatarInput = el('avatarInput');
   const nicknameForm = el('nicknameForm');
   const nicknameInput = el('nicknameInput');
-  const profileRealm = el('profileRealm');
   const profileSword = el('profileSword');
+  const profileEpithetSelect = el('profileEpithetSelect');
+  const profileEpithetValue = el('profileEpithetValue');
   const profileGold = el('profileGold');
+  const profileCores = el('profileCores');
+  const profileSeals = el('profileSeals');
   const profileTodayStudy = el('profileTodayStudy');
+  const profileWeekStudy = el('profileWeekStudy');
   const profileTotalStudy = el('profileTotalStudy');
+  const profileCollection = el('profileCollection');
+  const profileMaxResonance = el('profileMaxResonance');
   const profileStreak = el('profileStreak');
   const profileRankList = el('profileRankList');
 
@@ -428,444 +512,1114 @@
 
   const toastEl = el('toast');
 
+  /* ---------------- 검의 전당 (소환 + 보유 검) ---------------- */
+  const hallEquippedGrade = el('hallEquippedGrade');
+  const hallEquippedName = el('hallEquippedName');
+  const hallEquippedTitle = el('hallEquippedTitle');
+  const hallEquippedImg = el('hallEquippedImg');
+  const hallEquippedPlaceholder = el('hallEquippedPlaceholder');
+  const hallEquippedLore = el('hallEquippedLore');
+  const hallEquippedDesc = el('hallEquippedDesc');
+  const hallEquippedIncome = el('hallEquippedIncome');
+  const hallEquippedEnhanceBadge = el('hallEquippedEnhanceBadge');
+  const hallEquippedResonanceBadge = el('hallEquippedResonanceBadge');
+  const summonCostSingle = el('summonCostSingle');
+  const summonCostTen = el('summonCostTen');
+  const summonBtn1 = el('summonBtn1');
+  const summonBtn10 = el('summonBtn10');
+  const summonResults = el('summonResults');
+  const summonResultsEmpty = el('summonResultsEmpty');
+  const gradeChanceTable = el('gradeChanceTable');
+  const pityList = el('pityList');
+  const hallOwnedList = el('hallOwnedList');
+  const hallOwnedCount = el('hallOwnedCount');
+  const hallOwnedEmpty = el('hallOwnedEmpty');
+  const sealBalance = el('sealBalance');
+  const sealRedeemList = el('sealRedeemList');
+  const swordResultTpl = el('swordResultTemplate');
+
+  /* ---------------- 성장 (강화 · 공명 · 유물함) ---------------- */
+  const growthSubtabs = el('growthSubtabs');
+  const growthPanels = {
+    enhance: el('growth-enhance'),
+    resonance: el('growth-resonance'),
+    relics: el('growth-relics'),
+  };
+  const growthEnhanceSelect = el('growthEnhanceSelect');
+  const growthEnhanceDisplay = el('growthEnhanceDisplay');
+  const growthEnhanceEmpty = el('growthEnhanceEmpty');
+  const growthEnhanceGrade = el('growthEnhanceGrade');
+  const growthEnhanceName = el('growthEnhanceName');
+  const growthEnhanceLevel = el('growthEnhanceLevel');
+  const growthEnhanceIncome = el('growthEnhanceIncome');
+  const growthEnhanceNextInfo = el('growthEnhanceNextInfo');
+  const growthEnhanceBtn = el('growthEnhanceBtn');
+  const growthResonanceSelect = el('growthResonanceSelect');
+  const growthResonanceDisplay = el('growthResonanceDisplay');
+  const growthResonanceEmpty = el('growthResonanceEmpty');
+  const growthResonanceGrade = el('growthResonanceGrade');
+  const growthResonanceName = el('growthResonanceName');
+  const growthResonanceStageName = el('growthResonanceStageName');
+  const growthResonanceProgress = el('growthResonanceProgress');
+  const growthResonanceNextInfo = el('growthResonanceNextInfo');
+  const growthResonanceBtn = el('growthResonanceBtn');
+  const growthRelicsList = el('growthRelicsList');
+  const growthRelicsEmpty = el('growthRelicsEmpty');
+
+  /* ---------------- 도감 ---------------- */
+  const codexGrid = el('codexGrid');
+  const codexProgress = el('codexProgress');
+  const codexCardTpl = el('codexCardTemplate');
+  const codexShowcase = el('codexShowcase');
+  const codexShowcaseImg = el('codexShowcaseImg');
+  const codexShowcasePlaceholder = el('codexShowcasePlaceholder');
+  const codexShowcaseGrade = el('codexShowcaseGrade');
+  const codexShowcaseName = el('codexShowcaseName');
+  const codexShowcaseTitle = el('codexShowcaseTitle');
+  const codexShowcaseEnhance = el('codexShowcaseEnhance');
+  const codexShowcaseResonance = el('codexShowcaseResonance');
+  const codexShowcaseLore = el('codexShowcaseLore');
+  const codexShowcaseDesc = el('codexShowcaseDesc');
+  const codexShowcaseIncome = el('codexShowcaseIncome');
+  const codexShowcaseClose = el('codexShowcaseClose');
+
+  /* ---------------- 여정 ---------------- */
+  const journeyCumulative = el('journeyCumulative');
+  const journeyCores = el('journeyCores');
+  const journeySeals = el('journeySeals');
+  const journeyDailyList = el('journeyDailyList');
+  const journeyWeeklyList = el('journeyWeeklyList');
+  const journeyRegionList = el('journeyRegionList');
+  const journeyAchievementList = el('journeyAchievementList');
+
+  /* ---------------- 기록 (행복 + 업적) ---------------- */
+  const recordAchievementList = el('recordAchievementList');
+
   const RING_CIRCUMFERENCE = 2 * Math.PI * 60;
 
-  /* ---------------- Cultivation realm ladder (경지) — 나노마신 경지 분류 기반 ---------------- */
-  const REALMS = [
-    { name: '삼류무사', hanja: '三流武士', price: 0, studyBonus: 0,
-      lore: '무공을 배우기 시작한 지 얼마 안 된 문파의 막내들이 이 반열에 속한다. 딱히 이름 붙일 정도의 경지도 아니라서, 강호인들은 이들을 그저 「초짜」라 부르며 눈여겨보지도 않는다.',
-      desc: '내공이랄 것이 거의 없어 검을 몇 번 휘두르면 숨이 가빠오고, 초식은 스승이 시범 보인 동작을 어설프게 흉내 내는 수준이다. 그나마 익힌 것이라곤 기본 검법인 「목검삼식(木劍三式)」 정도뿐이며, 그마저도 자세가 흐트러지기 일쑤다. 이 시기의 유일한 무기는 지치지 않는 반복뿐이다.' },
-    { name: '이류무사', hanja: '二流武士', price: 77000, studyBonus: 170,
-      lore: '매일같이 반복한 초식이 비로소 몸에 붙기 시작하는 시기. 문파 내에서는 더 이상 완전한 초짜 취급을 받지 않지만, 강호 전체로 보면 여전히 셀 수 없이 많은 이들 중 하나일 뿐이다.',
-      desc: '단전에 옅게나마 내공이 쌓여, 반 시진 정도는 숨이 크게 흐트러지지 않고 병기를 휘두를 수 있다. 기본 검법을 벗어나 문파의 정식 입문 무공인 「이류검결(二流劍訣)」을 배우기 시작하며, 상대의 다음 초식을 어렴풋이 예측하는 눈치가 트인다.' },
-    { name: '일류무사', hanja: '一流武士', price: 207000, studyBonus: 230,
-      lore: '정파 명문 문파의 후기지수들과 실력을 견줄 만하다고 평가받는 첫 관문. 이 경지부터는 마을 하나 정도는 혼자 지킬 수 있는 실력자로 인정받는다.',
-      desc: '내공이 단전에 확실히 자리를 잡아, 한 시진 가까이 전력으로 몸을 쓸 수 있다. 경신법(輕身法)의 기초를 익혀 담장 정도는 가볍게 뛰어넘고, 문파의 대표 절기 중 하나를 정식으로 전수받아 「일류절초(一流絶招)」 한 수를 온전히 펼칠 수 있게 된다.' },
-    { name: '절정 초입', hanja: '絶頂 初入', price: 419000, studyBonus: 310,
-      lore: '내공이 단전에 완전히 뿌리내리며, 비로소 「고수」라는 말을 들을 자격이 생기는 문턱. 명문 대파에서는 이 경지에 이른 제자에게 정식 별호를 붙여주기 시작한다.',
-      desc: '체내를 순환하는 내공을 스스로 감지하고 다스릴 수 있게 되어, 검에 옅은 예기(銳氣)를 실어 벨 수 있다. 절기의 초반 초식들을 완성하고, 「등평도수(登萍渡水)」의 기초를 익혀 물 위를 잠깐이나마 스칠 수 있다.' },
-    { name: '절정 완숙', hanja: '絶頂 完熟', price: 756000, studyBonus: 420,
-      lore: '다루는 무공이 물 흐르듯 자연스러워지는 시기. 한 지역, 한 문파를 대표하는 강자로 이름이 오르내리기 시작한다.',
-      desc: '내공 운용이 능숙해져 검신 전체에 고르게 예기를 두를 수 있고, 절기를 처음부터 끝까지 막힘없이 펼친다. 「분광십삼검(分光十三劍)」류의 화려한 연속 초식을 구사하며, 하루 종일 싸워도 내공이 크게 마르지 않는다.' },
-    { name: '절정 극', hanja: '絶頂 極', price: 1310000, studyBonus: 580,
-      lore: '절정의 끝자락. 이때부터는 어엿한 「고수」로 불리며, 문파나 가문의 수장을 넘보는 위치에 선다.',
-      desc: '여러 절기를 자유롭게 연계해 하나의 흐름으로 만들어내고, 검에 실은 예기가 뭉쳐 옅은 검기(劍氣)의 형태를 갖추기 시작한다. 절정의 정수를 담은 자신만의 절초 하나를 완성해, 강호에 이름 석 자를 알릴 만한 실력을 갖춘다.' },
-    { name: '초절정 초입', hanja: '超絶頂 初入', price: 2160000, studyBonus: 800,
-      lore: '구파일방과 천마신교의 장로 바로 아래 서열로 꼽히는 경지. 중원 전역에 이름이 알려지기 시작하며, 어딜 가든 함부로 대할 수 없는 존재가 된다.',
-      desc: '검기를 자유자재로 뽑아내 병기 없이도 맨손에 두를 수 있고, 반로환동(返老還童)의 조짐이 나타나 몸이 젊어지듯 가벼워진다. 「어기충소(御氣衝宵)」로 삼 장 높이는 단숨에 뛰어오르며, 검기만으로 바위를 가른다.' },
-    { name: '초절정 완숙', hanja: '超絶頂 完熟', price: 3470000, studyBonus: 1100,
-      lore: '문주, 가주, 방주, 채주급의 실력으로 인정받는 경지. 단신으로 수십의 일류 고수를 상대할 수 있다는 평가를 받는다.',
-      desc: '내공을 상대의 몸에 직접 흘려 넣는 격체전공(隔體傳功)이 가능해지고, 검기를 실처럼 가늘게 뽑아 원거리의 적을 벤다. 「초절정심법(超絶頂心法)」의 완숙한 운용으로 하루 밤낮을 꼬박 싸워도 지치지 않는다.' },
-    { name: '초절정 극', hanja: '超絶頂 極', price: 5400000, studyBonus: 1500,
-      lore: '초절정의 정점. 「초고수」라 불리며, 대문파의 장로 자리를 넘보는 실력자로 대접받는다.',
-      desc: '검기의 강약과 형태를 뜻대로 조절해 한 초식으로 여럿을 동시에 벨 수 있고, 검강(劍罡)의 첫 조짐이 검신 위에 아지랑이처럼 어린다. 절정과 초절정의 모든 절기를 통합한 자신만의 성명절기를 완성한다.' },
-    { name: '화경 초입', hanja: '化境 初入', price: 8100000, studyBonus: 2000,
-      lore: '몸과 진기가 하나로 화(化)하기 시작하며, 어검(馭劍)의 실마리를 잡는 경지. 이때부터는 병기의 종류를 가리지 않고 다룬다는 말이 돈다.',
-      desc: '검강을 온전히 뽑아내 어떤 병기도 종잇장처럼 갈라내고, 진기만으로 가까운 거리의 검을 손 없이 움직이는 이기어검(以氣馭劍)의 흉내를 낸다. 「허공답보(虛空踏步)」로 허공에 몇 걸음 디딜 수 있게 된다.' },
-    { name: '화경 완숙', hanja: '化境 完熟', price: 12600000, studyBonus: 2800,
-      lore: '천마신교 좌우 호법, 구파일방 장문인급으로 꼽히는 경지. 진기만으로 병기를 부린다는 소문이 과장이 아님을 증명하는 단계다.',
-      desc: '이기어검을 자유자재로 구사해 검 여러 자루를 동시에 부리고, 검강의 형태와 색을 뜻대로 바꾸는 경지에 이른다. 「만검귀종(萬劍歸宗)」이라 불리는, 흩어졌던 검기가 하나로 모여 폭발하는 절기를 완성한다.' },
-    { name: '화경 극', hanja: '化境 極', price: 18800000, studyBonus: 3800,
-      lore: '화경의 정점. 삼대 세력 수뇌부와 어깨를 나란히 하는, 사실상 무림 최정상으로 꼽히는 자리다.',
-      desc: '허공답보를 넘어 능공허도(凌空虛道)로 짧은 거리를 아예 날아서 이동하고, 진기를 형체 없이 뿜어내는 것만으로 주변의 살기를 짓누른다. 화경의 모든 성취를 하나로 꿴 궁극의 절기 하나를 완성해, 이후로는 「초고수」가 아니라 「대종사」로 불리기 시작한다.' },
-    { name: '현경 초입', hanja: '炫境 初入', price: 28600000, studyBonus: 5300,
-      lore: '생각이 곧 진기가 되어 눈부시게(炫) 빛나는 경지. 살아서는 닿기 힘들다던 벽 너머에 첫발을 디딘 존재들이다.',
-      desc: '마음으로 떠올린 초식이 별도의 동작 없이 곧바로 검기로 화하는 심검(心劍)의 첫 단계에 이르고, 상대의 다음 수를 진기의 흐름만으로 미리 읽어낸다. 「이기어검」이 완전히 몸에 배어, 이제는 검을 뽑지 않고도 싸울 수 있다.' },
-    { name: '현경 완숙', hanja: '炫境 完熟', price: 42100000, studyBonus: 7200,
-      lore: '이기어검을 자유자재로 다루며, 존재 자체가 눈부신 빛으로 화하는 경지. 이 경지의 무인이 나타나면 그 자체로 강호에 파문이 인다.',
-      desc: '심검을 완성해 검을 쥐지 않고도 눈빛만으로 벨 수 있다는 말이 돌고, 진기를 빛의 형태로 뿜어내 밤에도 그 존재를 감출 수 없다. 「현경만상(炫境萬象)」이라는, 진기만으로 주변 지형을 일시적으로 바꾸는 절기를 다룬다.' },
-    { name: '현경 극', hanja: '炫境 極', price: 62400000, studyBonus: 9900,
-      lore: '현경의 끝. 전설로만 회자되던 경지에 실제로 도달한 극소수의 존재로, 그 이름은 한 시대를 통째로 대표한다.',
-      desc: '인간의 육체적 한계를 사실상 초월해, 한 초식의 검기가 산 하나를 가르는 광역 위력을 낸다. 현경의 모든 깨달음을 담은 자신만의 대성절기(大成絶技)를 완성하고, 이때부터 세간에서는 이들을 두고 「인간을 넘어선 무인」이라 부르기 시작한다.' },
-    { name: '생사경 초입', hanja: '生死境 初入', price: 94500000, studyBonus: 14000,
-      lore: '삶과 죽음의 경계를 손끝으로 다루기 시작하는, 죽어야만 넘볼 수 있다던 금단의 영역. 강호는 이 경지에 이른 이를 사람이 아니라 「경지 그 자체」로 부르기 시작한다.',
-      desc: '치명상을 입어도 스스로 진기를 돌려 상처를 빠르게 아물리는 반쯤의 불사(不死)를 얻고, 검기에 생사의 기운을 실어 벤 자리에 시들거나 피어나는 흔적을 남긴다. 「생사현관(生死玄關)」을 넘나들며 죽음 직전까지 갔다가 되돌아오는 것으로 스스로를 단련한다.' },
-    { name: '생사경 완숙', hanja: '生死境 完熟', price: 137000000, studyBonus: 19000,
-      lore: '생과 사가 손안에서 하나가 된다. 존재만으로도 강호에 죽음의 그림자를 드리운다는 평가를 받는 경지다.',
-      desc: '타인의 생명력을 진기의 형태로 빼앗거나 나눠주는 것이 가능해지고, 스스로의 수명 일부를 태워 순간적으로 현경 이상의 위력을 낼 수 있다. 「사자소생수(死者蘇生手)」라 불리는, 숨이 끊긴 지 얼마 안 된 자를 되살리는 금단의 수법을 다루는 이도 있다고 전해진다.' },
-    { name: '생사경 극', hanja: '生死境 極', price: 191000000, studyBonus: 25000,
-      lore: '생사경의 정점. 산 자의 몸으로 죽음 너머를 완전히 지배하는, 전설 속 인물의 경지로 여겨진다.',
-      desc: '생사의 경계 자체를 자신의 영역으로 삼아, 검기가 스친 것은 생사를 뜻대로 오간다는 말이 돈다. 목숨을 걸지 않고도 생사경의 힘을 온전히 다룰 수 있게 되어, 비로소 이 경지의 완성자로 인정받는다.' },
-    { name: '자연경 초입', hanja: '自然境 初入', price: 284000000, studyBonus: 35000,
-      lore: '불로불사에 이르러 자연과 동화되기 시작하는, 인간의 굴레를 벗어난 신비의 경지. 이 경지부터는 나이를 묻는 것 자체가 무의미해진다.',
-      desc: '몸의 노화가 사실상 멈추고, 주변의 바람과 물의 흐름을 거스르지 않고 그대로 몸에 실어 움직인다. 「자연조화수(自然造化手)」로 작은 나뭇가지 하나로도 절정 고수를 상대할 수 있는 경지에 이른다.' },
-    { name: '자연경 완숙', hanja: '自然境 完熟', price: 410000000, studyBonus: 48000,
-      lore: '천지의 기운과 완전히 하나가 되어, 늙지도 죽지도 않는 존재로 거듭나는 경지. 산속에 은거한 채 수백 년을 살았다는 전설의 주인공들이 대개 이 반열이다.',
-      desc: '날씨와 지형의 흐름을 어렴풋이 감지해 미리 대비하고, 검을 뽑는 대신 주변의 초목과 바람을 무기 삼아 싸운다. 「풍운조화(風雲造化)」라 불리는, 국지적인 바람과 구름의 흐름을 잠시 바꾸는 절기를 다룬다.' },
-    { name: '자연경 극', hanja: '自然境 極', price: 585000000, studyBonus: 65000,
-      lore: '자연경의 정점. 스스로가 곧 자연의 일부가 되어, 더는 「인간」이라 부를 수 없는 존재로 여겨진다.',
-      desc: '몸을 이루는 것이 살과 뼈보다는 천지의 기운에 가까워져, 웬만한 상처는 애초에 상처로 성립하지 않는다. 한 번의 손짓이 작은 재해에 준하는 위력을 내며, 강호는 이들을 더 이상 「무인」이 아니라 「경지의 화신」으로 기록한다.' },
-    { name: '공허경 초입', hanja: '空虛境 初入', price: 851000000, studyBonus: 90000,
-      lore: '우주의 이치를 어렴풋이 깨닫기 시작하는, 공(空)과 허(虛)의 경계에 선 경지. 이 경지에 이른 이들은 대개 강호를 떠나 종적을 감춘다.',
-      desc: '공간의 이치를 어렴풋이 읽어, 「축지성촌(縮地成寸)」으로 먼 거리를 몇 걸음처럼 좁혀 이동한다. 진기가 형체를 완전히 벗어나, 존재를 감추면 기감이 예민한 고수조차 알아채지 못한다.' },
-    { name: '공허경 완숙', hanja: '空虛境 完熟', price: 1218000000, studyBonus: 123000,
-      lore: '우주의 지혜가 온전히 몸에 스며들어, 만물의 근원을 손바닥 위에 놓고 보는 경지. 이 반열에 이른 이는 살아있는 전설이 아니라 신화 속 존재로 취급받는다.',
-      desc: '좁은 범위에서나마 공간을 접거나 늘리는 것이 가능해져, 「이형환위(移形換位)」로 순간적으로 자리를 바꿔 상대의 눈을 속인다. 만물의 이치를 손바닥 보듯 꿰뚫어, 상대의 무공 근원을 한눈에 파악한다.' },
-    { name: '공허경 극', hanja: '空虛境 極', price: 1739000000, studyBonus: 168000,
-      lore: '공허경의 정점. 텅 빈 듯하나 만물을 품은, 언어로는 형용할 수 없는 미지의 영역으로 전해진다.',
-      desc: '공(空)과 허(虛) 그 자체와 하나가 되어, 존재를 지우듯 흔적 없이 일격을 가하는 「무형참(無形斬)」을 다룬다는 전설이 있다. 이 경지에 이른 이가 실제로 존재했는지조차 후대의 기록마다 엇갈린다.' },
-    { name: '여의경 초입', hanja: '如意境 初入', price: 2484000000, studyBonus: 230000,
-      lore: '뜻하는 대로 만물이 응하기 시작하는, 그 누구도 이르지 못했던 미지의 첫걸음. 강호의 역사서에도 「전설의 시작」 정도로만 기록되는 경지다.',
-      desc: '떠올린 생각이 곧 진기의 흐름이 되어 주변 사물이 뜻대로 움직이기 시작하고, 「여의조화(如意造化)」로 작은 창조에 가까운 현상을 일으킨다. 이 단계부터는 무공이라는 말보다 「이치」라는 말이 더 어울린다는 평이 나온다.' },
-    { name: '여의경 완숙', hanja: '如意境 完熟', price: 3555000000, studyBonus: 316000,
-      lore: '무한한 의지(意志) 그 자체가 되어, 이치와 조화를 자유로이 넘나드는 경지. 실존 여부조차 구전으로만 전해지는 반열이다.',
-      desc: '인과율의 아주 작은 자락을 스스로의 뜻으로 바꿔 쓰는 것이 가능해지며, 굳이 움직이지 않아도 뜻만으로 결과를 만들어낸다. 이쯤 되면 강호인들 사이에서도 「사람」인지 「이치」인지에 대한 논쟁이 벌어진다.' },
-    { name: '여의경 극', hanja: '如意境 極', price: 5054000000, studyBonus: 432000,
-      lore: '여의경의 정점이자 구도(求道)의 완성. 뜻이 곧 하늘이 되는, 더는 오를 곳이 없는 경지로 전해진다.',
-      desc: '이르렀다는 사실 자체가 전설이 되는 경지. 이 반열에 도달한 이가 정말 존재했는지, 아니면 후대가 「도달할 수 있는 끝」을 상상해 만든 이야기인지는 아무도 알지 못한다. 강호 최후의 질문 — 「그 끝에는 무엇이 있는가」 — 에 대한 유일한 답으로 전해질 뿐이다.' }
+  /* ================================================================
+     네벨라크 (Nevelac) — 판타지 성장·수집·경제 시스템
+     ================================================================ */
+
+  /* ---------------- 재화 기본값 ---------------- */
+  // 분당 성휘의 고정 기본값. 실제 분당 수입 = BASE_INCOME_PER_MIN + 장착검 효율.
+  const BASE_INCOME_PER_MIN = 600;
+
+  /* ---------------- 검 등급 (잔광급~원초급) ----------------
+     인덱스 0-7 그대로 기존 rar-0..rar-7 CSS 색상을 재사용한다 (회색 →
+     초록 → 파랑 → 보라 → 청록 → 금색 → 진홍 → 흑요석 순으로, 등급이
+     오를수록 색이 진해지는 기존 배색이 이 8단계에도 그대로 맞는다). */
+  const SWORD_GRADES = [
+    { key: 'janggwang',  name: '잔광급', hanja: '殘光級', chance: 45,
+      meaning: '특별한 힘의 흔적만 남은 유물' },
+    { key: 'gakseong',   name: '각성급', hanja: '覺醒級', chance: 25,
+      meaning: '특정 능력이 깨어난 마법 무기' },
+    { key: 'seongyu',    name: '성유급', hanja: '聖遺級', chance: 15,
+      meaning: '성스러운 사건이나 영웅의 유산' },
+    { key: 'yongmaek',   name: '용맥급', hanja: '龍脈級', chance: 8,
+      meaning: '용, 대지, 심해 등 거대한 생명력과 연결된 무기' },
+    { key: 'geumseo',    name: '금서급', hanja: '禁書級', chance: 4.5,
+      meaning: '사용에 대가가 따르는 금지된 무기' },
+    { key: 'wangwan',    name: '왕관급', hanja: '王冠級', chance: 1.8,
+      meaning: '왕, 지배자, 권능을 무너뜨리거나 빼앗는 무기' },
+    { key: 'cheonseong', name: '천성급', hanja: '天星級', chance: 0.65,
+      meaning: '별, 태양, 시간, 천체와 연결된 무기' },
+    { key: 'woncho',     name: '원초급', hanja: '原初級', chance: 0.05,
+      meaning: '세계가 생기기 전부터 존재한 근원적인 무기' },
+  ];
+  // 중복 획득 시 공명 파편으로 전환되는 양 (등급 인덱스 순).
+  const DUPLICATE_FRAGMENTS_BY_GRADE = [2, 4, 9, 20, 45, 100, 250, 1000];
+
+  /* 천명 게이지 — 해당 등급 이상을 이 횟수만큼 연속으로 못 뽑으면 다음
+     소환에서 확정 지급. 원초급은 보장 없음 (별자리 인장으로만 확정 획득). */
+  const PITY_RULES = [
+    { minGradeIdx: 1, streak: 10,  key: 'gakseong' },   // 각성급 이상
+    { minGradeIdx: 2, streak: 30,  key: 'seongyu' },    // 성유급 이상
+    { minGradeIdx: 3, streak: 80,  key: 'yongmaek' },   // 용맥급 이상
+    { minGradeIdx: 4, streak: 200, key: 'geumseo' },    // 금서급 이상
+    { minGradeIdx: 6, streak: 500, key: 'cheonseong' }, // 천성급 이상
   ];
 
-  /* ---------------- Sword grades (검 등급) ----------------
-     8 grades, probabilities fixed per grade — every sword inside a grade
-     shares the exact same draw chance. Grade odds sum to 100 (범품's 0.5
-     cut funds 용검's slice exactly, so nothing else moved).
-     Naming follows a deliberate length ladder: 2 chars at 범품, 3 through
-     the middle, back down to 2 for 용검 and the historical 신병이기, 선검
-     breaks the ladder with a long name, and 설화검 — the final grade —
-     returns to a short, weighty 3-character name befitting a closing
-     legend. */
-  const RARITIES = [
-    { key: 'beompum',  name: '범품', hanja: '凡品', chance: 64.5 },
-    { key: 'jeongpum', name: '정품', hanja: '精品', chance: 20 },
-    { key: 'bogeom',   name: '보검', hanja: '寶劍', chance: 10 },
-    { key: 'yeonggeom',name: '영검', hanja: '靈劍', chance: 4.8 },
-    { key: 'yonggeom', name: '용검', hanja: '龍劍', chance: 0.5 },
-    { key: 'sinbyeong',name: '신병이기', hanja: '神兵利器', chance: 0.175 },
-    { key: 'seongeom', name: '선검', hanja: '仙劍', chance: 0.02 },
-    { key: 'seolhwa',  name: '설화검', hanja: '說話劍', chance: 0.005 },
+  const SUMMON_COST_SINGLE = 50000;
+  const SUMMON_COST_TEN = 450000;
+
+  /* 시작 검 — 소환 대상이 아니며 도감/중복 전환에도 포함되지 않는다. */
+  const PRACTICE_SWORD = {
+    id: 'practice-sword', name: '무명의 연습검', title: '첫 걸음을 뗀 자',
+    grade: null, image: '', imageAlt: '이미지 준비 중', baseIncome: 180,
+    lore: '이름조차 새겨지지 않은 평범한 연습용 목검. 네벨라크의 모든 검사는 이 검에서 첫걸음을 뗀다.',
+    desc: '화려한 힘은 없지만, 균열 너머의 세계에서 살아남기 위한 첫 번째 자격을 시험한다.',
+  };
+
+  /* ---------------- 검 도감 (22종, 등급 순) ----------------
+     id는 저장 데이터의 고유 키 — 배열 순서가 바뀌어도 보유/장착/강화/공명
+     상태는 이 id를 기준으로 유지된다. */
+  const NEBELAC_SWORDS = [
+    /* ---- 잔광급 ---- */
+    { id: 'frost-needle-prism', name: '서리송곳 프리즘', title: '한순간을 얼린 바늘',
+      grade: 'janggwang', image: '', imageAlt: '이미지 준비 중', baseIncome: 220,
+      lore: '검끝에 찔린 대상의 시간이 얼어붙어 움직임이 느려진다.',
+      desc: '칼날은 얇고 투명하며, 검이 지나간 자리에는 금이 간 유리 같은 서리가 남는다.' },
+
+    /* ---- 각성급 ---- */
+    { id: 'shadow-twin-nocturne', name: '그림자쌍검 노크턴', title: '그림자가 먼저 죽는다',
+      grade: 'gakseong', image: '', imageAlt: '이미지 준비 중', baseIncome: 360,
+      lore: '한 자루는 현실을, 다른 한 자루는 그림자를 벤다.',
+      desc: '두 검을 함께 휘두르면 적의 그림자가 먼저 쓰러지고, 본체는 뒤늦게 상처를 입는다.' },
+    { id: 'glass-mirage', name: '유리검 미라지', title: '거울 속의 적',
+      grade: 'gakseong', image: '', imageAlt: '이미지 준비 중', baseIncome: 390,
+      lore: '검에 비친 상대의 모습이 허상이 되어 전장을 어지럽힌다.',
+      desc: '검에 비친 가짜 모습은 실제 움직임보다 반 박자 빠르게 움직인다.' },
+    { id: 'nightmare-invitation', name: '몽마의 초대장, 나이트메어', title: '잠든 자의 초대',
+      grade: 'gakseong', image: '', imageAlt: '이미지 준비 중', baseIncome: 420,
+      lore: '적의 꿈속에 들어가 정신을 공격하는 검이다.',
+      desc: '현실에서는 짧은 단검에 불과하지만, 꿈속에서는 거대한 낫으로 변해 상대의 공포를 직접 베어낸다.' },
+
+    /* ---- 성유급 ---- */
+    { id: 'asterion-starsea', name: '성해검 아스테리온', title: '밤하늘을 휘두르는 자',
+      grade: 'seongyu', image: '', imageAlt: '이미지 준비 중', baseIncome: 650,
+      lore: '밤마다 검신의 별자리가 바뀌며, 완성된 별자리에 따라 다른 마법을 사용한다.',
+      desc: '검을 휘두를 때마다 검신 안의 별빛이 이어져 새로운 별자리를 만든다.' },
+    { id: 'astravein', name: '별먹는 자, 아스트라베인', title: '별을 삼킨 자',
+      grade: 'seongyu', image: '', imageAlt: '이미지 준비 중', baseIncome: 700,
+      lore: '밤하늘의 별빛을 흡수해 검신에 저장하는 성유급 검이다.',
+      desc: '검을 휘두를 때마다 작은 운석이 떨어지며, 오랫동안 사용할수록 검신 안에 별 하나가 사라진다.' },
+    { id: 'elysia-white-pine', name: '백색장송, 엘리시아', title: '영혼을 재우는 장송자',
+      grade: 'seongyu', image: '', imageAlt: '이미지 준비 중', baseIncome: 760,
+      lore: '죽은 자의 영혼을 편히 잠들게 하는 검이다.',
+      desc: '악령에게는 치명적이지만 산 자에게는 거의 피해를 주지 못한다. 검이 지나간 자리에는 눈처럼 하얀 빛이 남는다.' },
+    { id: 'grail-sword', name: '성배검 그라알', title: '구원과 대가의 검',
+      grade: 'seongyu', image: '', imageAlt: '이미지 준비 중', baseIncome: 820,
+      lore: '상처를 치유할 수 있지만, 치유한 만큼 사용자의 수명이 줄어든다.',
+      desc: '검신 중앙에는 성배의 파편이 박혀 있으며, 치유할 때마다 파편의 빛이 조금씩 희미해진다.' },
+
+    /* ---- 용맥급 ---- */
+    { id: 'balkan-thunder', name: '천뢰검 발칸', title: '폭풍이 선택한 철',
+      grade: 'yongmaek', image: '', imageAlt: '이미지 준비 중', baseIncome: 1200,
+      lore: '땅에 꽂으면 주변에 낙뢰 기둥이 떨어진다.',
+      desc: '검을 쥔 사람도 감당하기 어려운 무게를 지녔으며, 번개의 힘이 강해질수록 검 자체가 더욱 무거워진다.' },
+    { id: 'carbonea', name: '용골검 카르보네아', title: '멸종한 용의 등뼈',
+      grade: 'yongmaek', image: '', imageAlt: '이미지 준비 중', baseIncome: 1350,
+      lore: '검신의 마디가 살아 움직이며, 사용자의 분노에 반응해 용의 이빨처럼 갈라진다.',
+      desc: '검을 오래 사용할수록 검 안에 잠든 용의 기억이 드러난다.' },
+    { id: 'dracor', name: '용의 마지막 심장, 드라코르', title: '마지막 용의 맥박',
+      grade: 'yongmaek', image: '', imageAlt: '이미지 준비 중', baseIncome: 1500,
+      lore: '멸종한 고대 용의 심장이 검 중앙에 박혀 있다.',
+      desc: '사용자의 감정이 격해질수록 검이 용의 형태로 변하며, 분노가 극에 달하면 검신에서 용의 턱이 열린다.' },
+    { id: 'leviathan-deep', name: '심해검 레비아탄', title: '바다 밑의 왕',
+      grade: 'yongmaek', image: '', imageAlt: '이미지 준비 중', baseIncome: 1700,
+      lore: '주변의 수분을 끌어모아 거대한 파도와 심해 압력을 만든다.',
+      desc: '검이 움직일 때마다 주변 공기가 물속처럼 무거워지며, 검끝에 푸른 심해의 눈이 나타난다.' },
+
+    /* ---- 금서급 ---- */
+    { id: 'lunareaper', name: '혈월도 루나리퍼', title: '피로 떠오르는 달',
+      grade: 'geumseo', image: '', imageAlt: '이미지 준비 중', baseIncome: 2500,
+      lore: '적의 피를 흡수할수록 붉은 달의 형상이 검 뒤에 떠오른다.',
+      desc: '달이 완전히 차오르면 검은 강력해지지만, 사용자의 살의도 함께 증폭된다.' },
+    { id: 'morgash', name: '심연의 서약, 모르가쉬', title: '그림자를 바친 계약자',
+      grade: 'geumseo', image: '', imageAlt: '이미지 준비 중', baseIncome: 2800,
+      lore: '심연의 왕과 계약한 금서급 검이다.',
+      desc: '사용할수록 강해지지만 사용자의 그림자가 독립된 생명체가 된다. 그림자는 주인의 명령을 따르다가도 언젠가 자신의 의지를 갖기 시작한다.' },
+    { id: 'voidfang', name: '허공의 이빨, 보이드팽', title: '공허를 물어뜯는 자',
+      grade: 'geumseo', image: '', imageAlt: '이미지 준비 중', baseIncome: 3100,
+      lore: '실체가 없는 마법과 결계를 물어뜯는 단검이다.',
+      desc: '검신이 반투명해 일반적인 방어가 불가능하며, 강한 결계를 베어낼수록 검의 윤곽이 잠시 선명해진다.' },
+    { id: 'chronosil', name: '시간의 파편, 크로노실', title: '과거를 바치는 칼날',
+      grade: 'geumseo', image: '', imageAlt: '이미지 준비 중', baseIncome: 3400,
+      lore: '검날이 닿은 부분의 시간을 느리게 만든다.',
+      desc: '단, 사용할수록 사용자의 과거 기억이 하나씩 사라진다. 검신의 금이 늘어날수록 더 오래된 기억이 사라진다.' },
+
+    /* ---- 왕관급 ---- */
+    { id: 'crownbreaker', name: '왕관분쇄자, 크라운브레이커', title: '왕을 무릎 꿇린 자',
+      grade: 'wangwan', image: '', imageAlt: '이미지 준비 중', baseIncome: 6000,
+      lore: '모든 왕과 지배자의 권능을 무너뜨리기 위해 만들어진 왕관급 대검이다.',
+      desc: '상대의 지위가 높을수록 검이 강해지며, 왕의 축복이나 통치 권능을 직접 부술 수 있다.' },
+
+    /* ---- 천성급 ---- */
+    { id: 'meteor-fall', name: '낙성검 메테오르', title: '부서져 내리는 별',
+      grade: 'cheonseong', image: '', imageAlt: '이미지 준비 중', baseIncome: 9500,
+      lore: '검을 휘두르면 수십 개의 파편이 유성처럼 날아갔다가 다시 검신으로 돌아온다.',
+      desc: '검이 부서진 것이 아니라, 별 하나가 너무 큰 힘을 담지 못해 여러 조각으로 나뉜 것이다.' },
+    { id: 'solfall', name: '태양추락, 솔폴', title: '해가 떨어진 날의 검',
+      grade: 'cheonseong', image: '', imageAlt: '이미지 준비 중', baseIncome: 11500,
+      lore: '태양의 파편으로 만들어진 검이다.',
+      desc: '너무 강한 빛을 내뿜기 때문에 사용자는 항상 검집에 봉인해 두어야 한다. 검을 뽑는 순간 주변의 어둠이 모두 사라진다.' },
+    { id: 'vesper-dusk', name: '황혼검 베스퍼', title: '해가 죽는 순간의 칼날',
+      grade: 'cheonseong', image: '', imageAlt: '이미지 준비 중', baseIncome: 13500,
+      lore: '낮과 밤의 경계에서만 완전한 힘을 발휘한다.',
+      desc: '빛과 어둠 마법을 동시에 벨 수 있으며, 검신의 한쪽은 태양빛을, 다른 한쪽은 밤의 색을 반사한다.' },
+
+    /* ---- 원초급 ---- */
+    { id: 'erebos', name: '종언검 에레보스', title: '모든 이야기의 마지막 장',
+      grade: 'woncho', image: '', imageAlt: '이미지 준비 중', baseIncome: 50000,
+      lore: '베인 대상의 마법과 축복을 하나씩 지워낸다.',
+      desc: '마지막에는 이름과 존재까지 삼킨다. 가장 강력한 검이지만, 사용자가 검에 지나치게 의존하면 자신의 기억과 이름도 검의 일부가 된다.' },
+    { id: 'arcanum', name: '무명의 성검, 아르카눔', title: '이름을 얻지 못한 성검',
+      grade: 'woncho', image: '', imageAlt: '이미지 준비 중', baseIncome: 65000,
+      lore: '누구도 이름을 붙일 수 없는 원초급 검이다.',
+      desc: '자격을 얻은 사람마다 전혀 다른 모습과 능력을 보여준다. 어떤 이에게는 성검으로, 어떤 이에게는 창이나 활로 나타날 수도 있다.' },
   ];
 
-  /* ---------------- Sword pool (검 도감) ----------------
-     Roughly weakest -> strongest by array position, but "which sword is
-     the better blade" is decided by swordPower() (rarity first, then
-     studyBonus) rather than raw array index — new entries for an
-     already-shipped grade always get appended at the very end so an
-     existing player's discovered/swordLevel indices never point at a
-     different sword after an update, even when (as with 용검 below) the
-     new grade sits lower in power than grades that were appended earlier.
-     Within one grade the spread is kept inside 20%; between grades it is
-     ~4.2x through 보검/영검, then a bigger but still capped ~8x into
-     신병이기 and ~9x into 선검 — noticeably above the lower steps without
-     ever handing a single pull more than roughly a 10x income multiplier. */
-  const SWORDS = [
-    /* ---- 범품(凡品) — 2자 ---- */
-    { name: '목검', hanja: '木劍', rarity: 0, studyBonus: 1267,
-      lore: '문파 입문 제자가 처음 손에 쥐는 수련용 검. 스승은 이것으로 삼 년을 휘두르게 한 뒤에야 쇠붙이를 내어준다. 한 노사(老師)는 제자가 이 나무검을 스무 번 부러뜨리기 전에는 진검 근처에도 오지 못하게 했다고 전해진다.',
-      desc: '베는 검이 아니라 자세를 만드는 검. 모든 전설은 이 볼품없는 나무토막에서 시작된다. 쥐는 법, 딛는 법, 숨 고르는 법 — 강호의 모든 초식은 결국 이 한 자루로 돌아가 다시 배운다.' },
-    { name: '단도', hanja: '短刀', rarity: 0, studyBonus: 1300,
-      lore: '품에 넣고 다니기 좋게 한 뼘 남짓으로 벼려낸 짧은 칼. 무인보다 장사꾼과 뱃사람이 더 많이 찼다. 먼 길 떠나는 이들은 노잣돈과 함께 반드시 이 칼 한 자루를 챙겼다니, 그 쓰임은 무공보다 생계에 가까웠던 셈이다.',
-      desc: '간격을 내줘야만 쓸 수 있다. 그래서 이 칼을 든 자는 늘 상대보다 한 걸음 더 들어가야 한다. 긴 병기를 상대할 때는 목숨을 걸어야 하지만, 그 한 걸음만 성공하면 승부는 순식간에 끝난다.' },
-    { name: '환도', hanja: '環刀', rarity: 0, studyBonus: 1367,
-      lore: '자루 끝에 고리를 달아 손목에 걸도록 만든 관병(官兵)의 제식 도. 병졸 하나하나에게 지급되던 물건이다. 전장에서 칼을 놓쳐도 손목의 고리 덕에 다시 주워 들 수 있었으니, 이름 없는 병사들의 목숨을 여럿 살린 병기다.',
-      desc: '개인의 병기가 아니라 대오(隊伍)의 병기. 혼자 휘두르면 평범하나, 열이 함께 휘두르면 벽이 된다. 한 자루로는 하수의 칼이나, 백 자루가 나란히 서면 그 자체로 하나의 진법이 된다.' },
-    { name: '철검', hanja: '鐵劍', rarity: 0, studyBonus: 1400,
-      lore: '저잣거리 대장간에서 은자 두 냥이면 살 수 있는 양산품. 강호에 발을 들인 자의 열에 아홉은 이 검을 찬다. 명검을 노래하는 협객전 어디에도 이름이 오르내리지 않지만, 정작 첫걸음을 뗀 이들의 허리에는 예외 없이 이 검이 걸려 있었다.',
-      desc: '투박하고 무겁고 잘 부러진다. 그럼에도 첫 애병으로 이 검을 기억하는 무사는 수없이 많다. 훗날 천하를 호령하게 된 고수들도, 술자리에서는 결국 이 흔한 철검 이야기로 첫 정을 나눈다.' },
+  function nebelacSwordById(id) {
+    if (id === PRACTICE_SWORD.id) return PRACTICE_SWORD;
+    return NEBELAC_SWORDS.find((s) => s.id === id) || null;
+  }
+  function gradeIdxOf(sword) {
+    if (!sword || !sword.grade) return -1;
+    return SWORD_GRADES.findIndex((g) => g.key === sword.grade);
+  }
+  function gradeOf(sword) {
+    const idx = gradeIdxOf(sword);
+    return idx >= 0 ? SWORD_GRADES[idx] : null;
+  }
+  // 등급 우선, 같은 등급 안에서는 기본 효율 오름차순 — 도감/보유목록 정렬 기준.
+  function nebelacSwordPower(sword) {
+    return gradeIdxOf(sword) * 1e9 + (sword.baseIncome || 0);
+  }
 
-    /* ---- 정품(精品) — 3자 ---- */
-    { name: '유엽검', hanja: '柳葉劍', rarity: 1, studyBonus: 3133,
-      lore: '버들잎을 본떠 검신을 얇고 길게 뽑아낸 검. 힘보다 결을 중히 여기는 남방 검파에서 즐겨 썼다. 봄바람에 흔들리는 버들가지처럼 검로가 유려하다 하여, 강남 규수들 사이에서도 호신용으로 인기가 높았다 전해진다.',
-      desc: '무겁게 내리치는 검이 아니라 스치듯 흘려 베는 검. 상처는 얕지만, 그 얕은 것이 열 번 겹친다. 한 초식 한 초식은 위협적이지 않으나, 정신을 차렸을 땐 이미 수십 갈래의 잔상이 몸을 스쳐 지나간 뒤다.' },
-    { name: '청류검', hanja: '靑流劍', rarity: 1, studyBonus: 3267,
-      lore: '푸른 강철을 아홉 번 접어 두드려, 검신에 흐르는 물결 무늬가 그대로 남은 검. 대장장이는 아홉 번째 접음에서 손을 놓지 않으려 사흘 밤을 뜬눈으로 지새웠다고 하며, 그 집념이 검신의 물결무늬로 고스란히 남았다.',
-      desc: '드디어 「부러지지 않는」 검을 손에 넣었다. 휘두르면 검로가 물길처럼 끊기지 않고 이어진다. 한 초식이 끝나기도 전에 다음 초식이 물처럼 스며드니, 상대는 어디서 한 초식이 끝나고 다음이 시작되는지조차 가늠하지 못한다.' },
-    { name: '한상검', hanja: '寒霜劍', rarity: 1, studyBonus: 3400,
-      lore: '북방의 찬 우물물로만 담금질을 마친 검. 칼집에 넣어두어도 검신에 서리가 옅게 맺힌다. 그 우물은 한겨울에도 얼지 않는다 하여 신물(神物) 취급을 받았고, 검을 담금질한 뒤로는 물빛마저 탁해져 다시는 쓸 수 없게 되었다는 이야기가 전한다.',
-      desc: '뽑는 순간 손끝이 아릿하게 시리다. 베인 자리가 늦게 아프고, 늦게 피가 난다. 정작 무서운 건 상처가 아니라 그 뒤에 남는 한기 — 벤 자리는 오래도록 낫지 않고 시린 채로 남는다.' },
-    { name: '부월검', hanja: '斧鉞劍', rarity: 1, studyBonus: 3533,
-      lore: '도끼(斧)와 큰도끼(鉞)의 무게를 검의 형태에 옮겨 담은 중병(重兵). 팔 힘이 받쳐주지 않으면 오히려 짐이 된다. 본디 형벌 도구였던 부월의 위압감을 그대로 눌러 담았다 하여, 이 검을 처음 본 죄인들은 칼날보다 그 이름에 먼저 떨었다고 한다.',
-      desc: '기교를 버리고 무게로 찍어 누르는 검. 막아낸 자의 병기가 먼저 부러지는 일이 잦다. 받아내는 쪽이 매번 손해를 보는 병기라, 이 검을 상대할 때는 아예 마주치지 않는 것이 최선의 초식으로 통한다.' },
+  /* ---------------- 강화 (+0 ~ +10, 실패 없음) ---------------- */
+  const ENHANCE_LEVELS = [
+    { level: 1,  pct: 0.02, fragment: 3,   gold: 5000 },
+    { level: 2,  pct: 0.04, fragment: 5,   gold: 10000 },
+    { level: 3,  pct: 0.06, fragment: 8,   gold: 18000 },
+    { level: 4,  pct: 0.09, fragment: 12,  gold: 30000 },
+    { level: 5,  pct: 0.12, fragment: 18,  gold: 50000 },
+    { level: 6,  pct: 0.16, fragment: 26,  gold: 80000 },
+    { level: 7,  pct: 0.20, fragment: 38,  gold: 125000 },
+    { level: 8,  pct: 0.25, fragment: 56,  gold: 190000 },
+    { level: 9,  pct: 0.30, fragment: 82,  gold: 280000 },
+    { level: 10, pct: 0.36, fragment: 120, gold: 400000 },
+  ];
+  const ENHANCE_MAX_LEVEL = ENHANCE_LEVELS.length;
 
-    /* ---- 보검(寶劍) — 3자, 여기부터 별호(別號)가 붙는다 ---- */
-    { name: '매화검', hanja: '梅花劍', rarity: 2, studyBonus: 6267, epithet: '매화검존의 후예',
-      lore: '눈 속에서 홀로 피는 매화를 검리(劍理)로 삼은 명문의 보검. 검신에 다섯 꽃잎이 음각되어 있다. 개파조사 매화검존(梅花劍尊)이 설산 정상에서 홀로 만개한 매화 한 송이를 보고 깨우쳤다는 검리가, 오늘날까지 이 검신의 꽃잎 다섯 개로 남아 전해진다.',
-      desc: '한 초식이 다섯 갈래로 흩어져 피어난다. 어느 꽃잎이 진짜 검끝인지 아무도 세어내지 못한다. 매화검존의 진전을 이었다고 인정받은 자만이 이 검을 오롯이 다룰 수 있다 하여, 쥐는 것만으로 절반은 그 이름을 빌리는 셈이다.' },
-    { name: '빙혼검', hanja: '氷魂劍', rarity: 2, studyBonus: 6533, epithet: '빙혼선자의 재림',
-      lore: '만년한옥(萬年寒玉)의 심(心)을 깎아 검신에 심었다는 극음(極陰)의 보검. 전설에 따르면 만년설산에서 좌화(坐化)한 빙혼선자(氷魂仙子)의 원혼이 그 옥심에 깃들었다 하여, 이 검을 오래 지닌 자는 체온마저 서서히 식어간다는 소문이 돈다.',
-      desc: '스치기만 해도 상처가 얼어붙는다. 피 한 방울 흘리지 않고 상대를 쓰러뜨리는 서늘한 검. 칼날이 아니라 냉기로 승부를 가르는 검이라, 상대는 패배를 인정하기 전에 먼저 오한을 느낀다.' },
-    { name: '복마검', hanja: '伏魔劍', rarity: 2, studyBonus: 6800, epithet: '복마검존의 금인',
-      lore: '마(魔)를 엎드리게 한다는 뜻을 새겨, 정도(正道) 문파가 사악한 것을 벨 때만 뽑도록 봉인해 둔 보검. 칼집 자체에 진언(眞言)이 새겨져 있어, 사악한 기운을 품은 자가 억지로 뽑으려 하면 손끝이 타들어간다고 전해진다.',
-      desc: '요사한 기운 앞에서 스스로 검명(劍鳴)을 낸다. 마물에게는 닿기도 전에 이미 두려운 검. 정작 이 검을 쥔 자보다 그 울음소리를 먼저 들은 마물이 달아나는 일이 더 잦다고들 한다.' },
-    { name: '뇌정검', hanja: '雷霆劍', rarity: 2, studyBonus: 7067, epithet: '벽력검신',
-      lore: '벼락 맞은 벽조목과 운철(隕鐵)을 함께 벼려낸 검. 뇌우가 몰아치는 날이면 스스로 울린다. 대장장이는 벼락이 내리치는 순간에 맞춰 담금질을 마쳐야 한다는 옛 비전을 따랐고, 그 탓에 아홉 번의 뇌우를 기다려서야 완성했다는 이야기가 전한다.',
-      desc: '휘두를 때마다 천둥소리가 터진다. 소리가 곧 기세가 되어, 마주 선 자의 담을 먼저 부순다. 칼날이 닿기도 전에 그 울림만으로 전의를 꺾어버리니, 승부는 종종 검을 맞대기 전에 이미 끝나 있다.' },
+  /* ---------------- 공명 (실제 공부시간과 연결) ---------------- */
+  const RESONANCE_STAGES = [
+    { key: 'silent',    name: '고요',     minMinutes: 0,    fragment: 0,   core: 0,  pct: 0 },
+    { key: 'echo',      name: '잔향',     minMinutes: 120,  fragment: 10,  core: 1,  pct: 0.04 },
+    { key: 'bond',      name: '결속',     minMinutes: 480,  fragment: 30,  core: 3,  pct: 0.09 },
+    { key: 'manifest',  name: '현현',     minMinutes: 1200, fragment: 75,  core: 7,  pct: 0.16 },
+    { key: 'complete',  name: '완전공명', minMinutes: 2400, fragment: 180, core: 15, pct: 0.25 },
+  ];
+  const RESONANCE_MAX_STAGE = RESONANCE_STAGES.length - 1;
 
-    /* ---- 영검(靈劍) — 3자, 요검(妖劍) 계열 ---- */
-    { name: '호아검', hanja: '虎牙劍', rarity: 3, studyBonus: 15000, epithet: '식인호의 재래',
-      lore: '사람을 맛본 범의 어금니를 본떠 벼렸다는 요검. 쥔 자에게 짐승의 식욕(食慾)을 옮긴다. 검을 벼린 대장장이는 완성 직후 실성하여 산으로 들어갔고, 이후 그 산에서 사람을 습격하는 범이 유독 늘었다는 소문만이 남았다.',
-      desc: '한 번 베면 두 번 베고 싶어진다. 검이 배고픈 것인지 주인이 배고픈 것인지, 곧 구분할 수 없게 된다. 칼집에 꽂아 두어도 은은한 허기가 가시지 않아, 이 검의 주인들은 하나같이 성정이 사나워졌다고 전해진다.' },
-    { name: '악형검', hanja: '惡刑劍', rarity: 3, studyBonus: 16000, epithet: '형장귀검',
-      lore: '죄인을 다스리던 형장(刑場)의 피를 천 번 먹은 검. 벌하는 쾌감(快感)이 그대로 검신에 배었다. 이 검을 쥐었던 형리(刑吏)들은 하나같이 임기를 채우지 못하고 자리에서 물러났는데, 벌하는 손이 스스로 멈추지 않았기 때문이라 한다.',
-      desc: '이 검은 이기기 위해서가 아니라 벌하기 위해 움직인다. 쥔 자는 스스로를 늘 옳다고 믿게 된다. 정의와 광기의 경계가 흐려질 즈음이면, 이미 검이 주인의 손을 대신 움직이고 있다는 것을 알아챌 방법이 없다.' },
-    { name: '겁멸검', hanja: '劫滅劍', rarity: 3, studyBonus: 17000, epithet: '만겁종언',
-      lore: '겁(劫)이 다하면 만물이 스러진다는 이치를 억지로 검에 가둔 요검. 주인의 수명을 땔감으로 삼는다. 이 검을 만든 주술사는 완성과 동시에 백발이 되었다고 전해지며, 그 대가를 알고도 검을 세상에 내놓은 이유는 아무도 알지 못한다.',
-      desc: '휘두른 만큼 주인의 날이 줄어든다. 그것을 알고도 놓지 못하는 것이, 이 검의 진짜 무서움이다. 쓰면 쓸수록 강해지지만 동시에 죽음에 가까워지니, 이 검을 오래 지닌 자를 강호는 반쯤 죽은 자라 불렀다.' },
-    { name: '사흉검', hanja: '四凶劍', rarity: 3, studyBonus: 18000, epithet: '사흉재림',
-      lore: '혼돈·궁기·도올·도철 네 흉수(四凶)의 성정을 한 자루에 봉인했다는 요검의 정점. 봉인을 새긴 도사는 넷 중 하나만 잘못 깨어나도 천하가 어지러워진다며, 검을 완성한 뒤 스스로 눈과 혀를 봉했다고 전해진다.',
-      desc: '탐욕과 오만, 잔혹과 어리석음이 번갈아 주인을 부른다. 검을 이긴 자만이 검을 쓸 수 있다. 네 흉수의 목소리가 번갈아 속삭이니, 이 검의 진짜 주인은 검을 든 자가 아니라 그 속삭임에 굴복하지 않은 의지뿐이다.' },
-
-    /* ---- 신병이기(神兵利器) — 2자, 구야자·간장의 신화 ---- */
-    { name: '순구', hanja: '純鈞', rarity: 5, studyBonus: 119000, epithet: '무가지보',
-      lore: '구야자(歐冶子)가 벼린 명검. 상감(相劍)의 명인 설촉은 이 검을 보고 「값을 매길 수 없다(無價之寶)」 하였다. 월왕은 이 검 하나를 위해 성 두 곳과 명마 천 필을 내놓겠다는 제안까지 받았으나, 끝내 손에서 놓지 않았다는 이야기가 전한다.',
-      desc: '티 하나 없이 순수한 검. 화려한 기예가 없어도, 검 그 자체로 이미 완성되어 있다. 꾸밈으로 승부하는 검들 사이에서, 이 검만은 아무 수식 없이도 스스로 명검임을 증명한다.' },
-    { name: '승사', hanja: '勝邪', rarity: 5, studyBonus: 122000, epithet: '벽사검혼',
-      lore: '이름 그대로 사악함을 이긴다(勝邪)는 뜻을 얻은 구야자의 검. 완성되던 날 하늘에서 때아닌 우박이 쏟아졌는데, 사람들은 이를 사악한 것들이 검의 탄생을 두려워해 울부짖은 흔적이라 여겼다.',
-      desc: '요사한 기운을 정면으로 눌러 없앤다. 베는 것이 아니라 굴복시키는 종류의 검. 다섯 자루 구야자의 명검 중에서도 유독 사악한 것들을 가려내는 눈이 밝다 하여, 오랫동안 사문(邪門) 색출에 쓰였다.' },
-    { name: '어장', hanja: '魚腸', rarity: 5, studyBonus: 125000, epithet: '전제의 비수',
-      lore: '물고기 뱃속에 감출 만큼 짧게 벼려진 비수. 전제(專諸)가 구운 생선 속에 숨겨 오왕 요(僚)를 시해한 그 검이다. 그날 이후 오나라 왕실은 생선 요리를 통째로 상에 올리는 것을 금했다 하며, 그 금기는 수백 년이 지나도록 이어졌다는 이야기가 전한다.',
-      desc: '천하를 뒤집는 데 필요한 길이는 한 뼘이면 족했다. 짧기에 아무도 오는 것을 보지 못한다. 가장 짧은 검이 가장 큰 왕조의 운명을 갈랐다는 사실은, 강호에 병기의 크기와 위력이 무관함을 새삼 증명한다.' },
-    { name: '거궐', hanja: '巨闕', rarity: 5, studyBonus: 128000, epithet: '파성패도',
-      lore: '월왕 구천이 지녔다는 구야자의 검. 큰 궁궐(巨闕)의 문마저 갈라낸다 하여 그 이름을 얻었다. 실제로 궁궐 문을 벤 일화는 과장이라는 이들도 있으나, 이 검이 지나간 자리에 성한 병장기가 없었다는 기록만은 여러 문헌에서 공통된다.',
-      desc: '섬세함을 논하지 않는다. 가로막은 것이 무엇이든, 그저 잘려 있을 뿐이다. 기교로 맞서려는 자들은 하나같이 병기가 먼저 두 동강 나는 것을 보고서야 이 검의 이름값을 이해했다.' },
-    { name: '담로', hanja: '湛盧', rarity: 5, studyBonus: 131000, epithet: '택군이거',
-      lore: '무도한 주인을 스스로 떠나 다른 나라의 어진 임금에게 갔다는 인의(仁義)의 검. 오왕 합려가 무도해지자 하룻밤 사이에 칼집에서 자취를 감추었고, 이후 초나라의 어진 임금 궁궐에서 다시 발견되었다는 전설이 전해진다.',
-      desc: '이 검은 쥐는 자를 고른다. 자격이 없다고 판단되면, 어느 날 칼집만 남아 있다. 재물로도, 힘으로도 붙잡아 둘 수 없는 검이라, 강호인들은 이 검을 손에 넣기보다 이 검에게 선택받기를 바랐다.' },
-    { name: '태아', hanja: '太阿', rarity: 5, studyBonus: 134000, epithet: '발검파군',
-      lore: '구야자와 간장이 함께 벼린 위도(威道)의 검. 초나라가 포위되던 날, 성루에서 뽑아 든 것만으로 진나라 대군이 무너졌다 한다. 정작 칼날이 진나라 병사의 몸에 닿은 일은 단 한 번도 없었다고 하니, 그 위세만으로 전쟁의 승패를 가른 유일한 병기로 꼽힌다.',
-      desc: '휘두르지 않아도 이긴다. 검을 뽑는 소리 하나가 이미 만 명의 전의를 꺾는다. 무인들 사이에서는 이 검을 두고 「싸우기 위해서가 아니라 싸움을 끝내기 위해 존재하는 검」이라 부른다.' },
-    { name: '용천', hanja: '龍泉', rarity: 5, studyBonus: 137000, epithet: '잠룡승천',
-      lore: '본래 이름은 용연(龍淵). 훗날 임금의 휘(諱)를 피해 용천으로 고쳐 부르게 되었다. 일곱 별의 형상이 검신에 어렸다 한다. 검신을 오래 들여다본 이들은 하나같이 그 안에서 승천을 기다리는 용의 눈을 보았다고 증언하나, 정작 그 용이 승천하는 것을 본 이는 아무도 없다.',
-      desc: '들여다보면 깊은 못 속에 엎드린 용이 비친다. 물처럼 고요하다가, 한순간 승천한다. 평소엔 잔잔한 연못처럼 고요하지만, 일단 뽑히면 그 고요함이 곧 폭풍전야였음을 증명한다.' },
-    { name: '막야', hanja: '莫邪', rarity: 5, studyBonus: 140000, epithet: '자검의 넋',
-      lore: '쇠가 끝내 녹지 않자, 간장의 아내 막야가 스스로 화로에 몸을 던져 완성했다는 자검(雌劍). 완성된 검신에는 옅은 여인의 형상이 비친다는 소문이 돌았고, 강호인들은 차마 이 검을 함부로 매매하지 못했다 전해진다.',
-      desc: '사람의 목숨 하나가 검이 되었다. 이 검이 우는 날은, 짝인 웅검이 가까이 있다는 뜻이다. 짝을 찾는 검명(劍鳴)이 구슬프다 하여, 이 검을 지닌 자는 밤마다 낮게 우는 소리를 들으며 잠들었다고 한다.' },
-    { name: '간장', hanja: '干將', rarity: 5, studyBonus: 143000, epithet: '적자의 복수',
-      lore: '명장 간장이 삼 년에 걸쳐 벼려낸 웅검(雄劍). 그는 이 검을 감추고 자검만을 왕에게 바쳤다가 목숨을 잃었다. 훗날 그의 아들이 장성하여 아비의 유언대로 감춰둔 이 검을 찾아내 원수를 갚았다는 이야기가, 강호에서 가장 널리 불리는 복수담으로 남아 있다.',
-      desc: '주인의 원한을 대신 기억하는 검. 짝을 잃은 뒤로 늘 한쪽으로 조금 기울어 운다. 명검이 완성으로 끝나지 않고 대를 이어 원한을 완성했다는 점에서, 이 검은 병기이자 하나의 서사(敍事)로 통한다.' },
-
-    /* ---- 선검(仙劍) ---- */
-    { name: '천주멸신검', hanja: '天誅滅神劍', rarity: 6, studyBonus: 1070000, epithet: '신살의 뇌명',
-      lore: '하늘이 직접 내리는 벌(天誅)을 형체로 굳힌 검. 사람을 베기 위한 물건이 아니라, 신을 멸(滅神)하기 위해 벼려졌다. 이 검이 처음 뽑힌 날 하늘이 사흘간 붉게 물들었다는 기록이 전해지며, 그 뒤로는 이 검을 논할 때 「누구를 벨 것인가」가 아니라 「무엇을 벨 자격이 있는가」를 먼저 물었다.',
-      desc: '이 검 앞에서는 신위(神位)조차 필멸의 살덩이가 된다. 하늘의 이치로도 이 검날은 막지 못한다. 인세의 무공으로는 그 존재조차 가늠할 수 없어, 강호인들은 이 검을 두고 사람이 다룰 물건이 아니라고 입을 모은다.' },
-    { name: '개벽조화검', hanja: '開闢造化劍', rarity: 6, studyBonus: 1280000, epithet: '창세의 검신',
-      lore: '혼돈을 갈라 천지를 연(開闢) 그 최초의 일격이, 식지 않고 검의 형상으로 남은 것이라 전해진다. 세상에 아직 이름조차 없던 때의 검이라 하여, 이 검을 논하는 이들은 하나같이 「병기」가 아니라 「천지가 스스로를 새긴 흔적」이라 부른다.',
-      desc: '베는 것이 아니라 짓는다(造化). 이 검이 그은 자리에는 없던 하늘과 없던 땅이 생겨난다. 파괴와 창조가 한 몸이라는 이치를 증명하듯, 이 검의 흔적이 지나간 자리는 폐허가 아니라 새로운 시작으로 남는다.' },
-
-    /* ---- 웹소설 「광마회귀」 오마주 — 마교 오대명검 중 두 자루. 등급은
-       영검(rarity 3)이지만, 기존 검들의 인덱스가 밀리면 이미 접속 중인
-       유저들의 장착/도감 진행도가 엉뚱한 검을 가리키게 되므로 배열 맨
-       끝에 덧붙인다 — 등급별 그룹핑은 배열 위치가 아니라 rarity 값으로
-       이뤄지므로 게임 동작에는 차이가 없다. ---- */
-    { name: '일살', hanja: '一殺', rarity: 3, studyBonus: 17200, epithet: '일도필살',
-      lore: '마교 오대명검(五大名劍)의 하나로, 대대로 교 안에서 첫손에 꼽히는 살수(殺手)에게만 내려진다는 도(刀). 이름 그대로 「한 번에 하나를 벤다」는 뜻 외에는, 화려한 수식 하나 검신에 새기지 않았다.',
-      desc: '긴 겨룸도 화려한 초식도 필요 없다. 이 칼을 뽑아 드는 순간 이미 승부는 정해져 있다는 말이 있을 만큼, 단 한 수로 모든 것을 끝내는 것을 첫째 이치로 삼는다.' },
-    { name: '광명검', hanja: '光明劍', rarity: 3, studyBonus: 17600, epithet: '탈혼광명',
-      lore: '마교 오대명검의 하나이자 광명좌사(光明左使)의 자리를 상징하던 신물. 어느 좌사가 진정한 마도(魔道)가 무엇인지 의문을 품고 교를 등지면서, 그 주인 또한 함께 강호를 떠났다고 전해진다.',
-      desc: '검과 도로도 뚫지 못하는 몸을 내려주고, 마주한 자의 혼(魂)마저 거두어들인다는 무서운 신물. 정작 지금의 주인은 완전히 마(魔)에 잠식되는 것을 경계해, 이 검 대신 목검을 쥐고 처음부터 다시 수련한다는 이야기가 전해진다.' },
-
-    /* ---- 설화검(說話劍) — 게임의 최종 등급. 강호에 전해지는 각종 웹소설
-       속 신검들을 그대로 빌려와, 검 하나하나에 「전 주인이 어떻게 이
-       검에 이르렀는가」라는 설화(說話)를 붙인다. 검신의 색은 하나같이
-       칠흑처럼 검되, 그 위로 흰빛과 잿빛 사이의 광택이 물결치듯 흐른다
-       (.rar-6 참고) — 다마스커스 강처럼, 검이 아니라 그 자체로 하나의
-       전설임을 새긴 무늬다. ---- */
-    { name: '파천검', hanja: '破天劍', rarity: 7, studyBonus: 2333333, epithet: '천 번의 결말',
-      lore: '몇 번이고 되풀이된 세계의 끝에서, 단 한 사람만이 매번 다른 검을 들고 살아 돌아왔다는 이야기가 전해진다. 그가 마지막 회차에 이르러서야 완성했다는 이 검은, 하늘이 정해둔 결말(結末)조차 그은 자리대로 다시 쓴다 하여 파천(破天)이라는 이름을 얻었다.',
-      desc: '이 검 앞에서는 「이미 정해진 미래」라는 말이 무의미해진다. 몇 번을 다시 살아도 바뀌지 않던 결말을, 단 한 번의 발검으로 부숴버린다는 전설의 검.' },
-    { name: '진천패도', hanja: '震天覇刀', rarity: 7, studyBonus: 2466667, epithet: '패왕의 진노',
-      lore: '패도(覇道)를 논하는 자들 사이에서 정점으로 꼽히던 무인이 지녔다는 도(刀). 휘두를 때마다 뇌성이 울려 하늘을 뒤흔들었다 하여 진천(震天)이라는 이름이 붙었으며, 그가 세상을 등진 뒤로는 아무도 그 무게를 온전히 감당하지 못했다고 전해진다.',
-      desc: '패기(覇氣) 하나만으로 산을 가르고 강을 뒤집는다는 도. 정교한 초식보다 압도적인 힘으로 모든 것을 짓누르는, 패도 무공의 정수를 담은 병기다.' },
-    { name: '송문고검', hanja: '松紋古劍', rarity: 7, studyBonus: 2600000, epithet: '태극의 근본',
-      lore: '무당파 개파조사가 무당산 소나무 아래에서 도를 깨우친 뒤, 그 소나무의 결(松紋)을 그대로 검신에 새겨 벼렸다는 전설의 고검. 몇 대에 걸쳐 장문인에게만 전해지다, 어느 대에 이르러 홀연히 자취를 감췄다고 전한다.',
-      desc: '부드러움으로 강함을 이기는 태극(太極)의 이치를 그대로 담은 검. 검신을 타고 흐르는 물결무늬가 유(柔)와 강(剛)이 본디 하나임을 말없이 증명한다.' },
-    { name: '암향매화검', hanja: '暗香梅花劍', rarity: 7, studyBonus: 2733333, epithet: '그윽한 향, 소리없는 참격',
-      lore: '화산파 최고의 기재로 이름을 떨치던 매화검존 청명이 「이십사수매화검법」의 오의를 마지막으로 담아 벼렸다는 검. 마교와의 최후 결전에서 향(香)이 검보다 먼저 상대에게 닿는다 하여 스스로 암향(暗香)이라 이름 붙였다고 전해진다. 검존이 스러진 지 백 년, 화산파의 말석 십삼 대 제자로 환생한 그가 돌아올 때까지 이 검의 오의를 온전히 이은 자는 끝내 나타나지 않았다.',
-      desc: '자하신공으로 다져진 내공이 매화 향과 함께 검끝에 실린다. 향이 코끝에 닿는 순간이면 이미 승부는 끝나 있었다는 그 경지 — 백 년을 건너 돌아온 검존만이 다시 그 마지막 한 수를 온전히 펼칠 수 있다고 강호는 전한다.' },
-    { name: '창천검', hanja: '蒼天劍', rarity: 7, studyBonus: 2866667, epithet: '푸른 하늘의 검',
-      lore: '오대세가 중 검으로 이름난 남궁세가에서 대대로 가주에게만 전해진다는 보검. 창천(蒼天)이라는 이름은 이 검을 뽑아 든 가주의 검기가 맑은 날의 하늘빛을 닮았다는 데서 왔다고 전해진다.',
-      desc: '제왕검형(帝王劍形)의 정수를 담아, 한 초식 한 초식에 창공을 가르는 듯한 웅혼함이 서려 있다. 세가의 위엄이 검 한 자루에 고스란히 응축되어 있다는 평을 듣는다.' },
-    { name: '사일검', hanja: '射日劍', rarity: 7, studyBonus: 3000000, epithet: '태양을 쏘아 떨어뜨리다',
-      lore: '아홉 개의 태양을 활로 쏘아 떨어뜨렸다는 전설의 궁사(弓射)를 검으로 옮겼다는 점창파의 신검. 검 끝에서 뻗어나가는 검기가 마치 화살처럼 곧게 쏘아진다 하여 사일(射日)이라는 이름을 얻었다.',
-      desc: '곧고 빠르기가 화살과 같아, 한 번 뻗은 검기는 거두어들일 수 없다. 점창파 검법의 정화(精華)로 꼽히며, 이 검을 완성한 자는 강호에 손에 꼽힐 정도라고 전한다.' },
-    { name: '반야멸마검', hanja: '般若滅魔劍', rarity: 7, studyBonus: 3166667, epithet: '지혜로 마를 베다',
-      lore: '속세를 떠난 노승이 평생의 깨달음을 검 한 자루에 담아 냈다는 신검. 반야(般若)의 지혜로 마성(魔性)을 벤다 하여 반야멸마(般若滅魔)라는 이름이 붙었으며, 완성된 뒤로 그 노승은 검을 남기고 홀연히 열반(涅槃)에 들었다고 전해진다.',
-      desc: '칼날보다 먼저 마음을 벤다는 검. 사특한 기운을 품은 자는 이 검 앞에 서는 것만으로 스스로 무너진다고 하여, 마(魔)를 다루는 자들이 가장 두려워하는 신검으로 꼽힌다.' },
-    { name: '패왕단혼검', hanja: '霸王斷魂劍', rarity: 7, studyBonus: 3333333, epithet: '혼을 끊는 패왕의 검',
-      lore: '오대세가 중 가장 오랜 역사를 자랑하는 황보세가의 진산지보(鎭山之寶). 역대 최강으로 꼽히던 가주가 필생의 공력을 쏟아 완성했다는 이 검은, 닿는 순간 육신이 아니라 혼(魂)을 끊어놓는다 하여 단혼(斷魂)이라는 이름이 붙었다.',
-      desc: '패왕(霸王)의 이름에 걸맞게, 이 검 앞에서는 어떤 방어도 무의미하다는 말이 전해진다. 오대세가 최후의 병기이자, 강호 전체를 통틀어도 손에 꼽히는 신위(神威)를 지녔다고 알려져 있다.' },
-
-    /* ---- 용검(龍劍) — 영검과 신병이기 사이에 새로 생긴 등급. 동서남북중
-       오방(五方)을 지킨다는 오방신룡(五方神龍) 전설을 그대로 검 다섯 자루에
-       옮겨, 각 검신에 그 방위를 지키는 용의 빛깔과 숨결을 담았다. ---- */
-    { name: '청룡검', hanja: '靑龍劍', rarity: 4, studyBonus: 33333, epithet: '동녘을 여는 첫 울음',
-      lore: '동해 깊은 곳에서 천 년을 몸을 사린 끝에 여의주를 얻어 승천했다는 청룡의 발톱을 본떠 벼린 검. 검을 벼리던 날 동쪽 하늘이 사흘 밤낮 푸르게 밝았다 하여, 그 빛을 그대로 검신에 새겨 넣었다고 전해진다.',
-      desc: '검을 뽑으면 봄바람과 함께 옅은 물비린내가 실려 온다는 검. 베는 순간 검신을 타고 오르는 푸른 기운이, 마치 용이 다시 한번 승천하려는 것처럼 요동친다.' },
-    { name: '백룡검', hanja: '白龍劍', rarity: 4, studyBonus: 36667, epithet: '서쪽 하늘의 서릿발',
-      lore: '만년설산 정상에서 눈보라만 먹고 산다는 백룡의 비늘 한 조각을 심(心)으로 삼아 벼린 검. 백룡은 좀처럼 인세에 모습을 드러내지 않아, 이 비늘을 얻은 대장장이조차 끝내 그 실체를 보지 못했다고 전한다.',
-      desc: '칼날이 지나간 자리엔 옅은 서릿발이 맺힌다. 소리 없이 다가와 숨통을 끊는다는, 가을 서풍처럼 조용하고 차가운 검.' },
-    { name: '적룡검', hanja: '赤龍劍', rarity: 4, studyBonus: 40000, epithet: '타오르는 남쪽의 심장',
-      lore: '화산 심연에서 억겁의 세월 마그마를 삼키며 몸을 불린 적룡의 심장 한 조각을 벼려낸 검. 완성되던 순간 대장간 전체가 불길에 휩싸였으나, 정작 검신은 조금도 그을리지 않았다고 전해진다.',
-      desc: '쥐는 순간 손끝부터 열기가 차오른다. 벤 자리에서 불길이 솟는다는 소문 때문에, 이 검을 상대한 이들은 상처보다 화상을 먼저 두려워했다.' },
-    { name: '흑룡검', hanja: '黑龍劍', rarity: 4, studyBonus: 43333, epithet: '심연을 삼킨 어둠',
-      lore: '빛조차 닿지 않는 북해 심연에 똬리를 틀고 있다는 흑룡의 발톱으로 벼린 검. 흑룡을 본 자는 살아 돌아오지 못한다는 오랜 금기 때문에, 이 검이 어떻게 세상에 나왔는지는 아무도 알지 못한다.',
-      desc: '검신이 빛을 삼켜, 뽑아도 번뜩임이 없다. 상대는 검이 다가오는 것을 보지 못한 채, 이미 베인 뒤에야 그 존재를 깨닫는다.' },
-    { name: '황룡검', hanja: '黃龍劍', rarity: 4, studyBonus: 46667, epithet: '천하를 굽어보는 눈',
-      lore: '동서남북 네 용을 거느리고 천지의 중심에 좌정했다는 황룡의 뿔로 벼린 검. 옛 왕조들은 이 검을 지닌 자야말로 하늘의 뜻을 받든 진정한 주인이라 여겨, 서로 손에 넣으려 다투었다고 전해진다.',
-      desc: '이 검을 든 자 앞에서는 나머지 네 방위의 기운마저 숨을 죽인다. 다스리기 위한 검이지, 베기 위한 검이 아니다.' },
-
-    /* ---- 2026-09-11 추가분 — 설화검/선검/신병이기/영검에 걸친 10자루.
-       위 용검/광마회귀 오마주와 같은 이유로 반드시 배열 맨 끝에 덧붙인다
-       (등급별 그룹핑은 rarity 값으로만 이뤄지므로 안전). 아트워크가 아직
-       없는 동안엔 SWORD_ART_FILES에 빈 문자열로 채워 두며, applyCodexArt()가
-       빈 값을 만나면 <img> src를 아예 비워 깨진 이미지 아이콘 대신
-       .codex-art의 무지 배경만 보이게 한다. ---- */
-    { name: '허무검', hanja: '虛無劍', rarity: 7, studyBonus: 3466667, epithet: '존재를 지우는 공허',
-      lore: '허무를 처음 논한 어느 도인이, 존재란 실체가 아니라 기억의 총합일 뿐이라는 궤변 끝에 벼려냈다는 신검. 완성되던 날 이후로 그 도인의 이름과 얼굴을 기억하는 이가 아무도 남지 않았다 하며, 오늘날 이 검을 논하는 문헌 어디에도 창시자의 이름은 전해지지 않는다.',
-      desc: '베인 대상은 육신이 아니라 존재의 흔적을 잃는다. 상처 하나 남지 않되, 주변 사람들의 기억 속에서 피해자의 모습이 서서히 흐려져 끝내 지워진다.' },
-    { name: '역천아', hanja: '逆天牙', rarity: 6, studyBonus: 1500000, epithet: '하늘을 물어뜯은 송곳니',
-      lore: '하늘이 정한 순리를 이빨로 물어뜯어야만 진정한 자유가 있다고 믿은 반골(反骨)의 무인이 필생을 바쳐 벼렸다는 검. 완성되던 순간 그를 벼락이 내리쳤으나, 벼락은 검신에 흡수되어 흔적조차 남기지 못했다고 전해진다.',
-      desc: '하늘의 뜻을 물어뜯는 송곳니 같은 검. 사용할수록 검신은 조금씩 짧아지지만, 그 대가로 정해진 운명을 거슬러 불가능했어야 할 결과를 강제로 끌어낸다.' },
-    { name: '무성도', hanja: '無聲刀', rarity: 3, studyBonus: 18400, epithet: '비명조차 베어낸 자',
-      lore: '소리를 삼킨다는 저주받은 광산에서 캐낸 광석으로 벼려졌다는 도. 그 광산에서 일하던 광부들은 하나같이 목소리를 잃었고, 이 도를 처음 손에 쥔 자 역시 스스로 낸 첫 참격 소리조차 듣지 못했다고 전한다.',
-      desc: '휘두르는 순간 소리와 기척을 모두 없앤다. 적은 자신이 베였다는 사실조차 깨닫지 못한 채, 아무 소리 없이 쓰러진다.' },
-    { name: '망천검', hanja: '忘天劍', rarity: 5, studyBonus: 146000, epithet: '천명을 잊은 검',
-      lore: '천명(天命)을 거부하고 스스로 운명을 새로 쓰려 한 반골의 무인이 만들었다는 검. 하늘의 뜻을 따르길 거부한 죄로 그 이름마저 역사에서 지워졌으나, 그가 남긴 검만은 은밀히 전해져 내려온다.',
-      desc: '검을 뽑은 동안 인과율이 흐려져, 예정된 공격과 정해진 운명 모두를 아슬아슬하게 비껴갈 수 있다. 하늘이 다시 정조준하기 전, 그 짧은 틈이 전부다.' },
-    { name: '식월', hanja: '蝕月', rarity: 6, studyBonus: 1730000, epithet: '달을 삼킨 밤',
-      lore: '달빛이 유난히 짙던 밤, 월식(月蝕)이 지는 순간에 맞춰 담금질을 마쳤다는 검. 대장장이는 그날 이후 두 번 다시 달을 보지 못하는 몸이 되었다 하며, 검은 대신 밤마다 주인의 그림자에서 옅은 빛을 빨아들인다.',
-      desc: '달빛을 먹고 자라는 검. 밤이 깊어질수록 검신이 투명해지고, 완전히 어두워진 그믐의 순간이면 눈으로 좇을 수 없는 참격을 만들어낸다.' },
-    { name: '귀문검', hanja: '鬼門劍', rarity: 3, studyBonus: 18800, epithet: '혼을 가두는 저승문',
-      lore: '저승으로 통하는 문 앞에 버려진 원귀들의 한을 그러모아 벼렸다는 요검. 무당의 퇴마사들조차 이 검 앞에서는 경문을 외우다 말고 뒷걸음질 쳤다고 전해진다.',
-      desc: '베인 자의 혼을 저승으로 보내지 않고 검 안에 가둔다. 갇힌 혼들은 다음 희생자에게 끊임없이 속삭이며, 검을 쥔 자를 서서히 저희와 같은 것으로 물들인다.' },
-    { name: '백야참', hanja: '白夜斬', rarity: 6, studyBonus: 1970000, epithet: '끝나지 않는 새벽',
-      lore: '밤에도 해가 지지 않는다는 극야(極夜)의 땅에서 전해졌다는 신검. 어둠이 짙을수록 검신의 빛이 더 밝아진다 하여, 이 검을 지닌 자는 늘 가장 어두운 곳으로만 걸어 들어갔다고 전한다.',
-      desc: '어둠 속에서 더욱 눈부신 검. 한 번 휘두르면 주변이 대낮처럼 밝아지지만, 그 빛을 본 자는 자신이 가장 두려워하던 기억과 마주하게 된다.' },
-    { name: '무간린', hanja: '無間刃', rarity: 5, studyBonus: 149000, epithet: '틈새를 꿰뚫는 무수한 날',
-      lore: '하나의 도신처럼 보이지만 실은 머리카락보다 얇은 수천 개의 칼날이 겹겹이 짜여 이루어졌다는 신병. 벼린 장인은 완성 직전 자신의 손끝마저 그 틈에 베였다고 전해진다.',
-      desc: '하나의 검처럼 보이지만 수많은 얇은 칼날의 틈으로 이루어져, 갑옷과 결계의 틈만을 정확히 찾아 파고든다. 막았다고 여긴 순간, 이미 그 안쪽은 베여 있다.' },
-    { name: '묵천', hanja: '默天', rarity: 7, studyBonus: 3600000, epithet: '천하의 목소리를 잠재우다',
-      lore: '하늘 그 자체를 침묵시키겠다는 오만한 발원 끝에 완성되었다는 전설의 신검. 검이 처음 뽑히던 날, 반경 수십 리 안의 모든 새와 벌레가 일제히 울음을 멈췄다는 기록이 전해진다.',
-      desc: '검을 뽑는 순간 일정 범위 안의 모든 소리와 언어를 빼앗는다. 그 안에서는 주문도 명령도 비명도 소리가 되어 나오지 못한다.' },
-    { name: '역몽검', hanja: '逆夢劍', rarity: 3, studyBonus: 19200, epithet: '악몽을 현실로 베어내다',
-      lore: '꿈과 현실의 경계가 가장 얇아진다는 자시(子時) 삼경에만 벼릴 수 있다는 요검. 이 검을 완성한 대장장이는 이후 다시는 꿈을 꾸지 못하게 되었다고 전해진다.',
-      desc: '꿈과 현실의 경계를 베는 검. 적이 확신하는 현실을 잘라내고, 잠시 동안 그가 두려워하던 악몽을 현실로 끌어낸다.' },
+  /* ---------------- 일일·주간 임무 ---------------- */
+  const DAILY_QUESTS = [
+    { id: 'daily-25', minMinutes: 25,  reward: { core: 1 },       label: '25분 집중' },
+    { id: 'daily-60', minMinutes: 60,  reward: { fragment: 10 },  label: '60분 집중' },
+    { id: 'daily-120', minMinutes: 120, reward: { gold: 5000 },   label: '120분 집중' },
+  ];
+  const WEEKLY_QUESTS = [
+    { id: 'weekly-300', minMinutes: 300, reward: { core: 5, seal: 1 },  label: '주간 300분 집중' },
+    { id: 'weekly-600', minMinutes: 600, reward: { core: 10, seal: 1 }, label: '주간 600분 집중' },
+    { id: 'weekly-streak5', minDays25: 5, reward: { fragment: 100 },    label: '5일 이상 25분 집중' },
   ];
 
-  // File order deliberately matches SWORDS so existing saved sword indices stay untouched.
-  const SWORD_ART_FILES = [
-    '00-mokgeom.webp', '01-dando.webp', '02-hwando.webp', '03-cheolgeom.webp',
-    '04-yuyeopgeom.webp', '05-cheongryugeom.webp', '06-hansanggeom.webp', '07-buwolgeom.webp',
-    '08-maehwageom.webp', '09-binghongeom.webp', '10-bokmageom.webp', '11-noejeonggeom.webp',
-    '12-hoageom.webp', '13-akhyeonggeom.webp', '14-geopmyeolgeom.webp', '15-sahyunggeom.webp',
-    '16-sunggu.webp', '17-seungsa.webp', '18-eojang.webp', '19-geogweol.webp',
-    '20-damro.webp', '21-taea.webp', '22-yongcheon.webp', '23-makya.webp',
-    '24-ganjang.webp', '25-cheonjumyeolsingeom.webp', '26-gaebyeokjohwageom.webp', '27-ilsal.webp',
-    '28-gwangmyeonggeom.webp', '29-pacheongeom.webp', '30-jincheonpaedo.webp', '31-songmungogeom.webp',
-    '32-amhyangmaehwageom.webp', '33-changcheongeom.webp', '34-sailgeom.webp', '35-banyamyeolmageom.webp',
-    '36-paewangdanhongeom.webp', '37-cheongryonggeom.webp', '38-baengryonggeom.webp',
-    '39-jeongryonggeom.webp', '40-heugryonggeom.webp', '41-hwangryonggeom.webp',
-    // 2026-09-11 추가분 (42-51)
-    '42-heomugeom.webp', '43-yeokcheona.webp', '44-museongdo.webp', '45-mangcheongeom.webp',
-    '46-sigwol.webp', '47-gwimungeom.webp', '48-baengyacham.webp', '49-muganrin.webp',
-    '50-mukcheon.webp', '51-yeokmonggeom.webp',
+  /* ---------------- 별자리 인장 확정 소환 ---------------- */
+  const SEAL_REDEMPTION_TIERS = [
+    { seals: 5,  maxGradeIdx: 2, label: '잔광급~성유급 중 원하는 검' },
+    { seals: 12, maxGradeIdx: 3, label: '용맥급 이하 중 원하는 검' },
+    { seals: 25, maxGradeIdx: 4, label: '금서급 이하 중 원하는 검' },
+    { seals: 45, maxGradeIdx: 6, label: '왕관급 또는 천성급 검' },
+    { seals: 65, maxGradeIdx: 6, minGradeIdx: 6, label: '원하는 천성급 검' },
+    { seals: 80, maxGradeIdx: 7, minGradeIdx: 7, label: '원하는 원초급 검' },
   ];
-  // GitHub Pages may cache files with the same path for a while. Keep the
-  // artwork revision here so an art replacement is visible immediately.
-  const SWORD_ART_VERSION = '20260912-webp';
 
-  // Gear artwork follows the same cache-busting convention as sword art.
-  const GEAR_ART_VERSION = '20260914-webp';
+  /* ---------------- 여정 지도 — 누적 공부시간으로 지역 해금 ---------------- */
+  const JOURNEY_REGIONS = [
+    { id: 'frost-library',    name: '빙결 도서관',   minMinutes: 0 },
+    { id: 'night-alley',      name: '밤의 골목',     minMinutes: 300 },
+    { id: 'thunder-plateau',  name: '폭뢰 고원',     minMinutes: 900 },
+    { id: 'crimson-sanctum',  name: '붉은 달 성역',  minMinutes: 1800 },
+    { id: 'starsea-port',     name: '별바다 항구',   minMinutes: 3000 },
+    { id: 'dragonbone-desert',name: '용골 사막',     minMinutes: 4800 },
+    { id: 'life-cathedral',   name: '생명의 성당',   minMinutes: 7200 },
+    { id: 'fallen-star-crater',name:'추락성 분화구', minMinutes: 10000 },
+    { id: 'mirror-desert',    name: '거울 사막',     minMinutes: 14000 },
+    { id: 'sunken-kingdom',   name: '침몰 왕국',     minMinutes: 19000 },
+    { id: 'border-city',      name: '경계 도시',     minMinutes: 25000 },
+    { id: 'last-gate',        name: '마지막 문',     minMinutes: 32000 },
+  ];
+  // 지역 해금 자체는 분당 성휘 수입을 올리지 않는다 — 해금 시 받는 1회성
+  // 보상만 있다 (스펙에 정확한 수치가 없어 완만한 기본값으로 채움).
+  const JOURNEY_REGION_REWARD_CORE = 1;
 
-  // A newly added sword/gear item can ship without artwork yet -- the art
-  // files array stays an empty string at that index until art is ready.
-  // Clearing the <img> src (not just leaving it unset to '') avoids the
-  // well-known bug where an empty src resolves to the current page URL
-  // and re-requests it.
-  function applyCodexArt(imgEl, artFiles, basePath, version, index, altWhenFound) {
-    const file = artFiles[index];
-    if (file) {
-      imgEl.src = `${basePath}/${file}?v=${version}`;
-      imgEl.alt = altWhenFound;
+  /* 강화 단계를 "+N" 뱃지로 표시 — 검 이름 옆 어디서나 재사용. */
+  function setEnhanceBadge(el, level) {
+    if (level > 0) { el.textContent = `+${level}`; el.hidden = false; }
+    else el.hidden = true;
+  }
+
+  /* ---------------- 검 이미지 (준비 중 플레이스홀더) ----------------
+     image가 비어 있으면 <img>를 완전히 숨기고 고정 크기 플레이스홀더
+     박스를 보여준다 — src=''로 두면 브라우저가 깨진 이미지 아이콘을
+     그리거나 현재 페이지를 재요청하므로, hidden 토글로만 전환한다. */
+  function applySwordArt(imgEl, placeholderEl, sword) {
+    if (sword && sword.image) {
+      imgEl.src = sword.image;
+      imgEl.alt = sword.imageAlt || sword.name;
+      imgEl.hidden = false;
+      if (placeholderEl) placeholderEl.hidden = true;
     } else {
+      imgEl.hidden = true;
       imgEl.removeAttribute('src');
       imgEl.alt = '';
+      if (placeholderEl) {
+        placeholderEl.hidden = false;
+        placeholderEl.textContent = (sword && sword.imageAlt) || '이미지 준비 중';
+      }
     }
   }
 
-  /* ---------------- 강화 (검 개별 강화) ----------------
-     Drawing a sword you've already discovered gives 별의 조각 instead of
-     nothing — the amount scales with the duplicate's own rarity. Spend
-     them in the 강화 tab to push an individually-owned sword's star level
-     up, 1★ at a time, capped at 10★, and the odds get worse the higher
-     the star level already is — a failed attempt just burns the
-     fragments spent, the star level never drops. Each successful step
-     adds its own income bonus (stacking multiplicatively with nothing
-     else): a flat +3% for 1-5★, then a bigger jump per star from 6★
-     onward (+4/6/8/10/12%) so pushing into the top stars is a genuinely
-     stronger payoff, not just a flatter continuation of the early ones.
-
-     11★/12★ are a separate, much higher-stakes "돌파강화" tier past the
-     safe 10★ cap: every attempt is a flat 50/50, and failure doesn't just
-     burn the fragments — it destroys the whole run, resetting the sword
-     straight back to 0★. The income payoff (+30%p each) is sized to
-     match that risk. */
-  const STAR_FRAGMENTS_BY_RARITY = [1, 2, 5, 12, 22, 40, 150, 500];
-  const ENHANCE_SAFE_MAX_STARS = 10;
-  const ENHANCE_MAX_STARS = 12;
-  // index = star level being reached (0 -> 1★, ... 11 -> 12★).
-  const ENHANCE_BONUS_BY_STAR = [0.03, 0.03, 0.03, 0.03, 0.03, 0.04, 0.06, 0.08, 0.10, 0.12, 0.30, 0.30];
-  // index = current star count (0-12) -> total multiplier bonus at that level.
-  const ENHANCE_TOTAL_BONUS_BY_STAR = ENHANCE_BONUS_BY_STAR.reduce(
-    (acc, bonus) => [...acc, acc[acc.length - 1] + bonus],
-    [0],
-  );
-  // index = current star level before the attempt (0 -> level 1, ... 9 -> level 10).
-  // 범품~영검 (rarity 0-3) all share one flat, near-free cost table -- their
-  // income is tiny, so the 별의 조각 cost has to stay tiny too, or the
-  // investment dwarfs the payoff ("배보다 배꼽이 커짐"). 용검/신병이기/선검
-  // (rarity 4-6) keep the original scaled formula, since they're genuine
-  // end-game gear where a bigger investment is expected.
-  const ENHANCE_LOW_TIER_COST_BY_LEVEL = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2];
-  const ENHANCE_COST_BY_LEVEL = [4, 7, 11, 17, 26, 40, 62, 100, 160, 260];
-  const ENHANCE_CHANCE_BY_LEVEL = [95, 90, 85, 78, 70, 60, 48, 35, 22, 12];
-  // 용검(4)은 1.5 -- 2였을 때는 별의 조각 수급(STAR_FRAGMENTS_BY_RARITY 22)
-  // 대비 비용 배율이 신병이기(수급 40, 배율 3)보다도 나쁜 조각당 효율을
-  // 내고 있었다 (11.0 vs 13.3) -- 용검이 더 쉬운 입문 등급인데도 더 손해인
-  // 구조였던 셈. 1.5로 낮추면 14.7로, 한 단계 위인 신병이기보다 살짝
-  // 나은 조각 효율이 되어 등급이 오를수록 조각당 효율이 나빠지는
-  // 자연스러운 순서로 돌아온다.
-  const ENHANCE_RARITY_COST_MULT = [1, 1, 1, 1, 1.5, 3, 4.5, 6.75]; // 0-3 unused, see enhanceCostFor
-  const ENHANCE_RARITY_CHANCE_MULT = [1, 0.96, 0.9, 0.82, 0.78, 0.7, 0.55, 0.43];
-  const ENHANCE_MIN_CHANCE = 5;
-  // 11★/12★ cost, by rarity — flat regardless of current star level, and
-  // steep enough that even the 별의 조각 income from 설화검 duplicates
-  // makes this a real grind, matching the size of the risk.
-  const ENHANCE_OVERCAP_COST_BY_RARITY = [50, 50, 50, 50, 100, 200, 400, 1000];
-  const ENHANCE_OVERCAP_CHANCE = 50;
-
-  // Grade first, studyBonus as the tiebreaker within a grade — used instead
-  // of raw array index to decide "is this sword actually stronger", since
-  // grades appended later (용검, 설화검) don't sit at array positions that
-  // match their power (see the SWORDS comment above).
-  function swordPower(idx) {
-    const s = SWORDS[idx];
-    return s.rarity * 1e9 + s.studyBonus;
+  /* ---------------- 강화 (+0 ~ +10, 실패 없음) ---------------- */
+  function enhanceLevelOf(swordId) { return swordEnhanceLv[swordId] || 0; }
+  function enhancePctFor(swordId) {
+    const lv = enhanceLevelOf(swordId);
+    return lv > 0 ? ENHANCE_LEVELS[lv - 1].pct : 0;
+  }
+  function enhanceNextStep(swordId) {
+    const lv = enhanceLevelOf(swordId);
+    return lv < ENHANCE_MAX_LEVEL ? ENHANCE_LEVELS[lv] : null;
+  }
+  function canEnhance(swordId) {
+    const next = enhanceNextStep(swordId);
+    return !!next && gold >= next.gold && resonanceFragments >= next.fragment;
+  }
+  function performEnhance(swordId) {
+    const next = enhanceNextStep(swordId);
+    if (!next || !canEnhance(swordId)) return false;
+    gold -= next.gold;
+    resonanceFragments -= next.fragment;
+    swordEnhanceLv[swordId] = next.level;
+    queueSave();
+    return true;
   }
 
-  // Same as swordPower(), but tolerant of a sword_level value that isn't a
-  // valid SWORDS[] index -- leaderboard rows come from other users' clients
-  // (see isSafeAvatarUrl above for why those fields aren't fully trusted),
-  // so an out-of-range value there should sink to the bottom, not throw.
-  function swordPowerSafe(idx) {
-    return SWORDS[idx] ? swordPower(idx) : -1;
+  /* ---------------- 공명 (실제 공부시간과 연결) ---------------- */
+  function resonanceStageIndexFor(swordId) { return swordResonanceStage[swordId] || 0; }
+  function resonanceMinutesFor(swordId) { return Math.floor(swordResonanceMin[swordId] || 0); }
+  function resonancePctFor(swordId) { return RESONANCE_STAGES[resonanceStageIndexFor(swordId)].pct; }
+  function resonanceNextStage(swordId) {
+    const cur = resonanceStageIndexFor(swordId);
+    return cur < RESONANCE_MAX_STAGE ? RESONANCE_STAGES[cur + 1] : null;
+  }
+  // 시간 조건은 채웠지만 아직 파편·성핵을 지불해 확정 짓지 않은 상태.
+  function resonanceTimeReady(swordId) {
+    const next = resonanceNextStage(swordId);
+    return !!next && resonanceMinutesFor(swordId) >= next.minMinutes;
+  }
+  function canResonate(swordId) {
+    const next = resonanceNextStage(swordId);
+    if (!next || !resonanceTimeReady(swordId)) return false;
+    return starCores >= next.core && resonanceFragments >= next.fragment;
+  }
+  function performResonance(swordId) {
+    const next = resonanceNextStage(swordId);
+    if (!canResonate(swordId)) return false;
+    starCores -= next.core;
+    resonanceFragments -= next.fragment;
+    swordResonanceStage[swordId] = resonanceStageIndexFor(swordId) + 1;
+    queueSave();
+    return true;
+  }
+  // 실제 측정된 공부 분(分)을 "그 시간 동안 장착하고 있던 검"에 누적한다 —
+  // finalizeSession()에서만 호출되므로 타이머가 실제로 흐른 시간만 쌓인다.
+  function addResonanceMinutes(swordId, minutes) {
+    if (!minutes || swordId === PRACTICE_SWORD.id) return;
+    swordResonanceMin[swordId] = resonanceMinutesFor(swordId) + minutes;
   }
 
-  function enhanceCostFor(swordIdx, stars) {
-    const rarity = SWORDS[swordIdx].rarity;
-    if (stars >= ENHANCE_SAFE_MAX_STARS) return ENHANCE_OVERCAP_COST_BY_RARITY[rarity];
-    if (rarity <= 3) return ENHANCE_LOW_TIER_COST_BY_LEVEL[stars];
-    return Math.round(ENHANCE_COST_BY_LEVEL[stars] * ENHANCE_RARITY_COST_MULT[rarity]);
+  /* ---------------- 분당 성휘 수입 ---------------- */
+  function swordIncomeAt(swordId) {
+    const sword = nebelacSwordById(swordId);
+    if (!sword) return 0;
+    return Math.round(sword.baseIncome * (1 + enhancePctFor(swordId)) * (1 + resonancePctFor(swordId)));
   }
-  function enhanceChanceFor(swordIdx, stars) {
-    if (stars >= ENHANCE_SAFE_MAX_STARS) return ENHANCE_OVERCAP_CHANCE;
-    const raw = ENHANCE_CHANCE_BY_LEVEL[stars] * ENHANCE_RARITY_CHANCE_MULT[SWORDS[swordIdx].rarity];
-    return Math.max(ENHANCE_MIN_CHANCE, Math.round(raw));
+  function currentStudyIncome() {
+    return BASE_INCOME_PER_MIN + swordIncomeAt(equippedSwordId);
   }
-  // Past the safe cap, a failed attempt doesn't just waste the fragments —
-  // it destroys the run outright, straight back to 0★.
-  function enhanceIsOvercap(stars) { return stars >= ENHANCE_SAFE_MAX_STARS; }
+  function renderStudyHint() {
+    const income = currentStudyIncome();
+    timerHint.innerHTML = `1분마다 ${income.toLocaleString('ko-KR')} 성휘, 1시간이면 ${(income * 60).toLocaleString('ko-KR')} 성휘를 획득해요`;
+  }
 
-  const BASE_STUDY_MIN = 250;
+  /* ---------------- 소환 (천명 게이지 보장) ---------------- */
+  function rollGradeIdxPlain() {
+    let roll = Math.random() * 100;
+    for (let i = 0; i < SWORD_GRADES.length; i++) {
+      if (roll < SWORD_GRADES[i].chance) return i;
+      roll -= SWORD_GRADES[i].chance;
+    }
+    return SWORD_GRADES.length - 1;
+  }
+  // fromIdx 이상의 등급 중, 그 등급들의 원래 확률 비율 그대로 하나를 고른다.
+  function rollGradeIdxFrom(fromIdx) {
+    const slice = SWORD_GRADES.slice(fromIdx);
+    const total = slice.reduce((s, g) => s + g.chance, 0);
+    let roll = Math.random() * total;
+    for (let i = 0; i < slice.length; i++) {
+      if (roll < slice[i].chance) return fromIdx + i;
+      roll -= slice[i].chance;
+    }
+    return SWORD_GRADES.length - 1;
+  }
+  function drawOneGradeIdx() {
+    let forcedFrom = -1;
+    for (const rule of PITY_RULES) {
+      if ((pityStreak[rule.key] || 0) + 1 >= rule.streak) {
+        if (rule.minGradeIdx > forcedFrom) forcedFrom = rule.minGradeIdx;
+      }
+    }
+    const gradeIdx = forcedFrom >= 0 ? rollGradeIdxFrom(forcedFrom) : rollGradeIdxPlain();
+    for (const rule of PITY_RULES) {
+      pityStreak[rule.key] = gradeIdx >= rule.minGradeIdx ? 0 : (pityStreak[rule.key] || 0) + 1;
+    }
+    return gradeIdx;
+  }
+  function rollSwordFromGrade(gradeIdx) {
+    const pool = NEBELAC_SWORDS.filter((s) => s.grade === SWORD_GRADES[gradeIdx].key);
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+  function performSummon(count) {
+    const cost = count === 10 ? SUMMON_COST_TEN : SUMMON_COST_SINGLE;
+    if (gold < cost) {
+      showToast(`💸 성휘가 부족해요. ${count}회 소환에 ${cost.toLocaleString('ko-KR')} 성휘가 필요합니다.`);
+      return;
+    }
+    gold -= cost;
+    totalSummons += count;
+
+    const results = [];
+    let fragmentsGained = 0;
+    let newlyDiscovered = 0;
+    for (let i = 0; i < count; i++) {
+      const gradeIdx = drawOneGradeIdx();
+      const sword = rollSwordFromGrade(gradeIdx);
+      const isNew = !discoveredSwordIds.includes(sword.id);
+      if (isNew) { discoveredSwordIds.push(sword.id); newlyDiscovered++; }
+      else fragmentsGained += DUPLICATE_FRAGMENTS_BY_GRADE[gradeIdx];
+      results.push({ sword, gradeIdx, isNew });
+    }
+    resonanceFragments += fragmentsGained;
+
+    queueSave();
+    renderGold();
+    renderSummonResults(results);
+    renderHallPanel();
+    renderCodex();
+    renderJourneyPanel();
+
+    const best = results.reduce((a, b) => (b.gradeIdx > a.gradeIdx ? b : a));
+    const fragText = fragmentsGained > 0 ? ` (✳ 공명 파편 +${fragmentsGained.toLocaleString('ko-KR')})` : '';
+    if (newlyDiscovered > 0) {
+      showToast(`⚔️ [${SWORD_GRADES[best.gradeIdx].name}] ${best.sword.name} 등 새로운 검 ${newlyDiscovered}자루를 도감에 기록했습니다.${fragText}`);
+    } else {
+      showToast(`✳ 이미 가진 검이라 공명 파편 ${fragmentsGained.toLocaleString('ko-KR')}개로 바뀌었어요.`);
+    }
+  }
+
+  function renderSummonResults(results) {
+    summonResults.innerHTML = '';
+    summonResultsEmpty.style.display = results.length ? 'none' : 'block';
+    results.forEach((r, i) => {
+      const node = swordResultTpl.content.cloneNode(true);
+      const card = node.querySelector('.sword-result');
+      card.classList.add(`rar-${r.gradeIdx}`);
+      card.style.animationDelay = `${Math.min(i, 20) * 35}ms`;
+      node.querySelector('.sword-result-grade').textContent = SWORD_GRADES[r.gradeIdx].name;
+      node.querySelector('.sword-result-name').textContent = r.sword.name;
+      node.querySelector('.sword-result-hanja').textContent = SWORD_GRADES[r.gradeIdx].hanja;
+      const tag = node.querySelector('.sword-result-tag');
+      if (r.isNew) tag.textContent = 'NEW';
+      else tag.remove();
+      summonResults.appendChild(node);
+    });
+  }
+
+  function equipSword(id) {
+    if (id === equippedSwordId || !discoveredSwordIds.includes(id)) return;
+    equippedSwordId = id;
+    queueSave();
+    renderHallPanel();
+    renderCodex();
+    renderGrowthPanel();
+    renderStudyHint();
+    renderHeader();
+    renderMainPanel();
+    const sword = nebelacSwordById(id) || PRACTICE_SWORD;
+    showToast(`⚔️ ${sword.name}을(를) 장착했습니다.`);
+  }
+
+  /* ---------------- 별자리 인장 확정 소환 ---------------- */
+  function eligibleSealSwords(tier) {
+    const lo = tier.minGradeIdx ?? 0;
+    return NEBELAC_SWORDS.filter((s) => { const g = gradeIdxOf(s); return g >= lo && g <= tier.maxGradeIdx; });
+  }
+  function redeemSeal(tierIdx, swordId) {
+    const tier = SEAL_REDEMPTION_TIERS[tierIdx];
+    const sword = nebelacSwordById(swordId);
+    if (!tier || !sword || constellationSeals < tier.seals) return null;
+    const g = gradeIdxOf(sword);
+    const lo = tier.minGradeIdx ?? 0;
+    if (g < lo || g > tier.maxGradeIdx) return null;
+
+    constellationSeals -= tier.seals;
+    const isNew = !discoveredSwordIds.includes(swordId);
+    if (isNew) discoveredSwordIds.push(swordId);
+    else resonanceFragments += DUPLICATE_FRAGMENTS_BY_GRADE[g];
+    queueSave();
+    return { isNew, sword };
+  }
+
+  /* ---------------- 도감 (검, 등급 순) ---------------- */
+  let selectedCodexId = null;
+  function renderCodex() {
+    codexGrid.innerHTML = '';
+    codexProgress.textContent = `${nebelacDiscoveredCount()} / ${NEBELAC_SWORDS.length}`;
+
+    const sorted = NEBELAC_SWORDS.slice().sort((a, b) => nebelacSwordPower(a) - nebelacSwordPower(b));
+    sorted.forEach((s) => {
+      const found = discoveredSwordIds.includes(s.id);
+      const gradeIdx = gradeIdxOf(s);
+      const node = codexCardTpl.content.cloneNode(true);
+      const card = node.querySelector('.codex-card');
+      card.dataset.swordId = s.id;
+      card.classList.add(`rar-${gradeIdx}`);
+      if (!found) card.classList.add('locked');
+      if (s.id === equippedSwordId) card.classList.add('equipped');
+
+      const art = node.querySelector('.codex-art-img');
+      const placeholder = node.querySelector('.codex-art-placeholder');
+      applySwordArt(art, placeholder, found ? s : null);
+
+      if (found) {
+        card.tabIndex = 0;
+        card.setAttribute('role', 'button');
+        card.addEventListener('click', () => selectCodexItem(s.id));
+        card.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectCodexItem(s.id); }
+        });
+      }
+
+      node.querySelector('.codex-grade').textContent = found ? SWORD_GRADES[gradeIdx].name : '???';
+      node.querySelector('.codex-name-text').textContent = found ? s.name : '???';
+      const enhanceBadgeEl = node.querySelector('.codex-enhance-badge');
+      setEnhanceBadge(enhanceBadgeEl, found ? enhanceLevelOf(s.id) : 0);
+      codexGrid.appendChild(node);
+    });
+
+    if (selectedCodexId !== null && discoveredSwordIds.includes(selectedCodexId)) selectCodexItem(selectedCodexId);
+    else closeCodexShowcase();
+  }
+  function selectCodexItem(id) {
+    const s = nebelacSwordById(id);
+    if (!s || !discoveredSwordIds.includes(id)) return;
+    selectedCodexId = id;
+    const gradeIdx = gradeIdxOf(s);
+    codexShowcase.hidden = false;
+    codexShowcase.className = `codex-showcase rar-${gradeIdx}`;
+    applySwordArt(codexShowcaseImg, codexShowcasePlaceholder, s);
+    codexShowcaseGrade.textContent = SWORD_GRADES[gradeIdx].name;
+    codexShowcaseName.textContent = s.name;
+    codexShowcaseTitle.textContent = `《${s.title}》`;
+    setEnhanceBadge(codexShowcaseEnhance, enhanceLevelOf(id));
+    codexShowcaseResonance.textContent = RESONANCE_STAGES[resonanceStageIndexFor(id)].name;
+    codexShowcaseLore.textContent = s.lore;
+    codexShowcaseDesc.textContent = s.desc;
+    codexShowcaseIncome.textContent = `분당 +${swordIncomeAt(id).toLocaleString('ko-KR')} 성휘`;
+
+    codexGrid.querySelectorAll('.codex-card').forEach((card) => {
+      card.classList.toggle('selected', card.dataset.swordId === id);
+    });
+  }
+  function closeCodexShowcase() {
+    selectedCodexId = null;
+    codexShowcase.hidden = true;
+    codexGrid.querySelectorAll('.codex-card.selected').forEach((c) => c.classList.remove('selected'));
+  }
+
+  /* ---------------- 여정: 일일·주간 임무 ---------------- */
+  function weekKeyFor(dateKey) {
+    const [y, m, d] = dateKey.split('-').map(Number);
+    const dt = new Date(y, m - 1, d);
+    const dow = dt.getDay();
+    dt.setDate(dt.getDate() + (dow === 0 ? -6 : 1 - dow));
+    return toKey(dt);
+  }
+  function weekDatesFor(weekKey) {
+    const dates = [];
+    for (let i = 0; i < 7; i++) dates.push(addDays(weekKey, i));
+    return dates;
+  }
+  function sumStudyMinutesForWeek(weekKey) {
+    return Math.floor(weekDatesFor(weekKey).reduce((s, dk) => s + sumStudySecondsForDate(dk), 0) / 60);
+  }
+  function daysWithMinStudyInWeek(weekKey, minMinutes) {
+    return weekDatesFor(weekKey).filter((dk) => Math.floor(sumStudySecondsForDate(dk) / 60) >= minMinutes).length;
+  }
+  function applyReward(reward) {
+    if (reward.gold) gold += reward.gold;
+    if (reward.core) starCores += reward.core;
+    if (reward.fragment) resonanceFragments += reward.fragment;
+    if (reward.seal) constellationSeals += reward.seal;
+  }
+  function rewardLabel(reward) {
+    const parts = [];
+    if (reward.gold) parts.push(`성휘 ${reward.gold.toLocaleString('ko-KR')}`);
+    if (reward.core) parts.push(`성핵 ${reward.core}`);
+    if (reward.fragment) parts.push(`공명 파편 ${reward.fragment}`);
+    if (reward.seal) parts.push(`별자리 인장 ${reward.seal}`);
+    return parts.join(' · ');
+  }
+  function todayStudyMinutes() { return Math.floor(sumStudySecondsForDate(studyDayKey()) / 60); }
+  function claimDailyQuest(quest) {
+    const dateKey = studyDayKey();
+    const already = (claimedDailyQuests[dateKey] || []).includes(quest.id);
+    if (already || todayStudyMinutes() < quest.minMinutes) return false;
+    claimedDailyQuests[dateKey] = [...(claimedDailyQuests[dateKey] || []), quest.id];
+    applyReward(quest.reward);
+    queueSave();
+    return true;
+  }
+  function claimWeeklyQuest(quest) {
+    const weekKey = weekKeyFor(todayKey());
+    const already = (claimedWeeklyQuests[weekKey] || []).includes(quest.id);
+    if (already) return false;
+    const eligible = quest.minMinutes
+      ? sumStudyMinutesForWeek(weekKey) >= quest.minMinutes
+      : daysWithMinStudyInWeek(weekKey, 25) >= quest.minDays25;
+    if (!eligible) return false;
+    claimedWeeklyQuests[weekKey] = [...(claimedWeeklyQuests[weekKey] || []), quest.id];
+    applyReward(quest.reward);
+    queueSave();
+    return true;
+  }
+
+  /* ---------------- 여정: 지역 해금 ---------------- */
+  function cumulativeStudyMinutes() { return Math.floor(sumStudySecondsAllTime() / 60); }
+  function isRegionUnlocked(region) { return cumulativeStudyMinutes() >= region.minMinutes; }
+  function claimRegionReward(region) {
+    if (!isRegionUnlocked(region) || claimedRegions.includes(region.id)) return false;
+    claimedRegions.push(region.id);
+    if (region.minMinutes > 0) starCores += JOURNEY_REGION_REWARD_CORE;
+    queueSave();
+    return true;
+  }
+
+  /* ---------------- 업적 (공부시간 · 검 수집 · 공명 · 여정 완주) ---------------- */
+  const ACHIEVEMENTS = [
+    { id: 'study-10h', label: '총 10시간 공부 달성', check: () => cumulativeStudyMinutes() >= 600 },
+    { id: 'study-50h', label: '총 50시간 공부 달성', check: () => cumulativeStudyMinutes() >= 3000 },
+    { id: 'study-100h', label: '총 100시간 공부 달성', check: () => cumulativeStudyMinutes() >= 6000 },
+    { id: 'collect-5', label: '검 5종 수집', check: () => nebelacDiscoveredCount() >= 5 },
+    { id: 'collect-15', label: '검 15종 수집', check: () => nebelacDiscoveredCount() >= 15 },
+    { id: 'collect-all', label: '검 22종 전부 수집', check: () => nebelacDiscoveredCount() >= NEBELAC_SWORDS.length },
+    { id: 'resonance-complete', label: '검 1자루 완전공명 달성', check: () => maxResonanceStage() >= RESONANCE_MAX_STAGE },
+    { id: 'journey-complete', label: '여정 완주 (모든 지역 해금)', check: () => isRegionUnlocked(JOURNEY_REGIONS[JOURNEY_REGIONS.length - 1]) },
+  ];
+  function renderAchievementsInto(container) {
+    if (!container) return;
+    container.innerHTML = '';
+    ACHIEVEMENTS.forEach((a) => {
+      const done = a.check();
+      const li = document.createElement('li');
+      li.className = `achievement-item${done ? ' done' : ''}`;
+      li.innerHTML = `<span class="achievement-icon" aria-hidden="true">${done ? '✅' : '🔒'}</span><span class="achievement-label">${a.label}</span>`;
+      container.appendChild(li);
+    });
+  }
+
+  /* ---------------- UI: 메인 탭의 검 상태 카드 ---------------- */
+  const mainTodayStudy = el('mainTodayStudy');
+  const mainSwordGrade = el('mainSwordGrade');
+  const mainSwordName = el('mainSwordName');
+  const mainSwordImg = el('mainSwordImg');
+  const mainSwordPlaceholder = el('mainSwordPlaceholder');
+  const mainSwordEnhanceBadge = el('mainSwordEnhanceBadge');
+  const mainSwordResonanceBadge = el('mainSwordResonanceBadge');
+  const mainSwordIncome = el('mainSwordIncome');
+
+  function renderMainPanel() {
+    if (mainTodayStudy) mainTodayStudy.textContent = formatDurationLabel(sumStudySecondsForDate(studyDayKey()));
+    const sword = nebelacSwordById(equippedSwordId) || PRACTICE_SWORD;
+    const gradeIdx = gradeIdxOf(sword);
+    if (mainSwordGrade) {
+      mainSwordGrade.textContent = gradeIdx >= 0 ? SWORD_GRADES[gradeIdx].name : '시작 검';
+      mainSwordGrade.className = `sword-grade rar-chip rar-${Math.max(gradeIdx, 0)}`;
+    }
+    if (mainSwordName) mainSwordName.textContent = sword.name;
+    if (mainSwordImg) applySwordArt(mainSwordImg, mainSwordPlaceholder, sword);
+    if (mainSwordEnhanceBadge) setEnhanceBadge(mainSwordEnhanceBadge, enhanceLevelOf(equippedSwordId));
+    if (mainSwordResonanceBadge) {
+      const stage = RESONANCE_STAGES[resonanceStageIndexFor(equippedSwordId)];
+      mainSwordResonanceBadge.textContent = stage.key === 'silent' ? '' : stage.name;
+      mainSwordResonanceBadge.hidden = stage.key === 'silent';
+    }
+    if (mainSwordIncome) mainSwordIncome.textContent = `분당 +${currentStudyIncome().toLocaleString('ko-KR')} 성휘`;
+  }
+
+  /* ---------------- UI: 검의 전당 (소환 + 보유 검 + 천명 게이지) ---------------- */
+  function renderHallPanel() {
+    const sword = nebelacSwordById(equippedSwordId) || PRACTICE_SWORD;
+    const gradeIdx = gradeIdxOf(sword);
+    hallEquippedGrade.textContent = gradeIdx >= 0 ? SWORD_GRADES[gradeIdx].name : '시작 검';
+    hallEquippedGrade.className = `sword-grade rar-chip rar-${Math.max(gradeIdx, 0)}`;
+    hallEquippedName.textContent = sword.name;
+    hallEquippedTitle.textContent = `《${sword.title}》`;
+    applySwordArt(hallEquippedImg, hallEquippedPlaceholder, sword);
+    hallEquippedLore.textContent = sword.lore;
+    hallEquippedDesc.textContent = sword.desc;
+    hallEquippedIncome.textContent = `분당 +${swordIncomeAt(equippedSwordId).toLocaleString('ko-KR')} 성휘`;
+    setEnhanceBadge(hallEquippedEnhanceBadge, enhanceLevelOf(equippedSwordId));
+    const stage = RESONANCE_STAGES[resonanceStageIndexFor(equippedSwordId)];
+    hallEquippedResonanceBadge.textContent = stage.key === 'silent' ? '' : stage.name;
+    hallEquippedResonanceBadge.hidden = stage.key === 'silent';
+
+    summonCostSingle.textContent = `${SUMMON_COST_SINGLE.toLocaleString('ko-KR')} 성휘`;
+    summonCostTen.textContent = `${SUMMON_COST_TEN.toLocaleString('ko-KR')} 성휘`;
+    summonBtn1.disabled = gold < SUMMON_COST_SINGLE;
+    summonBtn10.disabled = gold < SUMMON_COST_TEN;
+
+    gradeChanceTable.innerHTML = '';
+    SWORD_GRADES.forEach((g, i) => {
+      const count = NEBELAC_SWORDS.filter((s) => s.grade === g.key).length;
+      const li = document.createElement('li');
+      li.className = `rarity-row rar-${i}`;
+      li.innerHTML = `<span class="rarity-name">${g.name}<small>${g.hanja}</small></span><span class="rarity-chance">${g.chance}%</span><span class="rarity-count">${count}종</span>`;
+      gradeChanceTable.appendChild(li);
+    });
+
+    pityList.innerHTML = '';
+    PITY_RULES.forEach((rule) => {
+      const cur = pityStreak[rule.key] || 0;
+      const li = document.createElement('li');
+      li.className = 'pity-row';
+      li.innerHTML = `<span class="pity-label">${SWORD_GRADES[rule.minGradeIdx].name} 이상</span><span class="pity-value">${cur} / ${rule.streak}</span>`;
+      pityList.appendChild(li);
+    });
+
+    renderHallOwnedList();
+
+    sealBalance.textContent = `${constellationSeals.toLocaleString('ko-KR')}개`;
+    sealRedeemList.innerHTML = '';
+    SEAL_REDEMPTION_TIERS.forEach((tier, tierIdx) => {
+      const li = document.createElement('li');
+      li.className = 'seal-tier-row';
+      const canAfford = constellationSeals >= tier.seals;
+      li.innerHTML = `
+        <div class="seal-tier-info">
+          <span class="seal-tier-cost">${tier.seals}개</span>
+          <span class="seal-tier-label">${tier.label}</span>
+        </div>
+        <button type="button" class="chip-btn seal-tier-btn" ${canAfford ? '' : 'disabled'}>선택하기</button>
+        <ul class="seal-tier-picker" hidden></ul>`;
+      const btn = li.querySelector('.seal-tier-btn');
+      const picker = li.querySelector('.seal-tier-picker');
+      btn.addEventListener('click', () => {
+        const isOpen = !picker.hidden;
+        sealRedeemList.querySelectorAll('.seal-tier-picker').forEach((p) => { p.hidden = true; p.innerHTML = ''; });
+        if (isOpen) return;
+        eligibleSealSwords(tier).forEach((s) => {
+          const g = gradeIdxOf(s);
+          const item = document.createElement('li');
+          item.className = `seal-pick-item rar-${g}`;
+          item.innerHTML = `<span class="seal-pick-grade rar-chip rar-${g}">${SWORD_GRADES[g].name}</span><span class="seal-pick-name">${s.name}</span>`;
+          item.addEventListener('click', () => {
+            const result = redeemSeal(tierIdx, s.id);
+            if (!result) return;
+            renderHallPanel();
+            renderCodex();
+            const msg = result.isNew
+              ? `⭐ ${result.sword.name}을(를) 확정 획득했습니다!`
+              : `⭐ 이미 가진 검이라 공명 파편으로 바뀌었어요.`;
+            showToast(msg);
+          });
+          picker.appendChild(item);
+        });
+        picker.hidden = false;
+      });
+      sealRedeemList.appendChild(li);
+    });
+  }
+
+  function renderHallOwnedList() {
+    const equippedIncome = swordIncomeAt(equippedSwordId);
+    const owned = discoveredSwordIds
+      .map((id) => nebelacSwordById(id) || PRACTICE_SWORD)
+      .sort((a, b) => nebelacSwordPower(b) - nebelacSwordPower(a));
+
+    hallOwnedCount.textContent = `${nebelacDiscoveredCount()} / ${NEBELAC_SWORDS.length}`;
+    hallOwnedEmpty.style.display = owned.length ? 'none' : 'block';
+    hallOwnedList.innerHTML = '';
+    owned.forEach((s) => {
+      const gradeIdx = gradeIdxOf(s);
+      const equipped = s.id === equippedSwordId;
+      const income = swordIncomeAt(s.id);
+      const recommended = !equipped && income > equippedIncome;
+      const item = document.createElement('li');
+      item.className = `owned-sword-item rar-${Math.max(gradeIdx, 0)}${equipped ? ' equipped' : ''}`;
+      item.innerHTML = `
+        <span class="owned-sword-grade rar-chip rar-${Math.max(gradeIdx, 0)}">${gradeIdx >= 0 ? SWORD_GRADES[gradeIdx].name : '시작 검'}</span>
+        <span class="owned-sword-name">${s.name}${enhanceLevelOf(s.id) > 0 ? ` <small>+${enhanceLevelOf(s.id)}</small>` : ''}</span>
+        <span class="owned-sword-income">분당 +${income.toLocaleString('ko-KR')} 성휘</span>
+        ${recommended ? '<span class="recommend-badge">추천</span>' : '<span></span>'}
+        <button type="button" class="btn-equip" data-id="${s.id}" ${equipped ? 'disabled' : ''}>${equipped ? '장착 중' : '장착하기'}</button>`;
+      hallOwnedList.appendChild(item);
+    });
+  }
+  hallOwnedList.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-equip');
+    if (!btn) return;
+    equipSword(btn.dataset.id);
+  });
+  summonBtn1.addEventListener('click', () => performSummon(1));
+  summonBtn10.addEventListener('click', () => performSummon(10));
+  codexShowcaseClose.addEventListener('click', closeCodexShowcase);
+
+  /* ---------------- UI: 성장 (강화 · 공명 · 유물함) ---------------- */
+  let growthActiveSub = 'enhance';
+  let selectedGrowthSwordId = null;
+
+  function growthEligibleSwordIds() {
+    return discoveredSwordIds.filter((id) => id !== PRACTICE_SWORD.id);
+  }
+
+  growthSubtabs.addEventListener('click', (e) => {
+    const btn = e.target.closest('.exam-tab');
+    if (!btn || btn.classList.contains('active')) return;
+    growthActiveSub = btn.dataset.sub;
+    growthSubtabs.querySelectorAll('.exam-tab').forEach((t) => t.classList.toggle('active', t === btn));
+    renderGrowthPanel();
+  });
+
+  function renderGrowthPanel() {
+    Object.entries(growthPanels).forEach(([key, panel]) => panel.classList.toggle('active', key === growthActiveSub));
+    if (growthActiveSub === 'enhance') renderGrowthEnhance();
+    else if (growthActiveSub === 'resonance') renderGrowthResonance();
+    else renderGrowthRelics();
+  }
+
+  function renderGrowthEnhance() {
+    const ids = growthEligibleSwordIds();
+    if (!ids.length) {
+      growthEnhanceDisplay.style.display = 'none';
+      growthEnhanceEmpty.style.display = 'block';
+      growthEnhanceSelect.innerHTML = '';
+      return;
+    }
+    growthEnhanceEmpty.style.display = 'none';
+    growthEnhanceDisplay.style.display = '';
+    if (!selectedGrowthSwordId || !ids.includes(selectedGrowthSwordId)) selectedGrowthSwordId = ids[0];
+
+    growthEnhanceSelect.innerHTML = '';
+    ids.forEach((id) => {
+      const s = nebelacSwordById(id);
+      const opt = document.createElement('option');
+      opt.value = id;
+      const lv = enhanceLevelOf(id);
+      opt.textContent = `[${SWORD_GRADES[gradeIdxOf(s)].name}] ${s.name}${lv ? ` +${lv}` : ''}`;
+      if (id === selectedGrowthSwordId) opt.selected = true;
+      growthEnhanceSelect.appendChild(opt);
+    });
+
+    const id = selectedGrowthSwordId;
+    const s = nebelacSwordById(id);
+    const gradeIdx = gradeIdxOf(s);
+    const lv = enhanceLevelOf(id);
+    growthEnhanceGrade.textContent = SWORD_GRADES[gradeIdx].name;
+    growthEnhanceGrade.className = `sword-grade rar-chip rar-${gradeIdx}`;
+    growthEnhanceName.textContent = s.name;
+    growthEnhanceLevel.textContent = `+${lv} / +${ENHANCE_MAX_LEVEL}`;
+    growthEnhanceIncome.textContent = `검 효율 분당 +${swordIncomeAt(id).toLocaleString('ko-KR')} 성휘`;
+
+    const next = enhanceNextStep(id);
+    if (!next) {
+      growthEnhanceNextInfo.textContent = '이미 최대 강화 단계예요.';
+      growthEnhanceBtn.disabled = true;
+      growthEnhanceBtn.textContent = '강화 완료';
+    } else {
+      growthEnhanceNextInfo.innerHTML = `+${next.level} 도전 · 공명 파편 ${next.fragment.toLocaleString('ko-KR')} · 성휘 ${next.gold.toLocaleString('ko-KR')} · 효율 누적 +${Math.round(next.pct * 100)}%`;
+      growthEnhanceBtn.disabled = !canEnhance(id);
+      growthEnhanceBtn.textContent = `강화하기 (+${lv} → +${next.level})`;
+    }
+  }
+  growthEnhanceSelect.addEventListener('change', () => {
+    selectedGrowthSwordId = growthEnhanceSelect.value;
+    renderGrowthEnhance();
+  });
+  growthEnhanceBtn.addEventListener('click', () => {
+    const id = selectedGrowthSwordId;
+    if (!id) return;
+    const next = enhanceNextStep(id);
+    if (!next) return;
+    if (!canEnhance(id)) {
+      showToast(`✳ 재료가 부족해요. 공명 파편 ${next.fragment.toLocaleString('ko-KR')} · 성휘 ${next.gold.toLocaleString('ko-KR')}이 필요합니다.`);
+      return;
+    }
+    performEnhance(id);
+    renderGrowthEnhance();
+    renderHallPanel();
+    renderCodex();
+    renderStudyHint();
+    renderHeader();
+    renderMainPanel();
+    renderGold();
+    showToast(`✨ ${nebelacSwordById(id).name} 강화 성공! +${next.level} 달성`);
+  });
+
+  function renderGrowthResonance() {
+    const ids = growthEligibleSwordIds();
+    if (!ids.length) {
+      growthResonanceDisplay.style.display = 'none';
+      growthResonanceEmpty.style.display = 'block';
+      growthResonanceSelect.innerHTML = '';
+      return;
+    }
+    growthResonanceEmpty.style.display = 'none';
+    growthResonanceDisplay.style.display = '';
+    if (!selectedGrowthSwordId || !ids.includes(selectedGrowthSwordId)) selectedGrowthSwordId = ids[0];
+
+    growthResonanceSelect.innerHTML = '';
+    ids.forEach((id) => {
+      const s = nebelacSwordById(id);
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = `[${SWORD_GRADES[gradeIdxOf(s)].name}] ${s.name} · ${RESONANCE_STAGES[resonanceStageIndexFor(id)].name}`;
+      if (id === selectedGrowthSwordId) opt.selected = true;
+      growthResonanceSelect.appendChild(opt);
+    });
+
+    const id = selectedGrowthSwordId;
+    const s = nebelacSwordById(id);
+    const gradeIdx = gradeIdxOf(s);
+    growthResonanceGrade.textContent = SWORD_GRADES[gradeIdx].name;
+    growthResonanceGrade.className = `sword-grade rar-chip rar-${gradeIdx}`;
+    growthResonanceName.textContent = s.name;
+    growthResonanceStageName.textContent = RESONANCE_STAGES[resonanceStageIndexFor(id)].name;
+
+    const next = resonanceNextStage(id);
+    const minutes = resonanceMinutesFor(id);
+    if (!next) {
+      growthResonanceProgress.textContent = '완전공명에 도달했어요.';
+      growthResonanceNextInfo.textContent = '';
+      growthResonanceBtn.disabled = true;
+      growthResonanceBtn.textContent = '공명 완료';
+    } else {
+      growthResonanceProgress.textContent = `이 검과 함께한 공부시간 ${formatDurationLabel(minutes * 60)} / ${formatDurationLabel(next.minMinutes * 60)}`;
+      if (!resonanceTimeReady(id)) {
+        growthResonanceNextInfo.textContent = `${next.name} 단계까지 공부시간이 더 필요해요.`;
+        growthResonanceBtn.disabled = true;
+      } else {
+        growthResonanceNextInfo.innerHTML = `${next.name} 단계 · 성핵 ${next.core} · 공명 파편 ${next.fragment.toLocaleString('ko-KR')} · 효율 누적 +${Math.round(next.pct * 100)}%`;
+        growthResonanceBtn.disabled = !canResonate(id);
+      }
+      growthResonanceBtn.textContent = `공명하기 (${RESONANCE_STAGES[resonanceStageIndexFor(id)].name} → ${next.name})`;
+    }
+  }
+  growthResonanceSelect.addEventListener('change', () => {
+    selectedGrowthSwordId = growthResonanceSelect.value;
+    renderGrowthResonance();
+  });
+  growthResonanceBtn.addEventListener('click', () => {
+    const id = selectedGrowthSwordId;
+    if (!id) return;
+    const next = resonanceNextStage(id);
+    if (!next || !resonanceTimeReady(id)) return;
+    if (!canResonate(id)) {
+      showToast(`✳ 재료가 부족해요. 성핵 ${next.core} · 공명 파편 ${next.fragment.toLocaleString('ko-KR')}이 필요합니다.`);
+      return;
+    }
+    performResonance(id);
+    renderGrowthResonance();
+    renderHallPanel();
+    renderCodex();
+    renderStudyHint();
+    renderHeader();
+    renderMainPanel();
+    showToast(`💫 ${nebelacSwordById(id).name}이(가) ${RESONANCE_STAGES[resonanceStageIndexFor(id)].name} 단계에 도달했습니다.`);
+  });
+
+  // 유물함: 이번 개편으로 이전 시대 장비 데이터는 모두 삭제됐다 — 앞으로 이
+  // 자리에 쌓일 기록용 콘텐츠를 위한 빈 보관함으로 시작한다.
+  function renderGrowthRelics() {
+    growthRelicsList.innerHTML = '';
+    growthRelicsEmpty.style.display = 'block';
+  }
+
+  /* ---------------- UI: 여정 ---------------- */
+  function renderJourneyPanel() {
+    journeyCumulative.textContent = formatDurationLabel(sumStudySecondsAllTime());
+    journeyCores.textContent = `${starCores.toLocaleString('ko-KR')}개`;
+    journeySeals.textContent = `${constellationSeals.toLocaleString('ko-KR')}개`;
+
+    const dateKey = studyDayKey();
+    const todayMin = todayStudyMinutes();
+    journeyDailyList.innerHTML = '';
+    DAILY_QUESTS.forEach((q) => {
+      const claimed = (claimedDailyQuests[dateKey] || []).includes(q.id);
+      const eligible = todayMin >= q.minMinutes;
+      const li = document.createElement('li');
+      li.className = `quest-row${claimed ? ' claimed' : ''}`;
+      li.innerHTML = `
+        <div class="quest-info">
+          <span class="quest-label">${q.label}</span>
+          <span class="quest-reward">${rewardLabel(q.reward)}</span>
+        </div>
+        <button type="button" class="chip-btn quest-claim-btn" ${claimed || !eligible ? 'disabled' : ''}>${claimed ? '완료' : '받기'}</button>`;
+      li.querySelector('.quest-claim-btn').addEventListener('click', () => {
+        if (!claimDailyQuest(q)) return;
+        renderJourneyPanel();
+        renderGold();
+        showToast(`🎯 ${q.label} 보상 수령! ${rewardLabel(q.reward)}`);
+      });
+      journeyDailyList.appendChild(li);
+    });
+
+    const weekKey = weekKeyFor(todayKey());
+    journeyWeeklyList.innerHTML = '';
+    WEEKLY_QUESTS.forEach((q) => {
+      const claimed = (claimedWeeklyQuests[weekKey] || []).includes(q.id);
+      const eligible = q.minMinutes ? sumStudyMinutesForWeek(weekKey) >= q.minMinutes : daysWithMinStudyInWeek(weekKey, 25) >= q.minDays25;
+      const li = document.createElement('li');
+      li.className = `quest-row${claimed ? ' claimed' : ''}`;
+      li.innerHTML = `
+        <div class="quest-info">
+          <span class="quest-label">${q.label}</span>
+          <span class="quest-reward">${rewardLabel(q.reward)}</span>
+        </div>
+        <button type="button" class="chip-btn quest-claim-btn" ${claimed || !eligible ? 'disabled' : ''}>${claimed ? '완료' : '받기'}</button>`;
+      li.querySelector('.quest-claim-btn').addEventListener('click', () => {
+        if (!claimWeeklyQuest(q)) return;
+        renderJourneyPanel();
+        renderGold();
+        showToast(`🎯 ${q.label} 보상 수령! ${rewardLabel(q.reward)}`);
+      });
+      journeyWeeklyList.appendChild(li);
+    });
+
+    journeyRegionList.innerHTML = '';
+    JOURNEY_REGIONS.forEach((r) => {
+      const unlocked = isRegionUnlocked(r);
+      const claimed = claimedRegions.includes(r.id);
+      const li = document.createElement('li');
+      li.className = `region-row${unlocked ? ' unlocked' : ' locked'}`;
+      const rewardText = r.minMinutes > 0 ? `성핵 +${JOURNEY_REGION_REWARD_CORE}` : '시작 지역';
+      li.innerHTML = `
+        <div class="region-info">
+          <span class="region-name">${unlocked ? r.name : '???'}</span>
+          <span class="region-threshold">${unlocked ? rewardText : `누적 ${formatDurationLabel(r.minMinutes * 60)} 필요`}</span>
+        </div>
+        <button type="button" class="chip-btn region-claim-btn" ${!unlocked || claimed ? 'disabled' : ''}>${claimed ? '수령 완료' : unlocked ? '수령하기' : '잠김'}</button>`;
+      li.querySelector('.region-claim-btn').addEventListener('click', () => {
+        if (!claimRegionReward(r)) return;
+        renderJourneyPanel();
+        showToast(`🗺️ ${r.name} 해금! ${rewardText}`);
+      });
+      journeyRegionList.appendChild(li);
+    });
+
+    renderAchievementsInto(journeyAchievementList);
+    renderAchievementsInto(recordAchievementList);
+  }
 
   /* ---------------- Quotes ---------------- */
   const QUOTES = [
@@ -1089,16 +1843,16 @@
     const qIndex = new Date().getDate() % QUOTES.length;
     motivationQuote.textContent = QUOTES[qIndex];
 
-    // Spell the sum out on the label so the tabs visibly reconcile:
-    // 경지 효율 + 검 효율 + 장비 효율 = this number.
-    const realmPart = realmIncomeAt(realmLevel);
-    const swordPart = swordIncomeAt(swordLevel);
-    const gearPart = gearIncomeAt(gearLevel);
-    const total = realmPart + swordPart + gearPart;
-    incomePerMinute.textContent = `${total.toLocaleString('ko-KR')}G`;
+    // 총 분당 성휘 = 기본 600 + 장착 검 효율. 탭마다 같은 값을 보여줄 수
+    // 있도록 currentStudyIncome() 하나를 여기서도 그대로 재사용한다.
+    const swordPart = swordIncomeAt(equippedSwordId);
+    const total = currentStudyIncome();
+    incomePerMinute.textContent = `${total.toLocaleString('ko-KR')}`;
     incomePerMinuteLabel.textContent =
-      `총 분당 골드 (경지 ${realmPart.toLocaleString('ko-KR')} + 검 ${swordPart.toLocaleString('ko-KR')} + 장비 ${gearPart.toLocaleString('ko-KR')})`;
-    incomePerHour.textContent = `${(total * 60).toLocaleString('ko-KR')}G`;
+      `분당 성휘 (기본 ${BASE_INCOME_PER_MIN.toLocaleString('ko-KR')} + 검 효율 ${swordPart.toLocaleString('ko-KR')})`;
+    incomePerHour.textContent = `${(total * 60).toLocaleString('ko-KR')}`;
+
+    renderMainPanel();
   }
 
   /* ---------------- Exam checklist ---------------- */
@@ -1311,14 +2065,13 @@
     list.push({ id: crypto.randomUUID(), text, createdAt: Date.now() });
     happinessByDate[todayK] = list;
 
-    // 현재 분당 골드 효율의 5분치를 즉시 보상으로 지급.
-    const reward = niceGold(currentStudyIncome() * 5);
-    addGold(reward);
-
+    // 행복 기록은 성휘 등 경제 보상을 주지 않는다 — 정원 배경/꽃/별빛 같은
+    // 시각 효과만 행복지수에 따라 바뀐다 (renderHappiness/spawnHappinessEffect).
+    queueSave();
     happinessForm.reset();
     renderHappiness();
     spawnHappinessEffect(happinessTierIndex(list.length));
-    showToast(`💛 기록 완료! ${reward.toLocaleString('ko-KR')}G를 획득했어요`);
+    showToast('💛 기록 완료!');
   });
 
   /* ---------------- Toast ---------------- */
@@ -1330,7 +2083,7 @@
     toastTimeout = setTimeout(() => toastEl.classList.remove('show'), 2800);
   }
 
-  /* ---------------- Gold ---------------- */
+  /* ---------------- 성휘 ---------------- */
   function renderGold() {
     goldAmountEl.textContent = gold.toLocaleString('ko-KR');
   }
@@ -1341,54 +2094,45 @@
     renderGold();
   }
 
-  function niceGold(n) {
-    if (n < 100) return Math.round(n / 5) * 5;
-    if (n < 1000) return Math.round(n / 10) * 10;
-    if (n < 10000) return Math.round(n / 100) * 100;
-    if (n < 1000000) return Math.round(n / 1000) * 1000;
-    if (n < 100000000) return Math.round(n / 100000) * 100000;
-    return Math.round(n / 1000000) * 1000000;
-  }
-
   /* ---------------- Tabs ---------------- */
   function switchTab(name) {
     tabButtons.forEach((btn) => btn.classList.toggle('active', btn.dataset.tab === name));
     Object.entries(tabPanels).forEach(([key, panel]) => panel.classList.toggle('active', key === name));
     if (name === 'ranking') renderRanking(currentRankCategory);
-    if (name === 'gear') renderGearPanel();
-    if (name === 'enhance') renderEnhance();
+    if (name === 'hall') renderHallPanel();
+    if (name === 'growth') renderGrowthPanel();
     if (name === 'codex') renderCodex();
-    if (name === 'epithet') renderEpithets();
+    if (name === 'journey') renderJourneyPanel();
+    if (name === 'record') renderAchievementsInto(recordAchievementList);
     if (name === 'profile') renderProfile();
+    if (name === 'main') renderMainPanel();
   }
   tabButtons.forEach((btn) => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
 
   /* ---------------- Ranking ---------------- */
   const RANK_CATEGORIES = {
-    realm: { column: 'realm_level', label: (v) => (REALMS[v] ? `${REALMS[v].name} (${REALMS[v].hanja})` : '-') },
-    sword: {
-      column: 'sword_level',
-      label: (v) => (SWORDS[v] ? `[${RARITIES[SWORDS[v].rarity].name}] ${SWORDS[v].name}` : '-'),
-    },
-    gold: { column: 'gold', label: (v) => `${(v || 0).toLocaleString('ko-KR')}G` },
     study_today: { column: 'study_today', label: (v) => formatDurationLabel(v || 0) },
     study_week: { column: 'study_week', label: (v) => formatDurationLabel(v || 0) },
     study_month: { column: 'study_month', label: (v) => formatDurationLabel(v || 0) },
-    total_draws: { column: 'total_draws', label: (v) => `${(v || 0).toLocaleString('ko-KR')}회` },
+    study_total: { column: 'study_total', label: (v) => formatDurationLabel(v || 0) },
+    sword_collection: { column: 'sword_collection', label: (v) => `${v || 0} / ${NEBELAC_SWORDS.length}` },
+    max_resonance_stage: { column: 'max_resonance_stage', label: (v) => RESONANCE_STAGES[v || 0].name },
   };
   const RANK_LABELS = {
-    realm: '🧘 경지', sword: '⚔️ 검', gold: '🪙 골드',
     study_today: '☀️ 오늘 공부', study_week: '📅 최근 7일', study_month: '🗓️ 최근 30일',
-    total_draws: '🎲 총 뽑기',
+    study_total: '⏳ 총 공부시간', sword_collection: '📖 도감 수집률', max_resonance_stage: '💫 최고 공명',
   };
-  let currentRankCategory = 'realm';
-  // Flips false the first time a total_draws query errors outright (column
-  // doesn't exist in the DB yet -- see the migration note in flushSave()).
-  // The 'fallback' query below always re-orders by the same column, so for
-  // this one category a fallback can never succeed either; remembering the
-  // failure avoids re-issuing a doomed request on every render and lets the
-  // empty state explain *why* instead of just looking broken.
-  let totalDrawsColumnAvailable = true;
+  let currentRankCategory = 'study_today';
+  // Flips false the first time a new-column query errors outright (the
+  // column doesn't exist in the DB yet -- needs a one-time SQL migration:
+  // alter table leaderboard add column if not exists study_total bigint not null default 0;
+  // alter table leaderboard add column if not exists sword_collection int not null default 0;
+  // alter table leaderboard add column if not exists max_resonance_stage int not null default 0;
+  // Remembering the failure avoids re-issuing a doomed request on every
+  // render and lets the empty state explain *why* instead of just looking
+  // broken.
+  let newRankColumnsAvailable = true;
+  const NEW_RANK_COLUMNS = ['study_total', 'sword_collection', 'max_resonance_stage'];
 
   // hyojanom asked to see themself on the 랭킹 tab from their own screen
   // while staying invisible to everyone else viewing the same shared rows.
@@ -1405,43 +2149,34 @@
     currentRankCategory = category;
     rankCategoryButtons.forEach((b) => b.classList.toggle('active', b.dataset.cat === category));
     const cfg = RANK_CATEGORIES[category];
-    // sword_level is a raw SWORDS[] array index, not a power ranking -- new
-    // grades get appended at the array's end regardless of actual rarity
-    // (see swordPower() above), so a DB-level order by it would rank a
-    // higher-index-but-weaker 용검 sword above a lower-index 신병이기 one.
-    // Fetch unordered for this one category and rank by swordPower() below.
-    const orderBySql = category !== 'sword';
+    const isNewColumn = NEW_RANK_COLUMNS.includes(category);
 
     let rows = [];
-    let totalDrawsUnavailable = false;
+    let newColumnUnavailable = false;
 
-    if (category === 'total_draws' && !totalDrawsColumnAvailable) {
+    if (isNewColumn && !newRankColumnsAvailable) {
       // Already confirmed missing this session -- don't re-issue a request
       // that can only fail the same way again.
-      totalDrawsUnavailable = true;
+      newColumnUnavailable = true;
     } else {
       // Named columns, not '*' -- keeps updated_at and anything added later out
       // of a query that already runs often and carries an avatar per row.
-      const fullColumns = 'user_id, username, nickname, avatar, realm_level, sword_level, gold, study_today, study_week, study_month, total_draws';
-      const legacyColumns = 'user_id, username, nickname, avatar, realm_level, sword_level, gold, study_today, study_week, study_month';
-      let query = sb.from('leaderboard').select(fullColumns);
-      if (orderBySql) query = query.order(cfg.column, { ascending: false });
+      const fullColumns = 'user_id, username, nickname, avatar, study_today, study_week, study_month, study_total, sword_collection, max_resonance_stage';
+      const legacyColumns = 'user_id, username, nickname, avatar, study_today, study_week, study_month';
+      let query = sb.from('leaderboard').select(fullColumns).order(cfg.column, { ascending: false });
       let { data, error } = await query.limit(200);
 
-      if (error && category === 'total_draws') {
+      if (error && isNewColumn) {
         // The column itself doesn't exist yet -- a fallback query would
         // still try to order by it and fail identically, so there's no
-        // point retrying. Needs a one-time SQL migration on the DB side:
-        // alter table leaderboard add column if not exists total_draws bigint not null default 0;
-        totalDrawsColumnAvailable = false;
-        totalDrawsUnavailable = true;
+        // point retrying.
+        newRankColumnsAvailable = false;
+        newColumnUnavailable = true;
       } else if (error) {
-        // total_draws is a new column -- until its migration has run, asking
-        // for it errors the whole query (not just that field), which would
-        // otherwise blank out every ranking category, not just this one. Fall
-        // back to the older column list rather than showing nothing.
-        let fallbackQuery = sb.from('leaderboard').select(legacyColumns);
-        if (orderBySql) fallbackQuery = fallbackQuery.order(cfg.column, { ascending: false });
+        // A new column errors the whole query (not just that field), which
+        // would otherwise blank out every ranking category, not just this
+        // one. Fall back to the older column list rather than showing nothing.
+        let fallbackQuery = sb.from('leaderboard').select(legacyColumns).order(cfg.column, { ascending: false });
         ({ data, error } = await fallbackQuery.limit(200));
       }
 
@@ -1449,12 +2184,9 @@
     }
 
     rows = applyGhostRankFilter(rows);
-    if (category === 'sword') {
-      rows = rows.slice().sort((a, b) => swordPowerSafe(b.sword_level) - swordPowerSafe(a.sword_level));
-    }
     rankList.innerHTML = '';
     rankEmpty.style.display = rows.length ? 'none' : 'block';
-    rankEmpty.textContent = totalDrawsUnavailable
+    rankEmpty.textContent = newColumnUnavailable
       ? '이 랭킹은 아직 준비 중이에요. (서버 설정이 끝나면 자동으로 표시돼요)'
       : '아직 랭킹 데이터가 없어요.';
 
@@ -1551,55 +2283,83 @@
     showToast(nickname ? `✏️ 닉네임을 "${nickname}"(으)로 저장했어요.` : '✏️ 닉네임을 지웠어요.');
   });
 
+  // 완전공명에 도달한 검 중 프로필에 대표로 걸 수 있는 검 id[]를 반환.
+  function eligibleEpithetSwordIds() {
+    return discoveredSwordIds.filter((id) => id !== PRACTICE_SWORD.id && resonanceStageIndexFor(id) >= RESONANCE_MAX_STAGE);
+  }
+
   async function renderProfile() {
     renderAvatar();
     nicknameInput.value = nickname;
 
-    // 경지/검 borrow the exact tier/rarity treatment their own tabs use;
-    // the rest get a neutral glossy shine since they have no tier color.
-    const cur = REALMS[realmLevel];
-    profileRealm.textContent = `${cur.name} (${cur.hanja})`;
-    profileRealm.className = `profile-stat-value cultivation-name tier-${tierOf(realmLevel)}`;
+    const curSword = nebelacSwordById(equippedSwordId) || PRACTICE_SWORD;
+    const gradeIdx = gradeIdxOf(curSword);
+    profileSword.textContent = gradeIdx >= 0 ? `[${SWORD_GRADES[gradeIdx].name}] ${curSword.name}` : curSword.name;
+    profileSword.className = `profile-stat-value cultivation-name rar-${Math.max(gradeIdx, 0)}`;
 
-    const curSword = SWORDS[swordLevel];
-    profileSword.textContent = `[${RARITIES[curSword.rarity].name}] ${curSword.name}`;
-    profileSword.className = `profile-stat-value cultivation-name rar-${curSword.rarity}`;
+    const epithetIds = eligibleEpithetSwordIds();
+    profileEpithetSelect.innerHTML = '';
+    if (!epithetIds.length) {
+      profileEpithetSelect.hidden = true;
+      profileEpithetValue.hidden = false;
+      profileEpithetValue.textContent = '완전공명에 도달한 검이 없어요';
+    } else {
+      profileEpithetSelect.hidden = false;
+      profileEpithetValue.hidden = true;
+      if (!activeEpithetSwordId || !epithetIds.includes(activeEpithetSwordId)) {
+        activeEpithetSwordId = epithetIds[epithetIds.length - 1];
+        queueSave();
+      }
+      epithetIds.forEach((id) => {
+        const s = nebelacSwordById(id);
+        const opt = document.createElement('option');
+        opt.value = id;
+        opt.textContent = `${s.name} — 《${s.title}》`;
+        if (id === activeEpithetSwordId) opt.selected = true;
+        profileEpithetSelect.appendChild(opt);
+      });
+    }
 
-    profileGold.textContent = `${gold.toLocaleString('ko-KR')}G`;
+    profileGold.textContent = `${gold.toLocaleString('ko-KR')} 성휘`;
     profileGold.className = 'profile-stat-value stat-shine';
+    profileCores.textContent = `${starCores.toLocaleString('ko-KR')}개`;
+    profileCores.className = 'profile-stat-value stat-shine';
+    profileSeals.textContent = `${constellationSeals.toLocaleString('ko-KR')}개`;
+    profileSeals.className = 'profile-stat-value stat-shine';
 
     profileTodayStudy.textContent = formatDurationLabel(sumStudySecondsForDate(studyDayKey()));
     profileTodayStudy.className = 'profile-stat-value stat-shine';
 
+    profileWeekStudy.textContent = formatDurationLabel(sumStudySecondsRolling(7));
+    profileWeekStudy.className = 'profile-stat-value stat-shine';
+
     profileTotalStudy.textContent = formatDurationLabel(sumStudySecondsAllTime());
     profileTotalStudy.className = 'profile-stat-value stat-shine';
+
+    profileCollection.textContent = `${nebelacDiscoveredCount()} / ${NEBELAC_SWORDS.length}`;
+    profileCollection.className = 'profile-stat-value stat-shine';
+
+    profileMaxResonance.textContent = RESONANCE_STAGES[maxResonanceStage()].name;
+    profileMaxResonance.className = 'profile-stat-value stat-shine';
 
     profileStreak.textContent = `${computeStreak()}일`;
     profileStreak.className = 'profile-stat-value stat-shine';
 
     profileRankList.innerHTML = '';
     const entries = Object.entries(RANK_CATEGORIES);
-    // 'sword' needs sword_level itself to rank by swordPower() client-side
-    // (see renderRanking() above) rather than a plain DB-side order.
     // username rides along on every category so applyGhostRankFilter() can
-    // drop hyojanom's row the same way renderRanking() does.
-    // Skip total_draws here too once renderRanking() has already found the
-    // column missing this session -- same doomed-query reasoning as there.
+    // drop hyojanom's row the same way renderRanking() does. Skip new
+    // columns once renderRanking() has already found them missing this
+    // session -- same doomed-query reasoning as there.
     const results = await Promise.all(entries.map(([key, cfg]) => (
-      key === 'total_draws' && !totalDrawsColumnAvailable
+      NEW_RANK_COLUMNS.includes(key) && !newRankColumnsAvailable
         ? Promise.resolve({ data: [], error: null })
-        : key === 'sword'
-        ? sb.from('leaderboard').select('user_id, username, sword_level').limit(200)
         : sb.from('leaderboard').select('user_id, username').order(cfg.column, { ascending: false }).limit(200)
     )));
     entries.forEach(([key], i) => {
       const { data, error } = results[i];
-      if (key === 'total_draws' && error) totalDrawsColumnAvailable = false;
-      let rows = error ? [] : (data || []);
-      rows = applyGhostRankFilter(rows);
-      if (key === 'sword') {
-        rows = rows.slice().sort((a, b) => swordPowerSafe(b.sword_level) - swordPowerSafe(a.sword_level));
-      }
+      if (NEW_RANK_COLUMNS.includes(key) && error) newRankColumnsAvailable = false;
+      const rows = applyGhostRankFilter(error ? [] : (data || []));
       const idx = rows.findIndex((r) => r.user_id === currentUserId);
       const li = document.createElement('li');
       li.className = 'profile-rank-row';
@@ -1608,6 +2368,11 @@
       profileRankList.appendChild(li);
     });
   }
+
+  profileEpithetSelect.addEventListener('change', () => {
+    activeEpithetSwordId = profileEpithetSelect.value || null;
+    queueSave();
+  });
 
   /* ---------------- Study Timer ---------------- */
   let selectedSubjectId = activeSession ? activeSession.subjectId : null;
@@ -1882,8 +2647,8 @@
     adjustValue.textContent = formatDuration(seconds);
     const reward = Math.floor(seconds / 60) * currentStudyIncome();
     adjustReward.innerHTML = reward > 0
-      ? `이 시간으로 기록하면 ${reward.toLocaleString('ko-KR')} 골드를 받아요 <span class="gold-icon" aria-hidden="true"></span>`
-      : '1분을 채우면 골드를 받을 수 있어요.';
+      ? `이 시간으로 기록하면 ${reward.toLocaleString('ko-KR')} 성휘를 받아요`
+      : '1분을 채우면 성휘를 받을 수 있어요.';
   }
 
   function openAdjust() {
@@ -1914,22 +2679,28 @@
     const subj = subjects.find((s) => s.id === subjectId);
 
     addStudySeconds(studyDayKey(), subjectId, seconds);
-    const reward = Math.floor(seconds / 60) * currentStudyIncome();
+    const minutes = Math.floor(seconds / 60);
+    const reward = minutes * currentStudyIncome();
+    // 실제로 측정된(=타이머가 흐른) 시간만 공명에도 반영한다.
+    addResonanceMinutes(equippedSwordId, minutes);
 
     activeSession = null;
     queueSave();
 
     if (reward > 0) {
       addGold(reward);
-      showToast(`⏱️ ${subj ? subj.name : '공부'} ${formatDurationLabel(seconds)} 기록! +${reward.toLocaleString('ko-KR')} 골드 획득 🪙`);
+      showToast(`⏱️ ${subj ? subj.name : '공부'} ${formatDurationLabel(seconds)} 기록! +${reward.toLocaleString('ko-KR')} 성휘 획득`);
     } else {
-      showToast('⏱️ 측정 종료! 1분을 채우면 골드를 받을 수 있어요.');
+      showToast('⏱️ 측정 종료! 1분을 채우면 성휘를 받을 수 있어요.');
     }
 
     renderSubjects();
     renderTimerUI();
     renderTodayTotal();
     renderHeader();
+    renderMainPanel();
+    if (tabPanels.growth.classList.contains('active')) renderGrowthPanel();
+    if (tabPanels.journey.classList.contains('active')) renderJourneyPanel();
   }
 
   measureBtn.addEventListener('click', () => {
@@ -1954,1200 +2725,6 @@
     subjectForm.reset();
     renderSubjects();
   });
-
-  /* ---------------- Cultivation bonuses (경지 + 검 → 골드 획득량) ---------------- */
-  function cumulativeBonus(list, level, field) {
-    let sum = 0;
-    for (let i = 0; i <= level; i++) sum += list[i][field];
-    return sum;
-  }
-
-  /* Income splits cleanly in two, and the total is defined as the SUM of
-     the two displayed halves — so 총 효율 = 경지 효율 + 검 효율 holds
-     exactly, on screen and in the actual payout.
-
-     The flat base belongs to the realm half only. Counting it in both
-     halves is what used to make them overshoot the total by a fixed
-     380G. Each half is rounded on its own and the total adds the two
-     rounded halves, so rounding can never break the identity either.
-
-     Realms stack (you keep every rung you climbed); a sword does not —
-     only the single blade you have equipped counts.
-
-     1.5 * 1.15 — a flat 15% buff across every realm level. */
-  function realmIncomeAt(realmIdx) {
-    return niceGold((BASE_STUDY_MIN + cumulativeBonus(REALMS, realmIdx, 'studyBonus')) * 1.725);
-  }
-  /* Nerfed to 1/5 of the realm-side multiplier — a lucky pull was earning
-     far more than the guaranteed, grindable realm track for the same
-     study time. */
-  function swordIncomeAt(swordIdx) {
-    const stars = swordStars[swordIdx] || 0;
-    return niceGold(SWORDS[swordIdx].studyBonus * (1.5 / 5) * (1 + ENHANCE_TOTAL_BONUS_BY_STAR[stars]));
-  }
-  function studyIncomeAt(realmIdx, swordIdx, gearIdx) {
-    return realmIncomeAt(realmIdx) + swordIncomeAt(swordIdx) + gearIncomeAt(gearIdx);
-  }
-
-  function currentStudyIncome() { return studyIncomeAt(realmLevel, swordLevel, gearLevel); }
-
-  function renderStudyHint() {
-    const income = currentStudyIncome();
-    timerHint.innerHTML = `1분마다 ${income.toLocaleString('ko-KR')} 골드, 1시간이면 ${(income * 60).toLocaleString('ko-KR')} 골드를 획득해요 <span class="gold-icon" aria-hidden="true"></span>`;
-  }
-
-  /* ---------------- 경지 승급 (경지 트랙) ---------------- */
-  const CULT_TRACKS = {
-    realm: {
-      axis: 'realm',
-      list: REALMS,
-      getLevel: () => realmLevel,
-      setLevel: (v) => { realmLevel = v; queueSave(); },
-      getOtherLevel: () => swordLevel,
-      els: {
-        name: el('realmName'), hanja: el('realmHanja'), lore: el('realmLore'), desc: el('realmDesc'),
-        studyRange: el('realmStudyRange'), badge: el('realmBadge'),
-        nextName: el('realmNextName'), upgradeBtn: el('realmUpgradeBtn'), ladderList: el('realmLadderList'),
-      },
-      maxedNextText: '이미 구도의 완성, 여의경(如意境) 극에 이르렀습니다',
-      verb: '경지에 올랐습니다',
-    },
-  };
-
-  function incomeForTrackIndex(track, index) {
-    return realmIncomeAt(index);
-  }
-  const tierOf = (index) => Math.floor(index / 3);
-
-  // Which ladder row (by index) is currently expanded to show its full
-  // lore/desc -- null means none. Reset whenever the ladder itself
-  // re-renders from scratch (e.g. after a realm upgrade) so a stale index
-  // from a different track/state can't leave the wrong row open.
-  let expandedRealmIdx = null;
-
-  function renderCultivationTrack(track) {
-    const level = track.getLevel();
-    const cur = track.list[level];
-    const e = track.els;
-
-    e.name.textContent = cur.name;
-    e.name.className = `cultivation-name tier-${tierOf(level)}`;
-    e.hanja.textContent = `(${cur.hanja})`;
-    e.lore.textContent = cur.lore;
-    e.desc.textContent = cur.desc;
-    e.studyRange.textContent = `+${incomeForTrackIndex(track, level).toLocaleString('ko-KR')}G`;
-    e.badge.textContent = `${level + 1} / ${track.list.length}`;
-
-    const next = track.list[level + 1];
-    if (next) {
-      e.nextName.textContent = `${next.name} (${next.hanja})`;
-      e.upgradeBtn.textContent = `${next.price.toLocaleString('ko-KR')}G로 승급하기`;
-      e.upgradeBtn.disabled = gold < next.price;
-      e.upgradeBtn.classList.remove('maxed');
-      e.upgradeBtn.onclick = () => upgradeTrack(track);
-    } else {
-      e.nextName.textContent = track.maxedNextText;
-      e.upgradeBtn.textContent = '달성 완료';
-      e.upgradeBtn.disabled = true;
-      e.upgradeBtn.classList.add('maxed');
-      e.upgradeBtn.onclick = null;
-    }
-
-    e.ladderList.innerHTML = '';
-    track.list.forEach((item, i) => {
-      const node = ladderRowTpl.content.cloneNode(true);
-      const itemEl = node.querySelector('.ladder-item');
-      const rowBtn = node.querySelector('.ladder-row');
-      node.querySelector('.ladder-rank').textContent = i + 1;
-      const nameEl = node.querySelector('.ladder-name');
-      nameEl.textContent = item.name;
-      nameEl.classList.add(`tier-${tierOf(i)}`);
-      node.querySelector('.ladder-hanja').textContent = `(${item.hanja})`;
-      node.querySelector('.ladder-range').textContent = `+${incomeForTrackIndex(track, i).toLocaleString('ko-KR')}G`;
-      const statusEl = node.querySelector('.ladder-status');
-      if (i < level) { itemEl.classList.add('done'); statusEl.textContent = '달성'; }
-      else if (i === level) { itemEl.classList.add('current'); statusEl.textContent = '현재'; }
-      else { itemEl.classList.add('locked'); statusEl.textContent = `${item.price.toLocaleString('ko-KR')}G`; }
-
-      const isOpen = expandedRealmIdx === i;
-      itemEl.classList.toggle('expanded', isOpen);
-      rowBtn.setAttribute('aria-expanded', String(isOpen));
-      node.querySelector('.ladder-detail-lore').textContent = item.lore;
-      node.querySelector('.ladder-detail-desc').textContent = item.desc;
-      rowBtn.addEventListener('click', () => {
-        expandedRealmIdx = expandedRealmIdx === i ? null : i;
-        renderCultivationTrack(track);
-      });
-
-      e.ladderList.appendChild(node);
-    });
-  }
-
-  function upgradeTrack(track) {
-    const level = track.getLevel();
-    const next = track.list[level + 1];
-    if (!next || gold < next.price) return;
-
-    gold -= next.price;
-    renderGold();
-    track.setLevel(level + 1);
-    showToast(`🌟 ${next.name}(${next.hanja}) ${track.verb}`);
-
-    renderCultivationTrack(CULT_TRACKS.realm);
-    renderGachaPanel();
-    renderStudyHint();
-    renderHeader();
-  }
-
-  /* ---------------- 검 뽑기 (가챠) ----------------
-     Flat price per draw — it does not scale with realm or the sword you
-     have equipped, so the odds table is the only thing that determines
-     value here. */
-  const DRAW_COST = 50000;
-  const MAX_DRAWS_PER_BATCH = 100;
-
-  function drawCost() { return DRAW_COST; }
-
-  /* Pick a grade by its fixed odds, then any sword inside it uniformly —
-     that is what makes every sword of one grade equally likely. */
-  function rollSword() {
-    let roll = Math.random() * 100;
-    let rarity = 0;
-    for (let i = 0; i < RARITIES.length; i++) {
-      if (roll < RARITIES[i].chance) { rarity = i; break; }
-      roll -= RARITIES[i].chance;
-      rarity = i;
-    }
-    const pool = SWORDS.map((s, i) => (s.rarity === rarity ? i : -1)).filter((i) => i >= 0);
-    return pool[Math.floor(Math.random() * pool.length)];
-  }
-
-  function performDraws(count) {
-    const cost = drawCost();
-    const total = cost * count;
-    if (gold < total) {
-      showToast(`💸 골드가 부족해요. ${count}회 뽑기에 ${total.toLocaleString('ko-KR')}G가 필요합니다.`);
-      return;
-    }
-
-    gold -= total;
-    totalDraws += count;
-
-    const results = [];
-    let equippedChanged = false;
-    let newlyDiscovered = 0;
-    let fragmentsGained = 0;
-
-    for (let i = 0; i < count; i++) {
-      const idx = rollSword();
-      const isNew = !discovered.includes(idx);
-      if (isNew) {
-        discovered.push(idx);
-        newlyDiscovered++;
-      } else {
-        // Already own this one — it converts into 별의 조각 instead, scaled
-        // by how rare the duplicate itself is.
-        fragmentsGained += STAR_FRAGMENTS_BY_RARITY[SWORDS[idx].rarity];
-      }
-      // Whole "better sword auto-equips, weaker one is kept but not worn" rule.
-      const upgraded = swordPower(idx) > swordPower(swordLevel);
-      if (upgraded) { swordLevel = idx; equippedChanged = true; }
-      results.push({ idx, isNew, upgraded });
-    }
-    starFragments += fragmentsGained;
-
-    queueSave();
-    renderGold();
-    renderGachaResults(results);
-    renderGachaPanel();
-    renderCodex();
-    renderStudyHint();
-    renderHeader();
-    if (tabPanels.enhance.classList.contains('active')) renderEnhance();
-
-    const best = results.reduce((a, b) => (swordPower(b.idx) > swordPower(a.idx) ? b : a));
-    const bestSword = SWORDS[best.idx];
-    const fragText = fragmentsGained > 0 ? ` (✳ 별의 조각 +${fragmentsGained.toLocaleString('ko-KR')})` : '';
-    if (equippedChanged) {
-      showToast(`⚔️ ${RARITIES[bestSword.rarity].name} ${bestSword.name}(${bestSword.hanja}) 획득! 자동으로 장착했습니다.${fragText}`);
-    } else if (newlyDiscovered > 0) {
-      showToast(`📖 새로운 검 ${newlyDiscovered}자루를 도감에 기록했습니다.${fragText}`);
-    } else if (fragmentsGained > 0) {
-      showToast(`✳ 이미 가진 검이라 별의 조각 ${fragmentsGained.toLocaleString('ko-KR')}개로 바뀌었어요.`);
-    } else {
-      showToast('🌀 이번엔 더 좋은 검이 나오지 않았어요. 현재 검을 그대로 유지합니다.');
-    }
-  }
-
-  /* ---------------- 뽑기 화면 ---------------- */
-  const gachaCountInput = el('gachaCount');
-  const gachaDrawBtn = el('gachaDrawBtn');
-  const gachaCostLabel = el('gachaCostLabel');
-  const gachaResults = el('gachaResults');
-  const gachaResultsEmpty = el('gachaResultsEmpty');
-  const rarityTable = el('rarityTable');
-  const swordResultTpl = el('swordResultTemplate');
-  const codexSubtabsEl = el('codexSubtabs');
-  const codexNoteEl = el('codexNote');
-  const codexGrid = el('codexGrid');
-  const codexProgress = el('codexProgress');
-  const codexCardTpl = el('codexCardTemplate');
-  const codexShowcase = el('codexShowcase');
-  const codexShowcaseImg = el('codexShowcaseImg');
-  const codexShowcaseEffect = el('codexShowcaseEffect');
-  const codexShowcaseGrade = el('codexShowcaseGrade');
-  const codexShowcaseName = el('codexShowcaseName');
-  const codexShowcaseEnhance = el('codexShowcaseEnhance');
-  const codexShowcaseHanja = el('codexShowcaseHanja');
-  const codexShowcaseEpithet = el('codexShowcaseEpithet');
-  const codexShowcaseQuote = el('codexShowcaseQuote');
-  const codexShowcaseLore = el('codexShowcaseLore');
-  const codexShowcaseDesc = el('codexShowcaseDesc');
-  const codexShowcaseBonus = el('codexShowcaseBonus');
-  const codexShowcaseClose = el('codexShowcaseClose');
-  const epithetGrid = el('epithetGrid');
-  const epithetProgress = el('epithetProgress');
-  const epithetCardTpl = el('epithetCardTemplate');
-  const ownedSwordList = el('ownedSwordList');
-  const ownedSwordsCount = el('ownedSwordsCount');
-  const ownedSwordEmpty = el('ownedSwordEmpty');
-
-  const equippedEls = {
-    name: el('swordName'), nameText: el('swordNameText'), hanja: el('swordHanja'), grade: el('swordGrade'),
-    epithet: el('swordEpithet'), enhanceBadge: el('swordEnhanceBadge'),
-    lore: el('swordLore'), desc: el('swordDesc'), studyRange: el('swordStudyRange'),
-  };
-
-  /* Shared "+N" 강화 badge, reused wherever a sword's name is shown. */
-  function setEnhanceBadge(el, stars) {
-    if (stars > 0) {
-      el.textContent = `+${stars}`;
-      el.hidden = false;
-    } else {
-      el.hidden = true;
-    }
-  }
-
-  function clampDrawCount() {
-    let n = parseInt(gachaCountInput.value, 10);
-    if (!Number.isFinite(n) || n < 1) n = 1;
-    if (n > MAX_DRAWS_PER_BATCH) n = MAX_DRAWS_PER_BATCH;
-    return n;
-  }
-
-  let expandedRarity = null;
-
-  function renderGachaPanel() {
-    const cur = SWORDS[swordLevel];
-    const rar = RARITIES[cur.rarity];
-
-    equippedEls.nameText.textContent = cur.name;
-    equippedEls.name.className = `cultivation-name rar-${cur.rarity}`;
-    setEnhanceBadge(equippedEls.enhanceBadge, swordStars[swordLevel] || 0);
-    equippedEls.hanja.textContent = `(${cur.hanja})`;
-    equippedEls.grade.textContent = `${rar.name} · ${rar.hanja}`;
-    equippedEls.grade.className = `sword-grade rar-chip rar-${cur.rarity}`;
-    if (cur.epithet) {
-      equippedEls.epithet.textContent = `《${cur.epithet}》`;
-      equippedEls.epithet.className = `sword-epithet rar-${cur.rarity}`;
-      equippedEls.epithet.hidden = false;
-    } else {
-      equippedEls.epithet.hidden = true;
-    }
-    equippedEls.lore.textContent = cur.lore;
-    equippedEls.desc.textContent = cur.desc;
-    equippedEls.studyRange.textContent = `+${swordIncomeAt(swordLevel).toLocaleString('ko-KR')}G`;
-
-    const n = clampDrawCount();
-    const cost = drawCost();
-    const total = cost * n;
-    gachaCostLabel.textContent = `1회 ${cost.toLocaleString('ko-KR')}G · ${n}회 ${total.toLocaleString('ko-KR')}G`;
-    gachaDrawBtn.textContent = `${n}회 뽑기`;
-    gachaDrawBtn.disabled = gold < total;
-
-    rarityTable.innerHTML = '';
-    RARITIES.forEach((r, i) => {
-      const swords = SWORDS.map((s, idx) => ({ ...s, idx })).filter((s) => s.rarity === i);
-      const isOpen = expandedRarity === i;
-
-      const group = document.createElement('li');
-      group.className = 'rarity-group';
-
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = `rarity-row rar-${i}${isOpen ? ' open' : ''}`;
-      btn.dataset.rarity = String(i);
-      btn.setAttribute('aria-expanded', String(isOpen));
-      btn.innerHTML = `
-        <span class="rarity-name">${r.name}<small>${r.hanja}</small></span>
-        <span class="rarity-chance">${r.chance}%</span>
-        <span class="rarity-count">${swords.length}종</span>
-        <span class="rarity-caret">▾</span>`;
-      group.appendChild(btn);
-
-      const sub = document.createElement('ul');
-      sub.className = `rarity-sword-list${isOpen ? ' show' : ''}`;
-      swords.forEach((s, j) => {
-        const item = document.createElement('li');
-        item.className = `rarity-sword-item${discovered.includes(s.idx) ? '' : ' undiscovered'}`;
-        item.style.animationDelay = isOpen ? `${j * 30}ms` : '0ms';
-        item.innerHTML = `<span class="rarity-sword-name">${s.name}</span><span class="rarity-sword-hanja">(${s.hanja})</span><span class="rarity-sword-income">분당 +${swordIncomeAt(s.idx).toLocaleString('ko-KR')}G</span>`;
-        sub.appendChild(item);
-      });
-      group.appendChild(sub);
-
-      rarityTable.appendChild(group);
-    });
-
-    renderOwnedSwords();
-  }
-
-  /* 장착 검 직접 고르기 — 도감에 기록된 검 중 아무거나 골라 장착할 수 있다.
-     더 강한 검을 새로 뽑으면 여전히 자동으로 장착되지만(위 upgraded 로직),
-     이후 원하는 다른 보유 검으로 언제든 되돌릴 수 있다. */
-  function equipSword(idx) {
-    if (idx === swordLevel || !discovered.includes(idx)) return;
-    swordLevel = idx;
-    queueSave();
-    renderGachaPanel();
-    renderCodex();
-    renderStudyHint();
-    renderHeader();
-    if (tabPanels.enhance.classList.contains('active')) renderEnhance();
-    const s = SWORDS[idx];
-    showToast(`⚔️ ${RARITIES[s.rarity].name} ${s.name}(${s.hanja})을(를) 장착했습니다.`);
-  }
-
-  function renderOwnedSwords() {
-    const owned = discovered
-      .map((idx) => ({ idx, ...SWORDS[idx] }))
-      .sort((a, b) => swordPower(b.idx) - swordPower(a.idx));
-
-    ownedSwordsCount.textContent = `${discovered.length} / ${SWORDS.length}`;
-    ownedSwordEmpty.style.display = owned.length ? 'none' : 'block';
-
-    ownedSwordList.innerHTML = '';
-    owned.forEach((s) => {
-      const equipped = s.idx === swordLevel;
-      const item = document.createElement('li');
-      item.className = `owned-sword-item rar-${s.rarity}${equipped ? ' equipped' : ''}`;
-      item.innerHTML = `
-        <span class="owned-sword-grade rar-chip rar-${s.rarity}">${RARITIES[s.rarity].name}</span>
-        <span class="owned-sword-name">${s.name}<small>(${s.hanja})</small></span>
-        <span class="owned-sword-income">분당 +${swordIncomeAt(s.idx).toLocaleString('ko-KR')}G</span>
-        <button type="button" class="btn-equip" data-idx="${s.idx}" ${equipped ? 'disabled' : ''}>${equipped ? '장착 중' : '장착하기'}</button>`;
-      ownedSwordList.appendChild(item);
-    });
-  }
-
-  ownedSwordList.addEventListener('click', (e) => {
-    const btn = e.target.closest('.btn-equip');
-    if (!btn) return;
-    equipSword(Number(btn.dataset.idx));
-  });
-
-  rarityTable.addEventListener('click', (e) => {
-    const btn = e.target.closest('.rarity-row');
-    if (!btn) return;
-    const i = Number(btn.dataset.rarity);
-    expandedRarity = expandedRarity === i ? null : i;
-    renderGachaPanel();
-  });
-
-  function renderGachaResults(results) {
-    gachaResults.innerHTML = '';
-    gachaResultsEmpty.style.display = results.length ? 'none' : 'block';
-    results.forEach((r, i) => {
-      const s = SWORDS[r.idx];
-      const node = swordResultTpl.content.cloneNode(true);
-      const card = node.querySelector('.sword-result');
-      card.classList.add(`rar-${s.rarity}`);
-      if (r.upgraded) card.classList.add('upgraded');
-      card.style.animationDelay = `${Math.min(i, 20) * 35}ms`;
-      node.querySelector('.sword-result-grade').textContent = RARITIES[s.rarity].name;
-      node.querySelector('.sword-result-name').textContent = s.name;
-      node.querySelector('.sword-result-hanja').textContent = s.hanja;
-      const tag = node.querySelector('.sword-result-tag');
-      if (r.upgraded) tag.textContent = '장착!';
-      else if (r.isNew) tag.textContent = 'NEW';
-      else tag.remove();
-      gachaResults.appendChild(node);
-    });
-  }
-
-  /* ---------------- 장비 뽑기 (가챠) ----------------
-     A second, independent gacha track alongside 검 뽑기 — its income adds
-     on top of 경지 효율 + 검 효율 rather than replacing either. Ported
-     verbatim (names/lore/desc/epithet) from 단련타's 운동 장비 pool, just
-     regraded for this economy:
-
-     - Odds started as an exact tier-for-tier copy of SWORDS' 8 chances,
-       then got rebalanced once: 천고물 gave up 0.003 of its 0.005 to
-       조화물 (0.175→0.178) and dropped to 0.002, so the table no longer
-       matches SWORDS' 1:1 but still sums to 100.
-     - studyBonus for 조잡..신물 (grades 0-4) is 단련타's raw numbers
-       scaled ×2.4. 조화물과 등선물 (grades 5-6, added later to fill out
-       the full 8-grade table) use studyBonus = 2.1x the corresponding
-       SWORDS grade's own value, per "성능은 대응하는 [검] 등급의
-       2.1배". 천고물 (grade 7, the original top slot) was later doubled
-       on top of its original ×2.4-scaled value. A draw costs 150,000G
-       here vs 50,000G for a sword (3x), so the payout is more than
-       proportionally better, not just 3x. Live since GEAR_GACHA_PAUSED
-       was flipped off after this rebalance. */
-  const GEAR_RARITIES = [
-    { key: 'jojap',     name: '조잡',   hanja: '粗雜', chance: 64.5 },
-    { key: 'jeongryeon',name: '정련',   hanja: '精鍊', chance: 20 },
-    { key: 'jingwi',    name: '진귀',   hanja: '珍貴', chance: 10 },
-    { key: 'yeongmul',  name: '영물',   hanja: '靈物', chance: 4.8 },
-    { key: 'sinmul',    name: '신물',   hanja: '神物', chance: 0.5 },
-    { key: 'johwa',     name: '조화물', hanja: '造化物', chance: 0.178 },
-    { key: 'deungseon', name: '등선물', hanja: '登仙物', chance: 0.02 },
-    { key: 'cheongo',   name: '천고물', hanja: '千古物', chance: 0.002 },
-  ];
-
-  const GEAR_ITEMS = [
-    /* ---- 조잡(粗雜) ---- */
-    { name: '마의', hanja: '麻衣', rarity: 0, studyBonus: 2900,
-      lore: '거친 삼베로 지어 무게조차 잊게 만드는 수련복. 문파의 막내 제자들이 처음 몸에 걸치는 옷이다.',
-      desc: '화려함은 없지만, 어떤 동작을 펼쳐도 걸리는 데가 없다. 모든 수련은 이 옷 한 벌에서 시작된다.' },
-    { name: '짚신', hanja: '草鞋', rarity: 0, studyBonus: 3250,
-      lore: '지푸라기를 엮어 만든 값싼 신. 산을 백 번 오르내리면 밑창이 다 닳는다.',
-      desc: '발끝이 시리고 아파도, 이 신을 신고 걸은 산길이 다리 힘을 키운다.' },
-    { name: '목갑', hanja: '木甲', rarity: 0, studyBonus: 3500,
-      lore: '나무판을 엮어 두른 초심자용 갑주. 진짜 매질은 견뎌도, 무겁고 둔하다.',
-      desc: '무겁고 둔하지만, 몸을 지키는 법을 가장 먼저 가르쳐주는 갑주다.' },
-    { name: '무명 각반', hanja: '無名 脚絆', rarity: 0, studyBonus: 3850,
-      lore: '이름조차 없는 흔한 각반. 저잣거리 어디서나 몇 푼이면 구한다.',
-      desc: '다리를 가볍게 감싸주는 것만으로도, 하루 종일 움직일 수 있는 힘이 생긴다.' },
-
-    /* ---- 정련(精鍊) ---- */
-    { name: '연사 무복', hanja: '練絲 武服', rarity: 1, studyBonus: 7200,
-      lore: '명주실을 곱게 자아 지은 무복. 땀을 잘 흡수해 오랜 수련에도 몸이 무겁지 않다.',
-      desc: '실 한 올 한 올에 장인의 손길이 스며, 움직임을 방해하지 않는다.' },
-    { name: '쾌행리', hanja: '快行履', rarity: 1, studyBonus: 7800,
-      lore: '밑창에 특수하게 무두질한 가죽을 덧대, 디딜 때마다 반동이 실린다.',
-      desc: '신는 순간 걸음이 가벼워지고, 움직이는 속도가 눈에 띄게 붙는다.' },
-    { name: '연환 권갑', hanja: '連環 拳甲', rarity: 1, studyBonus: 8500,
-      lore: '작은 쇠고리를 사슬처럼 엮어 손등에 덧댄 권갑. 지를 때마다 소리가 쟁쟁 울린다.',
-      desc: '맨손보다 한결 묵직한 힘을 실을 수 있게 도와준다.' },
-    { name: '등패 호완', hanja: '籐牌 護腕', rarity: 1, studyBonus: 9100,
-      lore: '등나무를 얇게 엮어 손목에 감는 보호구. 가볍지만 어지간한 충격은 튕겨낸다.',
-      desc: '손목의 부담을 크게 덜어주어, 몸을 오래 쓸 수 있게 해준다.' },
-
-    /* ---- 진귀(珍貴) — 여기부터 별호(別號)가 붙는다 ---- */
-    { name: '백로 갑주', hanja: '白鷺 甲胄', rarity: 2, studyBonus: 14900, epithet: '백로의 몸놀림',
-      lore: '백로의 깃털처럼 가볍게 벼린 경갑. 두르고도 물 위를 걷듯 움직일 수 있다 하여 이름을 얻었다.',
-      desc: '무게를 거의 느낄 수 없는데도, 웬만한 충격은 모두 흘려보낸다.' },
-    { name: '청풍 각반', hanja: '淸風 脚絆', rarity: 2, studyBonus: 15800, epithet: '맑은 바람의 발걸음',
-      lore: '먼 지방의 명장이 벼린 각반으로, 착용하면 바람을 두른 듯 다리가 가벼워진다는 소문이 자자하다.',
-      desc: '한 걸음마다 옅은 바람이 이는 듯, 움직이는 속도가 몰라보게 빨라진다.' },
-    { name: '반석 권갑', hanja: '磐石 拳甲', rarity: 2, studyBonus: 17000, epithet: '반석을 부수는 주먹',
-      lore: '바위처럼 단단한 합금을 두들겨 만든 권갑. 시험 삼아 바위를 친 장인의 손이 멀쩡했다는 이야기가 전해진다.',
-      desc: '지를 때마다 반석을 두드리는 듯한 묵직함이 실린다.' },
-    { name: '유운 무복', hanja: '流雲 武服', rarity: 2, studyBonus: 18200, epithet: '구름을 두른 자',
-      lore: '구름이 흐르는 무늬를 짜 넣은 무복. 명문 대파의 속가 제자들이 승급 시험을 통과하면 하사받는다.',
-      desc: '몸에 걸치는 순간 동작 하나하나가 한결 유려해진다.' },
-
-    /* ---- 영물(靈物) ---- */
-    { name: '화린 갑주', hanja: '火麟 甲胄', rarity: 3, studyBonus: 33600, epithet: '불기린의 비늘',
-      lore: '전설의 불기린이 벗어놓았다는 비늘 한 조각을 엮어 만든 갑주. 두르면 은은한 열기가 돈다.',
-      desc: '몸속 깊은 곳까지 뜨거운 기운이 차올라, 지치지 않고 스스로를 몰아붙일 수 있다.' },
-    { name: '은하 각반', hanja: '銀河 脚絆', rarity: 3, studyBonus: 36500, epithet: '은하를 밟는 걸음',
-      lore: '밤하늘의 별빛을 은실로 짜 넣었다는 신비한 각반. 착용자가 움직이면 발자국마다 옅은 빛이 인다고 전해진다.',
-      desc: '지면을 딛는 감각조차 아득해질 만큼, 몸이 가볍고 빠르게 나아간다.' },
-    { name: '뇌전 권갑', hanja: '雷電 拳甲', rarity: 3, studyBonus: 39800, epithet: '벼락을 두른 주먹',
-      lore: '벼락 맞은 나무의 심을 갈아 넣었다는 영물 권갑. 지를 때마다 손끝에서 옅은 스파크가 인다.',
-      desc: '한 번의 지름이 여러 번의 타격처럼 쌓여, 폭발적인 힘을 낸다.' },
-    { name: '현무 호완', hanja: '玄武 護腕', rarity: 3, studyBonus: 43200, epithet: '현무의 가호',
-      lore: '북방을 지키는 현무의 등딱지를 본떠 벼린 호완. 어떤 충격도 굳건히 받아낸다는 영물.',
-      desc: '지치고 힘든 순간에도, 마치 등딱지처럼 몸을 굳건히 지탱해준다.' },
-
-    /* ---- 신물(神物) ---- */
-    { name: '봉황 우의', hanja: '鳳凰 羽衣', rarity: 4, studyBonus: 72000, epithet: '불사조의 날개옷',
-      lore: '봉황의 깃털로 짜냈다는 신물. 지친 몸에 불사조의 생명력이 스며든다는 전설이 전해진다.',
-      desc: '아무리 몰아붙여도 몸이 다시 살아나는 듯, 지치지 않고 다음 세트에 임할 수 있다.' },
-    { name: '기린 갑주', hanja: '麒麟 甲胄', rarity: 4, studyBonus: 80400, epithet: '기린의 위엄',
-      lore: '성군이 나타날 때만 모습을 드러낸다는 기린의 뿔로 벼린 갑주. 두른 이의 기세만으로 주변이 압도된다.',
-      desc: '몸을 감싸는 순간, 태산 같은 안정감과 함께 폭발적인 힘이 차오른다.' },
-    { name: '천마 각반', hanja: '天馬 脚絆', rarity: 4, studyBonus: 87600, epithet: '천마의 질주',
-      lore: '하늘을 달린다는 천마의 갈기를 엮어 만든 각반. 착용자는 발이 땅에 닿는지도 잊는다는 신물.',
-      desc: '움직일 때마다 마치 하늘을 나는 듯, 상상 이상의 속도가 붙는다.' },
-    { name: '백호 권갑', hanja: '白虎 拳甲', rarity: 4, studyBonus: 94800, epithet: '백호의 포효',
-      lore: '서쪽을 지키는 백호의 발톱을 벼려 만든 권갑. 지를 때마다 짐승의 포효가 울린다는 신물.',
-      desc: '한 방 한 방에 맹수의 기세가 실려, 스스로도 놀랄 힘을 낸다.' },
-    { name: '청룡 호완', hanja: '靑龍 護腕', rarity: 4, studyBonus: 100800, epithet: '청룡의 비늘',
-      lore: '동해를 다스리는 청룡의 비늘로 감싼 호완. 어떤 무리한 동작도 다치지 않게 지켜준다는 신물.',
-      desc: '몸의 한계를 걱정하지 않고, 극한까지 스스로를 몰아붙일 수 있게 해준다.' },
-
-    /* ---- 천고물(千古物) — 이 뽑기의 최종 등급 ---- */
-    { name: '무영신갑', hanja: '無影神甲', rarity: 7, studyBonus: 5200000, epithet: '그림자조차 남기지 않는 자',
-      lore: '억겁의 수련 끝에 그림자마저 지웠다는 전설의 고수가 남겼다는 신갑. 존재하는 것만으로 주변의 기운을 압도한다.',
-      desc: '몸에 걸치는 순간, 인간의 한계라는 말 자체가 무의미해진다.' },
-    { name: '파극권갑', hanja: '破極拳甲', rarity: 7, studyBonus: 6000000, epithet: '극한을 부수는 자',
-      lore: '극(極)이라 불리던 모든 한계를 부쉈다는 전설의 권사가 남긴 유품. 그 이름을 들은 것만으로 두려움에 떠는 이가 많았다 전해진다.',
-      desc: '지를 때마다 자신이 알던 한계가 산산이 부서지는 감각을 느낀다.' },
-    { name: '만리질풍화', hanja: '萬里疾風靴', rarity: 7, studyBonus: 6800000, epithet: '만 리를 나는 질풍',
-      lore: '하루 만에 만 리를 달렸다는 전설의 각행자(脚行者)가 신었다는 화. 바람조차 이 신을 따라잡지 못했다 한다.',
-      desc: '달리는 것이 아니라, 스스로가 한 줄기 바람이 된 듯한 속도를 낸다.' },
-    { name: '불괴금강신', hanja: '不壞金剛身', rarity: 7, studyBonus: 7600000, epithet: '무너지지 않는 금강의 몸',
-      lore: '금강불괴(金剛不壞)의 경지에 이르렀다는 전설 속 무인의 몸 그 자체를 형상화했다는 신물.',
-      desc: '지치고 무너질 것 같은 순간에도, 결코 꺾이지 않는 굳건함이 온몸에 깃든다.' },
-    { name: '천고제일신체', hanja: '千古第一身體', rarity: 7, studyBonus: 8400000, epithet: '천고에 다시없을 몸',
-      lore: '천고에 다시없을 몸이라 칭송받던 전설의 종사가 평생의 수련 끝에 남긴 마지막 흔적. 이를 얻은 자는 그 종사의 첫걸음을 다시 걷는다고 전해진다.',
-      desc: '이 장비를 두른 자는, 전설이 걸었던 길의 끝에 마침내 자신도 설 수 있음을 깨닫는다.' },
-
-    /* ---- 조화물(造化物), 등선물(登仙物) — 8등급 표를 SWORDS와 정확히
-       맞추기 위해 나중에 추가된 두 등급. 뒤에 덧붙이는 이유는 SWORDS에
-       용검을 추가했을 때와 동일: 이미 존재하는 항목들의 배열 인덱스(=
-       gearLevel/gearDiscovered가 가리키는 값)를 절대 밀어내지 않기
-       위함. studyBonus는 대응하는 SWORDS 등급(신병이기/선검) 값의
-       2.1배. ---- */
-    /* ---- 조화물(造化物) — SWORDS 신병이기(rarity 5) 대응, ×2.1 ---- */
-    { name: '창세 갑주', hanja: '創世 甲胄', rarity: 5, studyBonus: 249900, epithet: '천지가 열리던 순간의 갑옷',
-      lore: '천지가 처음 열리던 순간의 기운을 옷감에 담았다는 전설의 갑주. 두른 자는 세상이 만들어지던 태초의 힘을 온몸으로 느낀다고 한다.',
-      desc: '몸에 걸치는 순간, 마치 세상이 다시 시작되는 듯한 벅찬 기운이 차오른다.' },
-    { name: '조화 각반', hanja: '造化 脚絆', rarity: 5, studyBonus: 268800, epithet: '만물을 빚어낸 걸음',
-      lore: '만물을 빚어낸 조화옹(造化翁)의 손길이 스며들었다는 각반. 착용자의 걸음마다 새로운 기운이 피어난다는 전설이 전해진다.',
-      desc: '한 걸음 한 걸음이 마치 새로운 무언가를 빚어내는 듯, 남다른 힘이 실린다.' },
-    { name: '개벽 권갑', hanja: '開闢 拳甲', rarity: 5, studyBonus: 287700, epithet: '하늘과 땅을 가른 주먹',
-      lore: '하늘과 땅이 처음 갈라지던 개벽(開闢)의 순간을 벼려 넣었다는 권갑. 지르는 순간 태초의 굉음이 울린다는 이야기가 전해진다.',
-      desc: '한 방 한 방에 세상을 여는 듯한 압도적인 힘이 실린다.' },
-    { name: '태극 호완', hanja: '太極 護腕', rarity: 5, studyBonus: 300300, epithet: '음양을 품은 팔찌',
-      lore: '음(陰)과 양(陽)이 처음 나뉘던 태극(太極)의 이치를 새겨 넣은 호완. 어떤 극한의 순간에도 균형을 잃지 않게 해준다는 전설의 물건이다.',
-      desc: '몸의 균형이 무너질 듯한 순간에도, 마치 태극처럼 다시 중심을 잡아준다.' },
-
-    /* ---- 등선물(登仙物) — SWORDS 선검(rarity 6) 대응, ×2.1 ---- */
-    { name: '등선의', hanja: '登仙衣', rarity: 6, studyBonus: 2247000, epithet: '하늘로 오르는 옷자락',
-      lore: '수많은 구도자들이 평생을 바쳐도 닿지 못했다는 등선(登仙)의 경지, 그 순간 입고 있었다는 전설의 옷. 실을 짠 이도, 짠 시기도 전해지지 않는다.',
-      desc: '몸에 걸치는 순간, 발밑이 아득해질 만큼 가벼워지고 하늘이 가까워지는 듯한 감각이 든다.' },
-    { name: '비선화', hanja: '飛仙靴', rarity: 6, studyBonus: 2688000, epithet: '구름을 밟고 하늘을 걷다',
-      lore: '신선이 되어 하늘로 날아올랐다는 전설의 인물이 마지막으로 남기고 간 신. 구름 위를 걷듯 신은 이의 발을 가볍게 한다고 전해진다.',
-      desc: '땅을 딛는 감각조차 희미해질 만큼, 구름 위를 걷는 듯한 가벼움이 온몸에 퍼진다.' },
-  ];
-
-  // File order deliberately matches GEAR_ITEMS so existing saved gear
-  // indices stay untouched. Assets are WebP to keep the codex lightweight.
-  const GEAR_ART_FILES = [
-    '00-maui.webp', '01-jipsin.webp', '02-mokgap.webp', '03-mumyeong-gakban.webp',
-    '04-yeonsa-mubok.webp', '05-quaenghaengri.webp', '06-yeonhwan-gwongap.webp', '07-deungpae-howan.webp',
-    '08-baengro-gapju.webp', '09-cheongpung-gakban.webp', '10-banseok-gwongap.webp', '11-yuun-mubok.webp',
-    '12-hwarin-gapju.webp', '13-eunha-gakban.webp', '14-noejeon-gwongap.webp', '15-hyeonmu-howan.webp',
-    '16-bonghwang-ui.webp', '17-girin-gapju.webp', '18-cheonma-gakban.webp', '19-baekho-gwongap.webp',
-    '20-cheongryong-howan.webp', '21-muyeongsingap.webp', '22-pageuk-gwongap.webp', '23-manrijilpunghwa.webp',
-    '24-bulgoegeumgangsin.webp', '25-cheongojeilsinche.webp', '26-changse-gapju.webp', '27-johwa-gakban.webp',
-    '28-gaebyeok-gwongap.webp', '29-taegeuk-howan.webp', '30-deungseon-ui.webp', '31-biseonhwa.webp',
-  ];
-
-  function gearPower(idx) {
-    const g = GEAR_ITEMS[idx];
-    return g.rarity * 1e9 + g.studyBonus;
-  }
-  function gearPowerSafe(idx) {
-    return GEAR_ITEMS[idx] ? gearPower(idx) : -1;
-  }
-  function gearIncomeAt(idx) {
-    return niceGold(GEAR_ITEMS[idx].studyBonus * (1.5 / 5));
-  }
-
-  const GEAR_DRAW_COST = 150000;
-  const GEAR_MAX_DRAWS_PER_BATCH = 100;
-  function gearDrawCost() { return GEAR_DRAW_COST; }
-
-  // Kill switch for this gacha track — flipped off once the 8-grade table
-  // and 천고물 rebalance (2배 성능, chance 0.005→0.002 with the freed
-  // 0.003 handed to 조화물) landed.
-  const GEAR_GACHA_PAUSED = false;
-
-  function rollGear() {
-    let roll = Math.random() * 100;
-    let rarity = 0;
-    for (let i = 0; i < GEAR_RARITIES.length; i++) {
-      if (roll < GEAR_RARITIES[i].chance) { rarity = i; break; }
-      roll -= GEAR_RARITIES[i].chance;
-      rarity = i;
-    }
-    const pool = GEAR_ITEMS.map((g, i) => (g.rarity === rarity ? i : -1)).filter((i) => i >= 0);
-    return pool[Math.floor(Math.random() * pool.length)];
-  }
-
-  function performGearDraws(count) {
-    if (GEAR_GACHA_PAUSED) {
-      showToast('⏸️ 장비 뽑기는 현재 일시 중단되었어요.');
-      return;
-    }
-    const cost = gearDrawCost();
-    const total = cost * count;
-    if (gold < total) {
-      showToast(`💸 골드가 부족해요. ${count}회 뽑기에 ${total.toLocaleString('ko-KR')}G가 필요합니다.`);
-      return;
-    }
-
-    gold -= total;
-
-    const results = [];
-    let equippedChanged = false;
-    let newlyDiscovered = 0;
-    let dupeCount = 0;
-
-    for (let i = 0; i < count; i++) {
-      const idx = rollGear();
-      const isNew = !gearDiscovered.includes(idx);
-      if (isNew) {
-        gearDiscovered.push(idx);
-        newlyDiscovered++;
-      } else {
-        dupeCount++;
-      }
-      const upgraded = gearPower(idx) > gearPower(gearLevel);
-      if (upgraded) { gearLevel = idx; equippedChanged = true; }
-      results.push({ idx, isNew, upgraded });
-    }
-
-    queueSave();
-    renderGold();
-    renderGearResults(results);
-    renderGearPanel();
-    renderCodex();
-    renderStudyHint();
-    renderHeader();
-
-    const best = results.reduce((a, b) => (gearPower(b.idx) > gearPower(a.idx) ? b : a));
-    const bestGear = GEAR_ITEMS[best.idx];
-    if (equippedChanged) {
-      showToast(`🛡️ ${GEAR_RARITIES[bestGear.rarity].name} ${bestGear.name}(${bestGear.hanja}) 획득! 자동으로 장착했습니다.`);
-    } else if (newlyDiscovered > 0) {
-      showToast(`📖 새로운 장비 ${newlyDiscovered}개를 도감에 기록했습니다.`);
-    } else if (dupeCount > 0) {
-      showToast('🌀 이미 보유한 장비만 나왔어요.');
-    } else {
-      showToast('🌀 이번엔 더 좋은 장비가 나오지 않았어요. 현재 장비를 그대로 유지합니다.');
-    }
-  }
-
-  const gearGachaCountInput = el('gearGachaCount');
-  const gearGachaDrawBtn = el('gearGachaDrawBtn');
-  const gearGachaCostLabel = el('gearGachaCostLabel');
-  const gearGachaResults = el('gearGachaResults');
-  const gearGachaResultsEmpty = el('gearGachaResultsEmpty');
-  const gearRarityTable = el('gearRarityTable');
-  const ownedGearList = el('ownedGearList');
-  const ownedGearCount = el('ownedGearCount');
-  const ownedGearEmpty = el('ownedGearEmpty');
-
-  const gearEquippedEls = {
-    name: el('gearName'), nameText: el('gearNameText'), hanja: el('gearHanja'), grade: el('gearGrade'),
-    epithet: el('gearEpithet'), lore: el('gearLore'), desc: el('gearDesc'), studyRange: el('gearStudyRange'),
-  };
-
-  function clampGearDrawCount() {
-    let n = parseInt(gearGachaCountInput.value, 10);
-    if (!Number.isFinite(n) || n < 1) n = 1;
-    if (n > GEAR_MAX_DRAWS_PER_BATCH) n = GEAR_MAX_DRAWS_PER_BATCH;
-    return n;
-  }
-
-  let expandedGearRarity = null;
-
-  function renderGearPanel() {
-    const cur = GEAR_ITEMS[gearLevel];
-    const rar = GEAR_RARITIES[cur.rarity];
-
-    gearEquippedEls.nameText.textContent = cur.name;
-    gearEquippedEls.name.className = `cultivation-name rar-${cur.rarity}`;
-    gearEquippedEls.hanja.textContent = `(${cur.hanja})`;
-    gearEquippedEls.grade.textContent = `${rar.name} · ${rar.hanja}`;
-    gearEquippedEls.grade.className = `sword-grade rar-chip rar-${cur.rarity}`;
-    if (cur.epithet) {
-      gearEquippedEls.epithet.textContent = `《${cur.epithet}》`;
-      gearEquippedEls.epithet.className = `sword-epithet rar-${cur.rarity}`;
-      gearEquippedEls.epithet.hidden = false;
-    } else {
-      gearEquippedEls.epithet.hidden = true;
-    }
-    gearEquippedEls.lore.textContent = cur.lore;
-    gearEquippedEls.desc.textContent = cur.desc;
-    gearEquippedEls.studyRange.textContent = `+${gearIncomeAt(gearLevel).toLocaleString('ko-KR')}G`;
-
-    const n = clampGearDrawCount();
-    const cost = gearDrawCost();
-    const total = cost * n;
-    gearGachaCountInput.disabled = GEAR_GACHA_PAUSED;
-    if (GEAR_GACHA_PAUSED) {
-      gearGachaCostLabel.textContent = '⏸️ 현재 뽑기가 일시 중단되었어요. 보유 장비 장착은 계속 이용할 수 있어요.';
-      gearGachaDrawBtn.textContent = '일시 중단';
-      gearGachaDrawBtn.disabled = true;
-    } else {
-      gearGachaCostLabel.textContent = `1회 ${cost.toLocaleString('ko-KR')}G · ${n}회 ${total.toLocaleString('ko-KR')}G`;
-      gearGachaDrawBtn.textContent = `${n}회 뽑기`;
-      gearGachaDrawBtn.disabled = gold < total;
-    }
-
-    gearRarityTable.innerHTML = '';
-    GEAR_RARITIES.forEach((r, i) => {
-      const items = GEAR_ITEMS.map((g, idx) => ({ ...g, idx })).filter((g) => g.rarity === i);
-      const isOpen = expandedGearRarity === i;
-
-      const group = document.createElement('li');
-      group.className = 'rarity-group';
-
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = `rarity-row rar-${i}${isOpen ? ' open' : ''}`;
-      btn.dataset.rarity = String(i);
-      btn.setAttribute('aria-expanded', String(isOpen));
-      btn.innerHTML = `
-        <span class="rarity-name">${r.name}<small>${r.hanja}</small></span>
-        <span class="rarity-chance">${r.chance}%</span>
-        <span class="rarity-count">${items.length}종</span>
-        <span class="rarity-caret">▾</span>`;
-      group.appendChild(btn);
-
-      const sub = document.createElement('ul');
-      sub.className = `rarity-sword-list${isOpen ? ' show' : ''}`;
-      items.forEach((g, j) => {
-        const item = document.createElement('li');
-        item.className = `rarity-sword-item${gearDiscovered.includes(g.idx) ? '' : ' undiscovered'}`;
-        item.style.animationDelay = isOpen ? `${j * 30}ms` : '0ms';
-        item.innerHTML = `<span class="rarity-sword-name">${g.name}</span><span class="rarity-sword-hanja">(${g.hanja})</span><span class="rarity-sword-income">분당 +${gearIncomeAt(g.idx).toLocaleString('ko-KR')}G</span>`;
-        sub.appendChild(item);
-      });
-      group.appendChild(sub);
-
-      gearRarityTable.appendChild(group);
-    });
-
-    renderOwnedGear();
-  }
-
-  function equipGearItem(idx) {
-    if (idx === gearLevel || !gearDiscovered.includes(idx)) return;
-    gearLevel = idx;
-    queueSave();
-    renderGearPanel();
-    renderCodex();
-    renderStudyHint();
-    renderHeader();
-    const g = GEAR_ITEMS[idx];
-    showToast(`🛡️ ${GEAR_RARITIES[g.rarity].name} ${g.name}(${g.hanja})을(를) 장착했습니다.`);
-  }
-
-  function renderOwnedGear() {
-    const owned = gearDiscovered
-      .map((idx) => ({ idx, ...GEAR_ITEMS[idx] }))
-      .sort((a, b) => gearPower(b.idx) - gearPower(a.idx));
-
-    ownedGearCount.textContent = `${gearDiscovered.length} / ${GEAR_ITEMS.length}`;
-    ownedGearEmpty.style.display = owned.length ? 'none' : 'block';
-
-    ownedGearList.innerHTML = '';
-    owned.forEach((g) => {
-      const equipped = g.idx === gearLevel;
-      const item = document.createElement('li');
-      item.className = `owned-sword-item rar-${g.rarity}${equipped ? ' equipped' : ''}`;
-      item.innerHTML = `
-        <span class="owned-sword-grade rar-chip rar-${g.rarity}">${GEAR_RARITIES[g.rarity].name}</span>
-        <span class="owned-sword-name">${g.name}<small>(${g.hanja})</small></span>
-        <span class="owned-sword-income">분당 +${gearIncomeAt(g.idx).toLocaleString('ko-KR')}G</span>
-        <button type="button" class="btn-equip" data-idx="${g.idx}" ${equipped ? 'disabled' : ''}>${equipped ? '장착 중' : '장착하기'}</button>`;
-      ownedGearList.appendChild(item);
-    });
-  }
-
-  ownedGearList.addEventListener('click', (e) => {
-    const btn = e.target.closest('.btn-equip');
-    if (!btn) return;
-    equipGearItem(Number(btn.dataset.idx));
-  });
-
-  gearRarityTable.addEventListener('click', (e) => {
-    const btn = e.target.closest('.rarity-row');
-    if (!btn) return;
-    const i = Number(btn.dataset.rarity);
-    expandedGearRarity = expandedGearRarity === i ? null : i;
-    renderGearPanel();
-  });
-
-  function renderGearResults(results) {
-    gearGachaResults.innerHTML = '';
-    gearGachaResultsEmpty.style.display = results.length ? 'none' : 'block';
-    results.forEach((r, i) => {
-      const g = GEAR_ITEMS[r.idx];
-      const node = swordResultTpl.content.cloneNode(true);
-      const card = node.querySelector('.sword-result');
-      card.classList.add(`rar-${g.rarity}`);
-      if (r.upgraded) card.classList.add('upgraded');
-      card.style.animationDelay = `${Math.min(i, 20) * 35}ms`;
-      node.querySelector('.sword-result-grade').textContent = GEAR_RARITIES[g.rarity].name;
-      node.querySelector('.sword-result-name').textContent = g.name;
-      node.querySelector('.sword-result-hanja').textContent = g.hanja;
-      const tag = node.querySelector('.sword-result-tag');
-      if (r.upgraded) tag.textContent = '장착!';
-      else if (r.isNew) tag.textContent = 'NEW';
-      else tag.remove();
-      gearGachaResults.appendChild(node);
-    });
-  }
-
-  gearGachaCountInput.addEventListener('input', renderGearPanel);
-  gearGachaDrawBtn.addEventListener('click', () => performGearDraws(clampGearDrawCount()));
-
-  /* ---------------- 강화 ---------------- */
-  const enhanceFragmentBadge = el('enhanceFragmentBadge');
-  const enhanceSwordSelect = el('enhanceSwordSelect');
-  const enhanceGrade = el('enhanceGrade');
-  const enhanceSwordNameText = el('enhanceSwordNameText');
-  const enhanceBadge = el('enhanceBadge');
-  const enhanceStars = el('enhanceStars');
-  const enhanceIncome = el('enhanceIncome');
-  const enhanceNextInfo = el('enhanceNextInfo');
-  const enhanceBtn = el('enhanceBtn');
-  const enhanceEmpty = el('enhanceEmpty');
-  const enhanceDisplay = el('enhanceDisplay');
-  const enhanceCardWrap = el('enhanceCardWrap');
-  const ENHANCE_BURST_CLASSES = ['enhance-burst-low', 'enhance-burst-high', 'enhance-burst-rainbow'];
-
-  // 0 stars -> no flair, 1-5 -> a modest gold shimmer, 6-9 -> a brighter
-  // multicolor glow, 10 -> full rainbow treatment.
-  function enhanceTierOf(stars) {
-    if (stars >= 10) return 'rainbow';
-    if (stars >= 6) return 'high';
-    if (stars >= 1) return 'low';
-    return 'none';
-  }
-
-  // Each star POSITION has its own fixed color (blue -> violet -> magenta
-  // -> orange as the row climbs) — reaching that star just fills it in
-  // with its own designated color, defined as CSS classes .star-pos-1
-  // through .star-pos-10. Not a tier-based recolor of the whole set.
-  // 1-10★ render as the original single row; 11★/12★ (the 돌파강화
-  // over-cap tier) sit on their own centered row underneath, so the
-  // distinct blue/purple pair reads as a separate, higher-stakes step
-  // rather than just two more slots tacked onto the same line.
-  function renderEnhanceStars(stars) {
-    enhanceStars.innerHTML = '';
-    const mainRow = document.createElement('div');
-    mainRow.className = 'enhance-stars-row';
-    for (let i = 1; i <= ENHANCE_SAFE_MAX_STARS; i++) {
-      const img = document.createElement('img');
-      const filled = i <= stars;
-      img.src = 'img/enhance-star.png';
-      img.alt = filled ? '★' : '☆';
-      img.className = 'enhance-star';
-      if (filled) img.classList.add('filled', `star-pos-${i}`);
-      mainRow.appendChild(img);
-    }
-    enhanceStars.appendChild(mainRow);
-
-    const overcapRow = document.createElement('div');
-    overcapRow.className = 'enhance-stars-row enhance-stars-row-overcap';
-    for (let i = ENHANCE_SAFE_MAX_STARS + 1; i <= ENHANCE_MAX_STARS; i++) {
-      const img = document.createElement('img');
-      const filled = i <= stars;
-      img.src = 'img/enhance-star.png';
-      img.alt = filled ? '★' : '☆';
-      img.className = 'enhance-star enhance-star-overcap';
-      if (filled) img.classList.add('filled', `star-pos-${i}`);
-      overcapRow.appendChild(img);
-    }
-    enhanceStars.appendChild(overcapRow);
-  }
-
-  // Remembers the player's manual pick for the session; falls back to the
-  // equipped sword whenever nothing valid is selected yet.
-  let selectedEnhanceIdx = null;
-
-  function renderEnhance() {
-    enhanceFragmentBadge.innerHTML = `<img class="frag-icon" src="img/star-fragment.png" alt="✳"> ${starFragments.toLocaleString('ko-KR')}`;
-
-    if (!discovered.length) {
-      enhanceDisplay.style.display = 'none';
-      enhanceEmpty.style.display = 'block';
-      enhanceSwordSelect.innerHTML = '';
-      return;
-    }
-    enhanceEmpty.style.display = 'none';
-    enhanceDisplay.style.display = '';
-
-    if (selectedEnhanceIdx === null || !discovered.includes(selectedEnhanceIdx)) {
-      selectedEnhanceIdx = swordLevel;
-    }
-
-    const sorted = [...discovered].sort((a, b) => a - b);
-    enhanceSwordSelect.innerHTML = '';
-    sorted.forEach((idx) => {
-      const s = SWORDS[idx];
-      const opt = document.createElement('option');
-      opt.value = String(idx);
-      const starTag = swordStars[idx] ? ` +${swordStars[idx]}` : '';
-      opt.textContent = `[${RARITIES[s.rarity].name}] ${s.name}${starTag}`;
-      if (idx === selectedEnhanceIdx) opt.selected = true;
-      enhanceSwordSelect.appendChild(opt);
-    });
-
-    const idx = selectedEnhanceIdx;
-    const s = SWORDS[idx];
-    const stars = swordStars[idx] || 0;
-
-    enhanceGrade.textContent = `${RARITIES[s.rarity].name} · ${RARITIES[s.rarity].hanja}`;
-    enhanceGrade.className = `sword-grade rar-chip rar-${s.rarity}`;
-    enhanceSwordNameText.textContent = s.name;
-    setEnhanceBadge(enhanceBadge, stars);
-    renderEnhanceStars(stars);
-    enhanceIncome.textContent = `검 효율 분당 +${swordIncomeAt(idx).toLocaleString('ko-KR')}G`;
-
-    enhanceCardWrap.className = `card enhance-card-wrap sword-theme enhance-tier-${enhanceTierOf(stars)}`;
-
-    if (stars >= ENHANCE_MAX_STARS) {
-      enhanceNextInfo.textContent = '이미 최대 12성에 도달했어요.';
-      enhanceBtn.disabled = true;
-      enhanceBtn.textContent = '강화 완료';
-    } else {
-      const cost = enhanceCostFor(idx, stars);
-      const chance = enhanceChanceFor(idx, stars);
-      const overcap = enhanceIsOvercap(stars);
-      enhanceNextInfo.innerHTML = `${stars + 1}성 도전 · <img class="frag-icon" src="img/star-fragment.png" alt="✳"> ${cost.toLocaleString('ko-KR')} · 성공 확률 ${chance}%`
-        + (overcap ? ' · <span class="enhance-overcap-warning">⚠ 실패 시 0성으로 파괴</span>' : '');
-      enhanceBtn.disabled = starFragments < cost;
-      enhanceBtn.textContent = `강화하기 (${stars}★ → ${stars + 1}★)`;
-    }
-  }
-
-  enhanceSwordSelect.addEventListener('change', () => {
-    selectedEnhanceIdx = Number(enhanceSwordSelect.value);
-    renderEnhance();
-  });
-
-  function triggerEnhanceEffect(newStars) {
-    const cls = `enhance-burst-${enhanceTierOf(newStars)}`;
-    enhanceCardWrap.classList.remove(...ENHANCE_BURST_CLASSES);
-    void enhanceCardWrap.offsetWidth; // force reflow so replaying the animation always restarts it
-    if (ENHANCE_BURST_CLASSES.includes(cls)) enhanceCardWrap.classList.add(cls);
-    setTimeout(() => enhanceCardWrap.classList.remove(cls), 1400);
-  }
-
-  enhanceBtn.addEventListener('click', () => {
-    const idx = selectedEnhanceIdx;
-    if (idx === null || !discovered.includes(idx)) return;
-    const stars = swordStars[idx] || 0;
-    if (stars >= ENHANCE_MAX_STARS) return;
-    const cost = enhanceCostFor(idx, stars);
-    if (starFragments < cost) {
-      showToast(`✳ 별의 조각이 부족해요. ${cost.toLocaleString('ko-KR')}개가 필요합니다.`);
-      return;
-    }
-    starFragments -= cost;
-    const chance = enhanceChanceFor(idx, stars);
-    const success = Math.random() * 100 < chance;
-    const overcap = enhanceIsOvercap(stars);
-    const s = SWORDS[idx];
-
-    if (success) {
-      swordStars[idx] = stars + 1;
-      queueSave();
-      renderEnhance();
-      renderGachaPanel();
-      renderCodex();
-      renderStudyHint();
-      renderHeader();
-      triggerEnhanceEffect(stars + 1);
-      showToast(`✨ ${s.name} 강화 성공! ${stars + 1}★ 달성 (검 효율 +${ENHANCE_BONUS_BY_STAR[stars] * 100}%p)`);
-    } else if (overcap) {
-      // Past the safe cap a failure isn't a harmless whiff — it destroys
-      // the whole run, straight back to 0★.
-      delete swordStars[idx];
-      queueSave();
-      renderEnhance();
-      renderGachaPanel();
-      renderCodex();
-      renderStudyHint();
-      renderHeader();
-      showToast(`💥 ${s.name} 강화 파괴! ${stars}★ → 0★로 초기화됐어요.`);
-    } else {
-      queueSave();
-      renderEnhance();
-      showToast(`💔 강화에 실패했어요. 별의 조각만 소모됐어요. (${s.name})`);
-    }
-  });
-
-  /* ---------------- 도감 (검 / 장비 공용) ---------------- */
-  let codexMode = 'sword'; // 'sword' | 'gear' — which sub-tab is showing
-  let selectedCodexIndex = null;
-
-  // Everything that differs between the 검 도감 and 장비 도감 lives here,
-  // so renderCodex()/selectCodexItem() only need to know "which pool" —
-  // adding a third pool later (if it ever happens) means adding one more
-  // entry here, not touching the render/select logic itself.
-  function codexPool() {
-    return codexMode === 'gear'
-      ? {
-          items: GEAR_ITEMS, rarities: GEAR_RARITIES, artFiles: GEAR_ART_FILES,
-          artBase: 'img/gear', artVersion: GEAR_ART_VERSION,
-          discovered: gearDiscovered, equippedIdx: gearLevel, stars: null,
-          incomeAt: gearIncomeAt, unitLabel: '장비', noteLabel: '장비',
-        }
-      : {
-          items: SWORDS, rarities: RARITIES, artFiles: SWORD_ART_FILES,
-          artBase: 'img/swords', artVersion: SWORD_ART_VERSION,
-          discovered, equippedIdx: swordLevel, stars: swordStars,
-          incomeAt: swordIncomeAt, unitLabel: '검', noteLabel: '검',
-        };
-  }
-
-  function selectCodexItem(index) {
-    const pool = codexPool();
-    const s = pool.items[index];
-    if (!s || !pool.discovered.includes(index)) return;
-
-    selectedCodexIndex = index;
-    codexShowcase.hidden = false;
-    codexShowcase.className = `codex-showcase rar-${s.rarity}`;
-    applyCodexArt(codexShowcaseImg, pool.artFiles, pool.artBase, pool.artVersion, index, `${s.name} ${pool.unitLabel} 일러스트`);
-    codexShowcaseGrade.textContent = pool.rarities[s.rarity].name;
-    codexShowcaseName.textContent = s.name;
-    setEnhanceBadge(codexShowcaseEnhance, pool.stars ? (pool.stars[index] || 0) : 0);
-    codexShowcaseHanja.textContent = `(${s.hanja})`;
-    codexShowcaseEpithet.textContent = s.epithet ? `《${s.epithet}》` : '';
-    codexShowcaseEpithet.hidden = !s.epithet;
-    codexShowcaseQuote.textContent = codexHook(s.desc);
-    codexShowcaseLore.textContent = s.lore;
-    codexShowcaseDesc.textContent = s.desc;
-    codexShowcaseBonus.textContent = `${pool.unitLabel} 효율 분당 +${pool.incomeAt(index).toLocaleString('ko-KR')}G`;
-    codexShowcaseEffect.className = 'codex-showcase-effect';
-
-    codexGrid.querySelectorAll('.codex-card').forEach((card) => {
-      const selected = Number(card.dataset.swordIndex) === index;
-      card.classList.toggle('selected', selected);
-      card.setAttribute('aria-selected', String(selected));
-      card.setAttribute('aria-label', selected ? `${s.name} 전시 중` : `${card.dataset.swordName || pool.unitLabel} 상세 전시`);
-    });
-  }
-
-  function closeCodexShowcase() {
-    selectedCodexIndex = null;
-    codexShowcase.hidden = true;
-    codexGrid.querySelectorAll('.codex-card.selected').forEach((card) => {
-      card.classList.remove('selected');
-      card.setAttribute('aria-selected', 'false');
-    });
-  }
-
-  codexShowcaseClose.addEventListener('click', closeCodexShowcase);
-
-  function codexHook(text) {
-    const firstSentence = text.match(/^.*?[.!?](?:\s|$)/)?.[0] || text;
-    return `“${firstSentence.trim()}”`;
-  }
-
-  codexSubtabsEl.addEventListener('click', (e) => {
-    const btn = e.target.closest('.exam-tab');
-    if (!btn || btn.classList.contains('active')) return;
-    codexMode = btn.dataset.codex;
-    codexSubtabsEl.querySelectorAll('.exam-tab').forEach((t) => t.classList.toggle('active', t === btn));
-    selectedCodexIndex = null;
-    renderCodex();
-  });
-
-  function renderCodex() {
-    const pool = codexPool();
-    codexNoteEl.textContent = `한 번이라도 뽑은 ${pool.noteLabel}만 설정과 설명이 공개돼요.`;
-    codexGrid.innerHTML = '';
-    codexProgress.textContent = `${pool.discovered.length} / ${pool.items.length}`;
-
-    // Grade first, studyBonus (효율) second — both ascending, low to high.
-    // Raw array position can't be trusted for either: new items always get
-    // appended at the very end regardless of grade (see the SWORDS comment
-    // above), so a later grade or a cheaper duplicate can land anywhere in
-    // the array. Sorting on the data itself keeps this correct no matter
-    // where a future addition lands.
-    const byGradeThenEfficiency = pool.items
-      .map((s, i) => ({ s, i }))
-      .sort((a, b) => (a.s.rarity - b.s.rarity) || (a.s.studyBonus - b.s.studyBonus));
-
-    byGradeThenEfficiency.forEach(({ s, i }) => {
-      const found = pool.discovered.includes(i);
-      const node = codexCardTpl.content.cloneNode(true);
-      const card = node.querySelector('.codex-card');
-      card.dataset.swordIndex = i;
-      card.classList.add(`rar-${s.rarity}`);
-      if (!found) card.classList.add('locked');
-      if (i === pool.equippedIdx) card.classList.add('equipped');
-
-      const art = node.querySelector('.codex-art-img');
-      applyCodexArt(art, pool.artFiles, pool.artBase, pool.artVersion, i, found ? `${s.name} ${pool.unitLabel} 일러스트` : '');
-
-      if (found) {
-        card.tabIndex = 0;
-        card.setAttribute('role', 'button');
-        card.dataset.swordName = s.name;
-        card.setAttribute('aria-label', `${s.name} 상세 전시`);
-        const selectCard = () => selectCodexItem(i);
-        card.addEventListener('click', selectCard);
-        card.addEventListener('keydown', (event) => {
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            selectCard();
-          }
-        });
-      } else {
-        card.setAttribute('aria-label', `${s.name}, 아직 발견하지 못한 ${pool.unitLabel}`);
-      }
-
-      node.querySelector('.codex-grade').textContent = pool.rarities[s.rarity].name;
-      node.querySelector('.codex-name-text').textContent = s.name;   // name is always shown
-      const enhanceBadgeEl = node.querySelector('.codex-enhance-badge');
-      if (pool.stars) setEnhanceBadge(enhanceBadgeEl, pool.stars[i] || 0);
-      else enhanceBadgeEl.hidden = true;
-      node.querySelector('.codex-hanja').textContent = found ? `(${s.hanja})` : '(???)';
-      const epithetEl = node.querySelector('.codex-epithet');
-      if (s.epithet) {
-        epithetEl.textContent = found ? `《${s.epithet}》` : '《???》';
-      } else {
-        epithetEl.remove();
-      }
-      codexGrid.appendChild(node);
-    });
-
-    if (selectedCodexIndex !== null && pool.discovered.includes(selectedCodexIndex)) {
-      selectCodexItem(selectedCodexIndex);
-    } else {
-      closeCodexShowcase();
-    }
-  }
-
-  /* ---------------- 별호록 ----------------
-     Every 보검(寶劍)-and-up blade carries its own epithet. Eligibility and
-     the earned state both fall straight out of `discovered`, so a blade
-     pulled before this feature shipped is granted its epithet the moment
-     this renders — no separate award step or migration needed. */
-  function renderEpithets() {
-    epithetGrid.innerHTML = '';
-    // Same ordering as 보유 검 (등급 먼저, 그 안에서 효율순) via swordPower(),
-    // so a newly added sword's epithet slots into the right spot automatically
-    // instead of needing a manual reorder here.
-    const eligible = SWORDS
-      .map((s, i) => ({ ...s, idx: i }))
-      .filter((s) => s.epithet)
-      .sort((a, b) => swordPower(b.idx) - swordPower(a.idx));
-    const earnedCount = eligible.filter((s) => discovered.includes(s.idx)).length;
-    epithetProgress.textContent = `${earnedCount} / ${eligible.length}`;
-
-    eligible.forEach((s) => {
-      const found = discovered.includes(s.idx);
-      const node = epithetCardTpl.content.cloneNode(true);
-      const card = node.querySelector('.epithet-card');
-      card.classList.add(`rar-${s.rarity}`);
-      if (!found) card.classList.add('locked');
-      if (s.idx === swordLevel) card.classList.add('equipped');
-
-      node.querySelector('.epithet-grade').textContent = RARITIES[s.rarity].name;
-      node.querySelector('.epithet-title').textContent = found ? s.epithet : '???';
-      node.querySelector('.epithet-sword-name').textContent = found ? `${s.name} (${s.hanja})` : '미발견 검';
-      epithetGrid.appendChild(node);
-    });
-  }
-
-  gachaCountInput.addEventListener('input', renderGachaPanel);
-  gachaDrawBtn.addEventListener('click', () => performDraws(clampDrawCount()));
 
   /* ---------------- Theme ---------------- */
   function applyTheme(theme) {
@@ -3272,12 +2849,13 @@
     renderStudyHint();
     renderTodayTotal();
     resumeSession();
-    renderCultivationTrack(CULT_TRACKS.realm);
-    renderGachaPanel();
-    renderGachaResults([]);
-    renderGearPanel();
-    renderGearResults([]);
+    renderMainPanel();
+    renderHallPanel();
+    renderSummonResults([]);
+    renderGrowthPanel();
     renderCodex();
+    renderJourneyPanel();
+    renderAchievementsInto(recordAchievementList);
 
     lastStudyDay = studyDayKey();
     setInterval(checkStudyDayRollover, 60000);
