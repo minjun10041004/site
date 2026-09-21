@@ -76,6 +76,7 @@
   let claimedRegions = [];         // 해금 보상을 수령한 지역 id[]
   let activeEpithetSwordId = null; // 프로필에 대표로 표시할 별호의 검 id
   let totalSummons = 0;            // 누적 소환 횟수
+  let boostRemainingSeconds = 0;   // 성휘 부스트 -- 남은 2배 적용 실측정 시간(초)
 
   // 2026-09 네벨라크 개편 저장 포맷 버전. 이 값이 없거나 다르면(=개편 이전
   // 무협 시대 저장분) 아래 성장/재화 필드는 전부 기본값에서 새로 시작한다.
@@ -92,6 +93,7 @@
       gold, resonanceFragments, starCores, constellationSeals,
       equippedSwordId, discoveredSwordIds, swordEnhanceLv, swordResonanceMin, swordResonanceStage, pityStreak,
       claimedDailyQuests, claimedWeeklyQuests, claimedRegions, activeEpithetSwordId, totalSummons,
+      boostRemainingSeconds,
     };
   }
 
@@ -119,6 +121,7 @@
     starCores = Number.isFinite(nebelac.starCores) ? Math.max(0, Math.floor(nebelac.starCores)) : 0;
     constellationSeals = Number.isFinite(nebelac.constellationSeals) ? Math.max(0, Math.floor(nebelac.constellationSeals)) : 0;
     totalSummons = Number.isFinite(nebelac.totalSummons) ? Math.max(0, Math.floor(nebelac.totalSummons)) : 0;
+    boostRemainingSeconds = Number.isFinite(nebelac.boostRemainingSeconds) ? Math.max(0, Math.floor(nebelac.boostRemainingSeconds)) : 0;
 
     equippedSwordId = validSwordId(nebelac.equippedSwordId) ? nebelac.equippedSwordId : PRACTICE_SWORD.id;
     discoveredSwordIds = Array.isArray(nebelac.discoveredSwordIds)
@@ -600,6 +603,9 @@
   const regionStatus = el('regionStatus');
   const regionClaimBtn = el('regionClaimBtn');
   const journeyAchievementList = el('journeyAchievementList');
+  const boostBadge = el('boostBadge');
+  const boostDesc = el('boostDesc');
+  const boostStartBtn = el('boostStartBtn');
 
   /* ---------------- 기록 (행복 + 업적) ---------------- */
   const recordAchievementList = el('recordAchievementList');
@@ -965,7 +971,10 @@
   }
   function renderStudyHint() {
     const income = currentStudyIncome();
-    timerHint.innerHTML = `1분마다 ${income.toLocaleString('ko-KR')} 성휘, 1시간이면 ${(income * 60).toLocaleString('ko-KR')} 성휘를 획득해요`;
+    const boostNote = boostRemainingSeconds > 0
+      ? ` <span class="boost-note">⚡ 부스트 중 (남은 ${formatDurationLabel(boostRemainingSeconds)}) — 분당 성휘 2배</span>`
+      : '';
+    timerHint.innerHTML = `1분마다 ${income.toLocaleString('ko-KR')} 성휘, 1시간이면 ${(income * 60).toLocaleString('ko-KR')} 성휘를 획득해요${boostNote}`;
   }
 
   /* ---------------- 소환 (천명 게이지 보장) ---------------- */
@@ -1229,6 +1238,46 @@
     if (region.minMinutes > 0) starCores += JOURNEY_REGION_REWARD_CORE;
     queueSave();
     return true;
+  }
+
+  /* ---------------- 성휘 부스트 ----------------
+     "지금 기준" 최근 30일 공부시간을 그대로 부스트 예산(초)으로 떠서,
+     그만큼의 실측정 공부시간 동안 분당 성휘 수입이 2배가 된다. 예산은
+     활성화한 그 순간의 30일 누적을 스냅샷으로 고정한다 -- 이후 그날그날
+     달라지는 30일 롤링 값을 따라가지 않는다. */
+  function boostBudgetPreview() { return sumStudySecondsRolling(30); }
+  function canStartBoost() { return boostRemainingSeconds <= 0 && boostBudgetPreview() > 0; }
+  function startBoost() {
+    if (!canStartBoost()) return false;
+    boostRemainingSeconds = boostBudgetPreview();
+    queueSave();
+    return true;
+  }
+  // 이번 측정 시간 중 부스트가 적용되는 초를 소비하고 돌려준다.
+  function consumeBoostSeconds(seconds) {
+    const boosted = Math.min(seconds, boostRemainingSeconds);
+    boostRemainingSeconds -= boosted;
+    return boosted;
+  }
+
+  // seconds(실측정 시간)에 대한 보상을 계산한다. preview:true면 부스트
+  // 예산을 실제로 소비하지 않고 "지금 끝내면 얼마 받을지"만 미리 보여준다.
+  // base = 부스트가 전혀 없다고 가정했을 때의 보상, bonus = 그중 부스트
+  // 구간(2배)이 추가로 얹어준 몫 -- 화면 표시는 숫자를 두 배로 뭉개지
+  // 않고 "46800(+46800)"처럼 base와 bonus를 그대로 나눠 보여준다.
+  function computeSessionReward(seconds, { preview = false } = {}) {
+    const minutes = Math.floor(seconds / 60);
+    const income = currentStudyIncome();
+    const base = minutes * income;
+    if (minutes <= 0 || boostRemainingSeconds <= 0) return { base, bonus: 0, total: base };
+    const boostedSeconds = preview ? Math.min(seconds, boostRemainingSeconds) : consumeBoostSeconds(seconds);
+    const bonus = Math.floor(boostedSeconds / 60) * income;
+    return { base, bonus, total: base + bonus };
+  }
+  function formatRewardLabel(reward) {
+    return reward.bonus > 0
+      ? `${reward.base.toLocaleString('ko-KR')}(+${reward.bonus.toLocaleString('ko-KR')})`
+      : `+${reward.base.toLocaleString('ko-KR')}`;
   }
 
   /* ---------------- 업적 (공부시간 · 검 수집 · 공명 · 여정 완주) ---------------- */
@@ -1672,10 +1721,36 @@
     showToast(`🗺️ ${r.name} 해금! ${rewardText}`);
   });
 
+  function renderBoostCard() {
+    if (boostRemainingSeconds > 0) {
+      boostBadge.textContent = '진행 중';
+      boostBadge.className = 'badge boost-active';
+      boostDesc.textContent = `남은 2배 적용 시간: ${formatDurationLabel(boostRemainingSeconds)} — 이 시간만큼 실제로 공부를 측정하면 그동안 분당 성휘가 2배예요.`;
+      boostStartBtn.disabled = true;
+      boostStartBtn.textContent = '부스트 진행 중';
+    } else {
+      const budget = boostBudgetPreview();
+      boostBadge.textContent = '비활성';
+      boostBadge.className = 'badge';
+      boostDesc.textContent = budget > 0
+        ? `지금 시작하면 최근 30일 공부시간(${formatDurationLabel(budget)})만큼의 다음 실측정 공부시간 동안 분당 성휘가 2배가 돼요.`
+        : '최근 30일 동안 측정된 공부시간이 없어요. 공부를 기록하면 부스트를 시작할 수 있어요.';
+      boostStartBtn.disabled = budget <= 0;
+      boostStartBtn.textContent = budget > 0 ? `부스트 시작하기 (${formatDurationLabel(budget)})` : '부스트 시작하기';
+    }
+  }
+  boostStartBtn.addEventListener('click', () => {
+    if (!startBoost()) return;
+    renderBoostCard();
+    renderStudyHint();
+    showToast(`⚡ 성휘 부스트 시작! 다음 ${formatDurationLabel(boostRemainingSeconds)} 동안 분당 성휘가 2배예요.`);
+  });
+
   function renderJourneyPanel() {
     journeyCumulative.textContent = formatDurationLabel(sumStudySecondsAllTime());
     journeyCores.textContent = `${starCores.toLocaleString('ko-KR')}개`;
     journeySeals.textContent = `${constellationSeals.toLocaleString('ko-KR')}개`;
+    renderBoostCard();
 
     const dateKey = studyDayKey();
     const todayMin = todayStudyMinutes();
@@ -2757,9 +2832,9 @@
   function renderAdjust() {
     const seconds = adjustedSeconds();
     adjustValue.textContent = formatDuration(seconds);
-    const reward = Math.floor(seconds / 60) * currentStudyIncome();
-    adjustReward.innerHTML = reward > 0
-      ? `이 시간으로 기록하면 ${reward.toLocaleString('ko-KR')} 성휘를 받아요`
+    const reward = computeSessionReward(seconds, { preview: true });
+    adjustReward.innerHTML = reward.total > 0
+      ? `이 시간으로 기록하면 ${formatRewardLabel(reward)} 성휘를 받아요`
       : '1분을 채우면 성휘를 받을 수 있어요.';
   }
 
@@ -2792,16 +2867,16 @@
 
     addStudySeconds(studyDayKey(), subjectId, seconds);
     const minutes = Math.floor(seconds / 60);
-    const reward = minutes * currentStudyIncome();
+    const reward = computeSessionReward(seconds); // 부스트 예산을 실제로 소비함
     // 실제로 측정된(=타이머가 흐른) 시간만 공명에도 반영한다.
     addResonanceMinutes(equippedSwordId, minutes);
 
     activeSession = null;
     queueSave();
 
-    if (reward > 0) {
-      addGold(reward);
-      showToast(`⏱️ ${subj ? subj.name : '공부'} ${formatDurationLabel(seconds)} 기록! +${reward.toLocaleString('ko-KR')} 성휘 획득`);
+    if (reward.total > 0) {
+      addGold(reward.total);
+      showToast(`⏱️ ${subj ? subj.name : '공부'} ${formatDurationLabel(seconds)} 기록! ${formatRewardLabel(reward)} 성휘 획득`);
     } else {
       showToast('⏱️ 측정 종료! 1분을 채우면 성휘를 받을 수 있어요.');
     }
