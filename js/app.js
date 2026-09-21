@@ -824,13 +824,18 @@
   ];
 
   /* ---------------- 별자리 인장 확정 소환 ---------------- */
+  /* 가격은 등급별 기본 효율(baseIncome)에 맞춰 책정 -- 구간이 열어주는
+     최고 효율이 클수록, 그리고 그 효율이 직전 구간보다 얼마나 더 크게
+     뛰는지에 비례해 값이 오른다. 특히 천성급(최고 13,500/분) →
+     원초급(최고 65,000/분)은 약 5배 차이로 전체 등급 사다리에서 가장 큰
+     도약이라, 마지막 구간 가격도 그만큼 가장 크게 뛰도록 잡았다. */
   const SEAL_REDEMPTION_TIERS = [
-    { seals: 5,  maxGradeIdx: 2, label: '잔광급~성유급 중 원하는 검' },
-    { seals: 12, maxGradeIdx: 3, label: '용맥급 이하 중 원하는 검' },
-    { seals: 25, maxGradeIdx: 4, label: '금서급 이하 중 원하는 검' },
-    { seals: 45, maxGradeIdx: 6, label: '왕관급 또는 천성급 검' },
-    { seals: 65, maxGradeIdx: 6, minGradeIdx: 6, label: '원하는 천성급 검' },
-    { seals: 80, maxGradeIdx: 7, minGradeIdx: 7, label: '원하는 원초급 검' },
+    { seals: 6,   maxGradeIdx: 2, label: '잔광급~성유급 중 원하는 검' },
+    { seals: 14,  maxGradeIdx: 3, label: '용맥급 이하 중 원하는 검' },
+    { seals: 30,  maxGradeIdx: 4, label: '금서급 이하 중 원하는 검' },
+    { seals: 50,  maxGradeIdx: 6, minGradeIdx: 5, label: '왕관급 또는 천성급 검' },
+    { seals: 75,  maxGradeIdx: 6, minGradeIdx: 6, label: '원하는 천성급 검' },
+    { seals: 200, maxGradeIdx: 7, minGradeIdx: 7, label: '원하는 원초급 검' },
   ];
 
   /* ---------------- 여정 지도 — 누적 공부시간으로 지역 해금 ---------------- */
