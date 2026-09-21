@@ -3469,3 +3469,18 @@ body {
 /* ---------------- 프로필: 대표 별호 ---------------- */
 .profile-epithet-row { margin-top: 14px; }
 .profile-epithet-row select { width: 100%; margin-top: 6px; }
+
+/* ---------------- 성휘 부스트 ---------------- */
+.boost-card { border: 1px solid var(--gold); }
+.badge.boost-active {
+  background: color-mix(in srgb, var(--gold) 24%, transparent);
+  color: var(--gold);
+  border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+}
+#boostStartBtn { margin-top: 12px; width: 100%; }
+.boost-note {
+  display: inline-block;
+  margin-top: 4px;
+  color: var(--gold);
+  font-weight: 500;
+}
