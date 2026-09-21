@@ -25,8 +25,8 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗡️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500&family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260921-nevelac1">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=Cinzel:wght@500;600;700&family=Noto+Sans+KR:wght@300;400;500&family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css?v=20260921-nevelac2">
 </head>
 <body>
 
@@ -339,9 +339,32 @@
     <div class="card">
       <div class="card-head">
         <h2><span class="card-icon">🧭</span> 판타지 세계 지도 — 지역 해금</h2>
+        <span class="badge" id="journeyRegionBadge">1 / 12</span>
       </div>
       <p class="rarity-note">누적 공부시간을 채우면 새로운 지역이 열려요. 지역 해금은 분당 성휘 수입을 올리지 않아요.</p>
-      <ul class="region-list" id="journeyRegionList"></ul>
+
+      <div class="region-viewer">
+        <button type="button" class="region-nav-btn" id="regionPrevBtn" aria-label="이전 지역">◀</button>
+
+        <div class="region-viewport">
+          <div class="region-slide" id="regionSlide">
+            <div class="sword-art-box region-art-box">
+              <img id="regionImg" alt="" hidden decoding="async">
+              <span class="sword-art-placeholder" id="regionPlaceholder">이미지 준비 중</span>
+            </div>
+            <div class="region-detail">
+              <span class="region-detail-name" id="regionName">빙결 도서관</span>
+              <p class="region-detail-desc" id="regionDesc"></p>
+              <div class="region-detail-footer">
+                <span class="region-detail-status" id="regionStatus"></span>
+                <button type="button" class="chip-btn" id="regionClaimBtn">수령하기</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="region-nav-btn" id="regionNextBtn" aria-label="다음 지역">▶</button>
+      </div>
     </div>
 
     <div class="card">
@@ -776,6 +799,6 @@
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/app.js?v=20260921-nevelac1"></script>
+<script src="js/app.js?v=20260921-nevelac2"></script>
 </body>
 </html>
