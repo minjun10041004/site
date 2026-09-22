@@ -243,6 +243,8 @@ body {
 }
 
 .card {
+  position: relative;
+  z-index: 0;
   background: var(--surface);
   backdrop-filter: blur(20px);
   border: 1px solid var(--border);
@@ -251,6 +253,37 @@ body {
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
+}
+
+/* 종이/가죽 그레인: 카드 배경 위, 내용물 아래에 얹는 아주 옅은 노이즈 레이어 */
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.07;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+[data-theme="dark"] .card::before {
+  opacity: 0.14;
+  mix-blend-mode: overlay;
+}
+
+/* 금박 라인: 표지 상단 테를 살짝 두른 느낌 */
+.card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 8%;
+  right: 8%;
+  height: 2px;
+  z-index: 1;
+  background: linear-gradient(90deg, transparent, var(--gold-2), transparent);
+  opacity: 0.7;
+  pointer-events: none;
 }
 
 .card-head {
