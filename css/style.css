@@ -78,21 +78,27 @@ body {
   background-size: 300px 300px, cover;
 }
 
-/* Vivid Tech is a crisp white page — no ambient blob glow; vividness lives
-   in the hero/timer gradient banners instead. */
-.bg-decor { display: none; }
+/* 모던 앰비언트 글로우: 카드는 플랫한 유리 패널로 정리하고, 입체감은
+   배경에 은은하게 번지는 컬러 블롭이 대신 담당한다. */
+.bg-decor {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
 
 .blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(70px);
-  opacity: 0.45;
-  animation: float 16s ease-in-out infinite;
+  filter: blur(90px);
+  opacity: 0.3;
+  animation: float 18s ease-in-out infinite;
 }
 
-.blob-a { width: 420px; height: 420px; background: var(--accent); top: -120px; left: -100px; }
-.blob-b { width: 380px; height: 380px; background: var(--accent-2); top: 20%; right: -140px; animation-delay: -5s; }
-.blob-c { width: 320px; height: 320px; background: var(--accent-3); bottom: -120px; left: 30%; animation-delay: -10s; }
+.blob-a { width: 460px; height: 460px; background: var(--accent); top: -140px; left: -120px; }
+.blob-b { width: 400px; height: 400px; background: var(--accent-2); top: 15%; right: -160px; animation-delay: -6s; }
+.blob-c { width: 360px; height: 360px; background: var(--gold); bottom: -140px; left: 32%; animation-delay: -11s; }
 
 @keyframes float {
   0%, 100% { transform: translate(0, 0) scale(1); }
@@ -251,53 +257,19 @@ body {
   .grid { grid-template-columns: 1fr; }
 }
 
+/* 모던 글라스 카드: 질감은 카드가 아니라 배경 블롭이 담당하므로,
+   카드 자체는 반투명 유리 패널로 단순하게 정리한다. */
 .card {
   position: relative;
   z-index: 0;
-  background: radial-gradient(ellipse 140% 90% at 28% -15%, rgba(255, 255, 255, 0.35), transparent 60%), var(--surface);
-  backdrop-filter: blur(20px);
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  backdrop-filter: blur(24px);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 24px 24px 26px;
   box-shadow: var(--shadow);
-  outline: 1px solid color-mix(in srgb, var(--gold) 30%, transparent);
-  outline-offset: 4px;
   display: flex;
   flex-direction: column;
-}
-[data-theme="dark"] .card {
-  background: radial-gradient(ellipse 140% 90% at 28% -15%, rgba(255, 255, 255, 0.07), transparent 60%), var(--surface);
-}
-
-/* 종이/가죽 그레인: 카드 배경 위, 내용물 아래에 얹는 아주 옅은 노이즈 레이어 */
-.card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  border-radius: inherit;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  opacity: 0.07;
-  mix-blend-mode: multiply;
-  pointer-events: none;
-}
-[data-theme="dark"] .card::before {
-  opacity: 0.14;
-  mix-blend-mode: overlay;
-}
-
-/* 금박 라인: 표지 상단 테를 살짝 두른 느낌 */
-.card::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 8%;
-  right: 8%;
-  height: 2px;
-  z-index: 1;
-  background: linear-gradient(90deg, transparent, var(--gold-2), transparent);
-  opacity: 0.7;
-  pointer-events: none;
 }
 
 .card-head {
