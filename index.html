@@ -26,7 +26,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=Cinzel:wght@500;600;700&family=Noto+Sans+KR:wght@300;400;500&family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260922-artfix1">
+<link rel="stylesheet" href="css/style.css?v=20260922-artfix2">
 </head>
 <body>
 
@@ -390,20 +390,24 @@
       <div class="card gacha-main-card">
         <div class="equipped-block">
           <p class="cultivation-label">현재 장착 검</p>
-          <span class="sword-grade rar-chip rar-0" id="hallEquippedGrade">시작 검</span>
-          <h2 class="cultivation-name rar-0" id="hallEquippedName">무명의 연습검<span class="enhance-badge" id="hallEquippedEnhanceBadge" hidden></span></h2>
-          <p class="sword-epithet" id="hallEquippedTitle">《첫 걸음을 뗀 자》</p>
-          <span class="resonance-badge" id="hallEquippedResonanceBadge" hidden></span>
-          <div class="sword-art-box">
-            <img id="hallEquippedImg" alt="" hidden decoding="async">
-            <span class="sword-art-placeholder" id="hallEquippedPlaceholder">이미지 준비 중</span>
-          </div>
-          <p class="sword-lore" id="hallEquippedLore"></p>
-          <p class="cultivation-desc" id="hallEquippedDesc"></p>
-          <div class="cultivation-stats">
-            <div class="cultivation-stat">
-              <span>검 효율 (1분당)</span>
-              <strong id="hallEquippedIncome">+0 성휘</strong>
+          <div class="equipped-layout">
+            <div class="equipped-art sword-art-box">
+              <img id="hallEquippedImg" alt="" hidden decoding="async">
+              <span class="sword-art-placeholder" id="hallEquippedPlaceholder">이미지 준비 중</span>
+            </div>
+            <div class="equipped-info">
+              <span class="sword-grade rar-chip rar-0" id="hallEquippedGrade">시작 검</span>
+              <h2 class="cultivation-name rar-0" id="hallEquippedName">무명의 연습검<span class="enhance-badge" id="hallEquippedEnhanceBadge" hidden></span></h2>
+              <p class="sword-epithet" id="hallEquippedTitle">《첫 걸음을 뗀 자》</p>
+              <span class="resonance-badge" id="hallEquippedResonanceBadge" hidden></span>
+              <p class="sword-lore" id="hallEquippedLore"></p>
+              <p class="cultivation-desc" id="hallEquippedDesc"></p>
+              <div class="cultivation-stats">
+                <div class="cultivation-stat">
+                  <span>검 효율 (1분당)</span>
+                  <strong id="hallEquippedIncome">+0 성휘</strong>
+                </div>
+              </div>
             </div>
           </div>
         </div>

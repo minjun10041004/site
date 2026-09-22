@@ -2124,6 +2124,32 @@ body {
   overflow: hidden;
 }
 .equipped-block { width: 100%; }
+/* 이미지를 왼쪽에 크게, 이름/설정/효율을 오른쪽에 -- 도감 상세뷰와
+   같은 좌-이미지·우-설명 구도. 전체 카드는 여전히 중앙 정렬이지만
+   이 레이아웃 내부만 좌측 정렬로 뒤집는다. */
+.equipped-layout {
+  display: grid;
+  grid-template-columns: minmax(180px, 260px) 1fr;
+  gap: 28px;
+  align-items: start;
+  width: 100%;
+  text-align: left;
+}
+.equipped-art.sword-art-box {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  max-height: 420px;
+  margin: 0;
+}
+.equipped-info .cultivation-name { font-size: clamp(1.7rem, 3vw, 2.5rem); }
+.equipped-info .sword-lore,
+.equipped-info .cultivation-desc { margin: 10px 0 6px; max-width: none; }
+.equipped-info .cultivation-stats { justify-content: flex-start; }
+@media (max-width: 640px) {
+  .equipped-layout { grid-template-columns: 1fr; text-align: center; }
+  .equipped-art.sword-art-box { max-width: 260px; margin: 0 auto; }
+  .equipped-info .cultivation-stats { justify-content: center; }
+}
 .sword-lore, .realm-lore {
   margin: 14px auto 6px;
   max-width: 46ch;
