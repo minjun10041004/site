@@ -257,13 +257,13 @@ body {
   .grid { grid-template-columns: 1fr; }
 }
 
-/* 모던 글라스 카드: 질감은 카드가 아니라 배경 블롭이 담당하므로,
-   카드 자체는 반투명 유리 패널로 단순하게 정리한다. */
+/* 모던 카드: 반투명 처리가 배경의 어두운 톤과 섞여 탁한 회색으로
+   보였던 문제를 없애기 위해 표면색을 완전 불투명으로 되돌린다.
+   입체감/글로우는 카드 밖 배경 블롭이 전담. */
 .card {
   position: relative;
   z-index: 0;
-  background: color-mix(in srgb, var(--surface) 86%, transparent);
-  backdrop-filter: blur(24px);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 24px 24px 26px;
@@ -1816,14 +1816,15 @@ body {
   100% { background-position: 180% 50%; }
 }
 
-.card,
+/* .card는 이 글로시 시트에서 제외한다 — 상단 46%를 덮는 흰색 sheen
+   그라디언트와 인셋 베벨이 반투명 없이도 카드를 탁한 회색으로 보이게
+   만드는 원인이었다. 채도 있는 히어로 배너에만 남긴다. */
 .hero,
 .auth-card {
   position: relative;
   border-top-color: var(--bevel-light);
   box-shadow: var(--shadow), inset 0 1px 0 var(--bevel-light), inset 0 -2px 0 var(--bevel-dark);
 }
-.card::after,
 .hero::after {
   content: '';
   position: absolute;
@@ -1834,7 +1835,6 @@ body {
   pointer-events: none;
   z-index: 0;
 }
-.card > *,
 .hero > * { position: relative; z-index: 1; }
 
 /* Chunky, inked headings — the game-UI voice. */
