@@ -69,6 +69,15 @@ body {
   overflow-x: hidden;
 }
 
+/* 밤의 심연 전용 별가루: 심연 배경에 흩뿌려진 잔별 텍스처 (고정 타일, 애니메이션 없음) */
+[data-theme="dark"] body {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Ccircle cx='24' cy='58' r='1' fill='%23fff' opacity='0.7'/%3E%3Ccircle cx='120' cy='22' r='1.2' fill='%23fff' opacity='0.5'/%3E%3Ccircle cx='210' cy='90' r='0.8' fill='%23fff' opacity='0.6'/%3E%3Ccircle cx='260' cy='40' r='1' fill='%23fff' opacity='0.4'/%3E%3Ccircle cx='60' cy='150' r='1.3' fill='%23fff' opacity='0.5'/%3E%3Ccircle cx='180' cy='170' r='0.9' fill='%23fff' opacity='0.6'/%3E%3Ccircle cx='250' cy='140' r='1' fill='%23fff' opacity='0.4'/%3E%3Ccircle cx='20' cy='220' r='1' fill='%23fff' opacity='0.5'/%3E%3Ccircle cx='100' cy='250' r='1.4' fill='%23fff' opacity='0.6'/%3E%3Ccircle cx='230' cy='260' r='0.8' fill='%23fff' opacity='0.5'/%3E%3Ccircle cx='280' cy='200' r='1' fill='%23fff' opacity='0.45'/%3E%3Ccircle cx='150' cy='100' r='0.7' fill='%23fff' opacity='0.4'/%3E%3C/svg%3E"),
+    linear-gradient(160deg, var(--bg-a), var(--bg-b));
+  background-repeat: repeat, no-repeat;
+  background-size: 300px 300px, cover;
+}
+
 /* Vivid Tech is a crisp white page — no ambient blob glow; vividness lives
    in the hero/timer gradient banners instead. */
 .bg-decor { display: none; }
@@ -245,14 +254,19 @@ body {
 .card {
   position: relative;
   z-index: 0;
-  background: var(--surface);
+  background: radial-gradient(ellipse 140% 90% at 28% -15%, rgba(255, 255, 255, 0.35), transparent 60%), var(--surface);
   backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 24px 24px 26px;
   box-shadow: var(--shadow);
+  outline: 1px solid color-mix(in srgb, var(--gold) 30%, transparent);
+  outline-offset: 4px;
   display: flex;
   flex-direction: column;
+}
+[data-theme="dark"] .card {
+  background: radial-gradient(ellipse 140% 90% at 28% -15%, rgba(255, 255, 255, 0.07), transparent 60%), var(--surface);
 }
 
 /* 종이/가죽 그레인: 카드 배경 위, 내용물 아래에 얹는 아주 옅은 노이즈 레이어 */
