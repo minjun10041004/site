@@ -1292,10 +1292,29 @@
   }
 
   /* ---------------- 업적 (공부시간 · 검 수집 · 공명 · 여정 완주) ---------------- */
+  // 하루 동안(자정 기준 todayKey 날짜별로) 실제 측정된 공부시간이 한 번이라도
+  // minutes 이상이었는지 -- studyByDate 전체를 훑어 "가장 몰입했던 하루"가
+  // 기준을 넘긴 적 있는지 확인한다.
+  function hasEverStudiedMinutesInADay(minutes) {
+    return Object.keys(studyByDate).some((dateKey) => Math.floor(sumStudySecondsForDate(dateKey) / 60) >= minutes);
+  }
+
   const ACHIEVEMENTS = [
+    { id: 'study-1h', label: '총 1시간 공부 달성', check: () => cumulativeStudyMinutes() >= 60 },
+    { id: 'study-5h', label: '총 5시간 공부 달성', check: () => cumulativeStudyMinutes() >= 300 },
     { id: 'study-10h', label: '총 10시간 공부 달성', check: () => cumulativeStudyMinutes() >= 600 },
+    { id: 'study-25h', label: '총 25시간 공부 달성', check: () => cumulativeStudyMinutes() >= 1500 },
     { id: 'study-50h', label: '총 50시간 공부 달성', check: () => cumulativeStudyMinutes() >= 3000 },
     { id: 'study-100h', label: '총 100시간 공부 달성', check: () => cumulativeStudyMinutes() >= 6000 },
+    { id: 'study-200h', label: '총 200시간 공부 달성', check: () => cumulativeStudyMinutes() >= 12000 },
+    { id: 'study-500h', label: '총 500시간 공부 달성', check: () => cumulativeStudyMinutes() >= 30000 },
+    { id: 'study-1000h', label: '총 1,000시간 공부 달성', check: () => cumulativeStudyMinutes() >= 60000 },
+    { id: 'focus-day-1h', label: '하루 1시간 이상 집중', check: () => hasEverStudiedMinutesInADay(60) },
+    { id: 'focus-day-3h', label: '하루 3시간 이상 집중', check: () => hasEverStudiedMinutesInADay(180) },
+    { id: 'focus-day-6h', label: '하루 6시간 이상 집중', check: () => hasEverStudiedMinutesInADay(360) },
+    { id: 'streak-7', label: '연속 달성 7일', check: () => computeStreak() >= 7 },
+    { id: 'streak-30', label: '연속 달성 30일', check: () => computeStreak() >= 30 },
+    { id: 'streak-100', label: '연속 달성 100일', check: () => computeStreak() >= 100 },
     { id: 'collect-5', label: '검 5종 수집', check: () => nebelacDiscoveredCount() >= 5 },
     { id: 'collect-15', label: '검 15종 수집', check: () => nebelacDiscoveredCount() >= 15 },
     { id: 'collect-all', label: '검 22종 전부 수집', check: () => nebelacDiscoveredCount() >= NEBELAC_SWORDS.length },
