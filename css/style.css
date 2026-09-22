@@ -3269,6 +3269,10 @@ body {
     color-mix(in srgb, var(--rar-a, var(--accent)) 16%, var(--surface-solid)),
     var(--surface-solid));
 }
+/* display:flex 위에서는 hidden 속성이 브라우저 기본 display:none을
+   못 이겨서, 이미지가 실제로 로드된 뒤에도 레터박스 여백 사이로
+   "이미지 준비 중" 문구가 계속 비쳐 보였다 -- 명시적으로 꺼준다. */
+.sword-art-placeholder[hidden] { display: none; }
 .sword-art-box.small {
   width: 64px;
   height: 64px;
@@ -3279,7 +3283,18 @@ body {
   margin: 0;
 }
 .sword-art-box.small .sword-art-placeholder { font-size: 0.56rem; padding: 4px; }
-.codex-art.sword-art-box { aspect-ratio: unset; max-height: none; height: 100%; margin: 0; border-radius: 0; }
+/* .codex-art.sword-art-box는 .small(64x64 고정폭)과 함께 쓰이는데,
+   width가 오버라이드되지 않아 실제 아트가 카드 폭(≈215px)이 아니라
+   64px짜리 얇은 세로줄 안에 눌려 그려지던 버그를 폭 100%로 바로잡는다. */
+.codex-art.sword-art-box {
+  width: 100%;
+  aspect-ratio: unset;
+  max-height: none;
+  height: 100%;
+  margin: 0;
+  border-radius: 0;
+  flex-shrink: 1;
+}
 .codex-showcase-art .sword-art-box { width: 100%; height: 100%; aspect-ratio: unset; max-height: none; margin: 0; border-radius: 0; }
 
 /* ---------------- 메인 탭: 장착 검 미니 카드 ---------------- */
