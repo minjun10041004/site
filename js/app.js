@@ -564,6 +564,7 @@
   };
   const growthEnhanceSelect = el('growthEnhanceSelect');
   const growthEnhanceDisplay = el('growthEnhanceDisplay');
+  const growthEnhanceBadgeArt = el('growthEnhanceBadgeArt');
   const growthEnhanceEmpty = el('growthEnhanceEmpty');
   const growthEnhanceGrade = el('growthEnhanceGrade');
   const growthEnhanceName = el('growthEnhanceName');
@@ -1573,6 +1574,14 @@
     const s = nebelacSwordById(id);
     const gradeIdx = gradeIdxOf(s);
     const lv = enhanceLevelOf(id);
+    if (lv > 0) {
+      growthEnhanceBadgeArt.src = `img/enhance/lv${lv}.png`;
+      growthEnhanceBadgeArt.alt = `강화 +${lv} 등급장`;
+      growthEnhanceBadgeArt.hidden = false;
+    } else {
+      growthEnhanceBadgeArt.hidden = true;
+      growthEnhanceBadgeArt.removeAttribute('src');
+    }
     growthEnhanceGrade.textContent = SWORD_GRADES[gradeIdx].name;
     growthEnhanceGrade.className = `sword-grade rar-chip rar-${gradeIdx}`;
     growthEnhanceName.textContent = s.name;
