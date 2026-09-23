@@ -26,7 +26,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=Cinzel:wght@500;600;700&family=Noto+Sans+KR:wght@300;400;500&family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260922-artfix2">
+<link rel="stylesheet" href="css/style.css?v=20260923-cancel1">
 </head>
 <body>
 
@@ -65,6 +65,7 @@
      gets recorded. -->
 <div class="modal-gate hidden" id="adjustGate">
   <div class="modal-card">
+    <button type="button" class="modal-close" id="adjustCancelBtn" aria-label="측정 이어하기 (종료 취소)">×</button>
     <span class="modal-icon" aria-hidden="true">⏱️</span>
     <h2 class="modal-title">실제로 공부한 시간</h2>
     <p class="modal-text" id="adjustMeasured"></p>
@@ -811,6 +812,6 @@
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/app.js?v=20260922-art1"></script>
+<script src="js/app.js?v=20260923-cancel1"></script>
 </body>
 </html>

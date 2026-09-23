@@ -491,6 +491,7 @@
   const adjustMax = el('adjustMax');
   const adjustReward = el('adjustReward');
   const adjustConfirmBtn = el('adjustConfirmBtn');
+  const adjustCancelBtn = el('adjustCancelBtn');
   const timerHint = el('timerHint');
   const todayTotalDisplay = el('todayTotalDisplay');
   const subjectBadge = el('subjectBadge');
@@ -2881,6 +2882,18 @@
     const seconds = adjustedSeconds();
     adjustGate.classList.add('hidden');
     finalizeSession(seconds);
+  });
+
+  // 실수로 "측정 종료"를 눌렀을 때를 위한 취소 버튼 -- endTs를 비워
+  // stopTimer() 이전 상태로 되돌리고 타이머를 다시 흐르게 한다.
+  adjustCancelBtn.addEventListener('click', () => {
+    if (!activeSession || !activeSession.endTs) return;
+    activeSession.endTs = null;
+    queueSave();
+    adjustGate.classList.add('hidden');
+    startTicking();
+    renderTimerUI();
+    showToast('▶ 측정을 이어서 진행해요.');
   });
 
   function finalizeSession(seconds) {
