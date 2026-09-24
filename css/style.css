@@ -706,6 +706,16 @@ body {
     drop-shadow(0 -1px 0 rgba(13, 19, 33, 0.92))
     drop-shadow(0 0 3px rgba(226, 236, 255, 0.7));
 }
+.core-icon {
+  display: inline-block;
+  width: 1.05em;
+  height: 1.05em;
+  min-width: 16px;
+  min-height: 16px;
+  vertical-align: -0.15em;
+  background: url('../img/star-core.png') no-repeat center / contain;
+  filter: drop-shadow(0 0 2px rgba(120, 170, 255, 0.55));
+}
 
 .tab-nav {
   display: inline-flex;
