@@ -683,7 +683,6 @@ body {
   border-color: color-mix(in srgb, var(--accent) 24%, transparent);
 }
 .gold-badge.seal-badge strong { color: var(--accent); }
-.currency-emoji { font-size: 0.9em; line-height: 1; }
 .gold-badge strong {
   color: var(--gold);
   font-size: 0.86rem;
@@ -715,6 +714,16 @@ body {
   vertical-align: -0.15em;
   background: url('../img/star-core.png') no-repeat center / contain;
   filter: drop-shadow(0 0 2px rgba(120, 170, 255, 0.55));
+}
+.seal-icon {
+  display: inline-block;
+  width: 1.05em;
+  height: 1.05em;
+  min-width: 16px;
+  min-height: 16px;
+  vertical-align: -0.15em;
+  background: url('../img/constellation-seal.png') no-repeat center / contain;
+  filter: drop-shadow(0 0 2px rgba(255, 210, 120, 0.5));
 }
 
 .tab-nav {
