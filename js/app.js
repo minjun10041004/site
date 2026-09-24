@@ -228,7 +228,7 @@
     return total;
   }
 
-  // 검 22종 중 실제로 보유한 종수 (시작 검 무명의 연습검은 수집 대상이 아님).
+  // 검 도감 전체 중 실제로 보유한 종수 (시작 검 무명의 연습검은 수집 대상이 아님).
   function nebelacDiscoveredCount() {
     return discoveredSwordIds.filter((id) => id !== PRACTICE_SWORD.id).length;
   }
@@ -680,7 +680,7 @@
     desc: '화려한 힘은 없지만, 균열 너머의 세계에서 살아남기 위한 첫 번째 자격을 시험한다.',
   };
 
-  /* ---------------- 검 도감 (22종, 등급 순) ----------------
+  /* ---------------- 검 도감 (42종, 등급 순) ----------------
      id는 저장 데이터의 고유 키 — 배열 순서가 바뀌어도 보유/장착/강화/공명
      상태는 이 id를 기준으로 유지된다. */
   const NEBELAC_SWORDS = [
@@ -689,6 +689,18 @@
       grade: 'janggwang', image: 'img/frost-needle-prism.png', imageAlt: '', baseIncome: 220,
       lore: '검끝에 찔린 대상의 시간이 얼어붙어 움직임이 느려진다.',
       desc: '칼날은 얇고 투명하며, 검이 지나간 자리에는 금이 간 유리 같은 서리가 남는다.' },
+    { id: 'ink-tome-relic', name: '잔서검 이레실', title: '읽은 것은 잊지 않는다',
+      grade: 'janggwang', image: '', imageAlt: '이미지 준비 중', baseIncome: 250,
+      lore: '검신에 스친 글귀는 그대로 칼날에 새겨져 사라지지 않는다.',
+      desc: '낡은 서고에서 발견된 얇은 단검으로, 벤 자리마다 옛 문헌의 글자가 순간적으로 떠올랐다 사라진다.' },
+    { id: 'lost-road-compass', name: '미로향검 벨나크', title: '모든 길은 결국 여기로',
+      grade: 'janggwang', image: '', imageAlt: '이미지 준비 중', baseIncome: 290,
+      lore: '방향을 잃은 자가 쥐면 검끝이 가장 가까운 안전한 길을 가리킨다.',
+      desc: '손잡이에 작은 나침반이 박혀 있으며, 바늘은 북쪽이 아니라 사용자가 진짜 원하는 곳을 향해 흔들린다.' },
+    { id: 'obsidian-ember-shard', name: '흑요잔편검 카른헬', title: '타버린 세상의 마지막 조각',
+      grade: 'janggwang', image: '', imageAlt: '이미지 준비 중', baseIncome: 330,
+      lore: '벤 자리는 순간적으로 새까맣게 그을리지만 금세 원래대로 돌아온다.',
+      desc: '화산재 속에 묻혀 있던 검은 유리 조각을 이어붙인 검으로, 칼날 표면에 아직도 옛 불길의 흔적이 어른거린다.' },
 
     /* ---- 각성급 ---- */
     { id: 'shadow-twin-nocturne', name: '그림자쌍검 노크턴', title: '그림자가 먼저 죽는다',
@@ -703,6 +715,18 @@
       grade: 'gakseong', image: 'img/nightmare-invitation.png', imageAlt: '', baseIncome: 420,
       lore: '적의 꿈속에 들어가 정신을 공격하는 검이다.',
       desc: '현실에서는 짧은 단검에 불과하지만, 꿈속에서는 거대한 낫으로 변해 상대의 공포를 직접 베어낸다.' },
+    { id: 'silent-toll-bell', name: '적요종검 카시엘', title: '울리는 순간 세상이 멈춘다',
+      grade: 'gakseong', image: '', imageAlt: '이미지 준비 중', baseIncome: 450,
+      lore: '휘두르면 짧은 종소리가 울리고, 그 반경 안의 모든 소리가 한 박자 사라진다.',
+      desc: '검신 대신 작은 종이 매달린 기묘한 형태로, 전장에서 이 검을 든 자의 발소리조차 들리지 않는다.' },
+    { id: 'binding-oath-chain', name: '구속서약검 오르실', title: '자유를 대가로 빌려주는 힘',
+      grade: 'gakseong', image: '', imageAlt: '이미지 준비 중', baseIncome: 480,
+      lore: '사용자의 팔에 스스로 사슬을 감아 힘을 증폭시키지만, 전투가 끝나기 전엔 풀리지 않는다.',
+      desc: '검신을 따라 가느다란 사슬 무늬가 흐르며, 오래 휘두를수록 사슬이 손목을 타고 조금씩 파고든다.' },
+    { id: 'puppet-string-blade', name: '견사조종검 자히엘', title: '네 몸이 내 대사를 읊는다',
+      grade: 'gakseong', image: '', imageAlt: '이미지 준비 중', baseIncome: 510,
+      lore: '검에 스친 자는 짧은 순간 사용자의 뜻대로 팔다리가 움직인다.',
+      desc: '칼날 끝에서 거미줄처럼 가느다란 실이 뻗어 나와, 벤 상대의 관절을 따라 인형처럼 얽어맨다.' },
 
     /* ---- 성유급 ---- */
     { id: 'asterion-starsea', name: '성해검 아스테리온', title: '밤하늘을 휘두르는 자',
@@ -721,6 +745,14 @@
       grade: 'seongyu', image: 'img/grail-sword.png', imageAlt: '', baseIncome: 820,
       lore: '상처를 치유할 수 있지만, 치유한 만큼 사용자의 수명이 줄어든다.',
       desc: '검신 중앙에는 성배의 파편이 박혀 있으며, 치유할 때마다 파편의 빛이 조금씩 희미해진다.' },
+    { id: 'thornroot-verdant', name: '가시뿌리검 텐브라', title: '땅이 삼킨 것을 되돌린다',
+      grade: 'seongyu', image: '', imageAlt: '이미지 준비 중', baseIncome: 870,
+      lore: '검을 땅에 꽂으면 그 자리에서 가시덩굴이 솟아나 적의 발을 묶는다.',
+      desc: '칼날 전체가 살아있는 나무뿌리처럼 얽혀 있으며, 계절이 바뀌어도 시들지 않는 이끼가 덮여 있다.' },
+    { id: 'primal-howling-beast', name: '광포태초검 벨로스', title: '이성보다 먼저 깨어나는 짐승',
+      grade: 'seongyu', image: '', imageAlt: '이미지 준비 중', baseIncome: 920,
+      lore: '사용자의 심박이 빨라질수록 검이 스스로 더 크고 거칠게 울부짖는다.',
+      desc: '짐승의 송곳니를 이어붙인 듯한 날카로운 날을 가졌으며, 오래 휘두를수록 손잡이에서 낮은 숨소리가 들려온다.' },
 
     /* ---- 용맥급 ---- */
     { id: 'balkan-thunder', name: '천뢰검 발칸', title: '폭풍이 선택한 철',
@@ -739,6 +771,18 @@
       grade: 'yongmaek', image: 'img/leviathan-deep.png', imageAlt: '', baseIncome: 1700,
       lore: '주변의 수분을 끌어모아 거대한 파도와 심해 압력을 만든다.',
       desc: '검이 움직일 때마다 주변 공기가 물속처럼 무거워지며, 검끝에 푸른 심해의 눈이 나타난다.' },
+    { id: 'gale-cutting-wind', name: '질풍참검 노르윈', title: '스치면 이미 베인 뒤다',
+      grade: 'yongmaek', image: '', imageAlt: '이미지 준비 중', baseIncome: 1850,
+      lore: '검을 휘두르는 속도가 바람의 속도를 넘어서면 벤 흔적이 소리보다 늦게 나타난다.',
+      desc: '칼날에 무수한 구멍이 뚫려 있어 휘두를 때마다 낮은 휘파람 소리를 내며, 바람을 가르는 게 아니라 바람 그 자체가 된다.' },
+    { id: 'thousand-blade-dance', name: '천검군무 이스카', title: '한 자루가 아니라 천 자루다',
+      grade: 'yongmaek', image: '', imageAlt: '이미지 준비 중', baseIncome: 2000,
+      lore: '휘두르는 순간 검신이 흩어져 수백 개의 작은 칼날 무리로 변한다.',
+      desc: '평소에는 평범한 장검이지만, 전투가 시작되면 벌떼처럼 흩어졌다 다시 모여 하나의 검이 된다.' },
+    { id: 'executioners-axe-blade', name: '형인부월검 카에린', title: '심판은 이미 끝났다',
+      grade: 'yongmaek', image: '', imageAlt: '이미지 준비 중', baseIncome: 2150,
+      lore: '죄인으로 판명된 자를 벨 때만 진정한 무게를 드러낸다.',
+      desc: '거대한 외날 도끼와 검의 중간 형태로, 손잡이에는 이름 모를 수많은 이들의 처형 기록이 새겨져 있다.' },
 
     /* ---- 금서급 ---- */
     { id: 'lunareaper', name: '혈월도 루나리퍼', title: '피로 떠오르는 달',
@@ -757,12 +801,32 @@
       grade: 'geumseo', image: 'img/chronosil.png', imageAlt: '', baseIncome: 3400,
       lore: '검날이 닿은 부분의 시간을 느리게 만든다.',
       desc: '단, 사용할수록 사용자의 과거 기억이 하나씩 사라진다. 검신의 금이 늘어날수록 더 오래된 기억이 사라진다.' },
+    { id: 'plague-abyss-blade', name: '역병나락검 자하른', title: '닿은 것은 천천히 시든다',
+      grade: 'geumseo', image: '', imageAlt: '이미지 준비 중', baseIncome: 3600,
+      lore: '베인 상처는 눈에 보이지 않는 속도로 천천히 썩어 들어간다.',
+      desc: '검신은 검게 죽은 나무껍질처럼 갈라져 있고, 사용자조차 손잡이를 오래 쥐면 손끝이 저려온다.' },
+    { id: 'wailing-spirit-cry', name: '망령곡성검 세르힐', title: '들은 자는 반드시 돌아본다',
+      grade: 'geumseo', image: '', imageAlt: '이미지 준비 중', baseIncome: 3800,
+      lore: '휘두를 때마다 죽은 자의 비명이 울려 퍼져 적의 정신을 흔든다.',
+      desc: '검신에 무수한 실금이 가 있고, 그 틈새로 낮게 흐느끼는 소리가 끊이지 않고 새어 나온다.' },
+    { id: 'black-flame-devourer', name: '흑염탄식검 자카론', title: '삼킨 것은 재도 남지 않는다',
+      grade: 'geumseo', image: '', imageAlt: '이미지 준비 중', baseIncome: 4000,
+      lore: '벤 자리에서 검은 불길이 치솟아 흔적도 없이 태워버린다.',
+      desc: '칼날 안쪽에서 검은 불꽃이 꺼지지 않고 흐르며, 사용할수록 검을 쥔 손끝이 서서히 그을려간다.' },
 
     /* ---- 왕관급 ---- */
     { id: 'crownbreaker', name: '왕관분쇄자, 크라운브레이커', title: '왕을 무릎 꿇린 자',
       grade: 'wangwan', image: 'img/crownbreaker.png', imageAlt: '', baseIncome: 6000,
       lore: '모든 왕과 지배자의 권능을 무너뜨리기 위해 만들어진 왕관급 대검이다.',
       desc: '상대의 지위가 높을수록 검이 강해지며, 왕의 축복이나 통치 권능을 직접 부술 수 있다.' },
+    { id: 'judgment-scale-blade', name: '심판권형검 아그라스', title: '죄의 무게만큼 날카로워진다',
+      grade: 'wangwan', image: '', imageAlt: '이미지 준비 중', baseIncome: 6800,
+      lore: '상대가 저지른 잘못이 클수록 검날이 더 예리하고 무겁게 변한다.',
+      desc: '손잡이 양쪽에 작은 저울 장식이 달려 있으며, 무고한 자 앞에서는 무디고 가벼운 그냥 쇳덩이에 불과하다.' },
+    { id: 'nightmare-overlord-throne', name: '악몽패왕검 로엔가', title: '모든 악몽의 근원이자 왕',
+      grade: 'wangwan', image: '', imageAlt: '이미지 준비 중', baseIncome: 7600,
+      lore: '적을 벨 때마다 그가 가장 두려워하는 존재의 형상이 검신에 잠깐 떠오른다.',
+      desc: '왕관 모양의 코등이를 가진 거대한 대검으로, 검을 오래 쥔 자는 매일 밤 같은 왕좌의 꿈을 꾸게 된다.' },
 
     /* ---- 천성급 ---- */
     { id: 'meteor-fall', name: '낙성검 메테오르', title: '부서져 내리는 별',
@@ -777,6 +841,14 @@
       grade: 'cheonseong', image: 'img/vesper-dusk.png', imageAlt: '', baseIncome: 13500,
       lore: '낮과 밤의 경계에서만 완전한 힘을 발휘한다.',
       desc: '빛과 어둠 마법을 동시에 벨 수 있으며, 검신의 한쪽은 태양빛을, 다른 한쪽은 밤의 색을 반사한다.' },
+    { id: 'ashen-oath-ember', name: '잿불서약검 세이가르', title: '재가 되어도 다시 선다',
+      grade: 'cheonseong', image: '', imageAlt: '이미지 준비 중', baseIncome: 15000,
+      lore: '부러지거나 부서져도 하루가 지나면 잿더미 속에서 스스로 재조립된다.',
+      desc: '칼날 전체가 꺼지지 않는 잔불처럼 은은히 빛나며, 파괴될 때마다 오히려 다음 형태가 더 날카로워진다.' },
+    { id: 'collapsed-star-void', name: '붕괴항성검 아베론', title: '빛조차 도망치지 못한 별의 최후',
+      grade: 'cheonseong', image: '', imageAlt: '이미지 준비 중', baseIncome: 16500,
+      lore: '검끝 주위의 아주 작은 공간이 스스로 무너져 주변의 빛을 삼킨다.',
+      desc: '검신 중심에 손톱만 한 완전한 어둠이 떠 있으며, 그 안을 들여다본 자는 아무것도 보이지 않았다고 말한다.' },
 
     /* ---- 원초급 ---- */
     { id: 'erebos', name: '종언검 에레보스', title: '모든 이야기의 마지막 장',
@@ -787,6 +859,14 @@
       grade: 'woncho', image: 'img/arcanum.png', imageAlt: '', baseIncome: 65000,
       lore: '누구도 이름을 붙일 수 없는 원초급 검이다.',
       desc: '자격을 얻은 사람마다 전혀 다른 모습과 능력을 보여준다. 어떤 이에게는 성검으로, 어떤 이에게는 창이나 활로 나타날 수도 있다.' },
+    { id: 'genesis-gate-warden', name: '개벽문직검 크나스', title: '문 너머를 지키는 마지막 눈',
+      grade: 'woncho', image: '', imageAlt: '이미지 준비 중', baseIncome: 78000,
+      lore: '균열 너머 세계의 존재가 이쪽으로 넘어오려 할 때 검이 스스로 울린다.',
+      desc: '검신 전체에 다른 세계의 풍경이 물결치듯 비치며, 이 검을 오래 지닌 자는 가끔 문 너머의 목소리를 듣는다고 한다.' },
+    { id: 'primordial-silence-blade', name: '태초적막검 카에스타', title: '세계가 시작되기 전, 이미 여기 있었다',
+      grade: 'woncho', image: '', imageAlt: '이미지 준비 중', baseIncome: 92000,
+      lore: '이 검이 움직이는 순간에만 세계는 비로소 "이전"과 "이후"로 나뉜다.',
+      desc: '아무 장식도 없는 새까만 직검이지만, 이 검을 처음 본 이들은 하나같이 태어나기 전의 기억이 스치는 듯한 기분을 느꼈다고 전한다.' },
   ];
 
   function nebelacSwordById(id) {
@@ -1319,7 +1399,7 @@
     { id: 'streak-100', label: '연속 달성 100일', check: () => computeStreak() >= 100 },
     { id: 'collect-5', label: '검 5종 수집', check: () => nebelacDiscoveredCount() >= 5 },
     { id: 'collect-15', label: '검 15종 수집', check: () => nebelacDiscoveredCount() >= 15 },
-    { id: 'collect-all', label: '검 22종 전부 수집', check: () => nebelacDiscoveredCount() >= NEBELAC_SWORDS.length },
+    { id: 'collect-all', label: `검 ${NEBELAC_SWORDS.length}종 전부 수집`, check: () => nebelacDiscoveredCount() >= NEBELAC_SWORDS.length },
     { id: 'resonance-complete', label: '검 1자루 완전공명 달성', check: () => maxResonanceStage() >= RESONANCE_MAX_STAGE },
     { id: 'journey-complete', label: '여정 완주 (모든 지역 해금)', check: () => isRegionUnlocked(JOURNEY_REGIONS[JOURNEY_REGIONS.length - 1]) },
   ];
