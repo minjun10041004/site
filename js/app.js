@@ -2723,15 +2723,16 @@
 
   /* ---------------- Anti-idle check-in ----------------
      A running measurement asks "공부하고 있나요?" every 3 hours. Miss the
-     answer for an hour and the whole measurement is voided, so a timer left
-     running unattended banks nothing.
+     answer for 3 more hours (6 hours total unattended) and the whole
+     measurement is voided, so a timer left running unattended banks
+     nothing.
 
      Both deadlines are derived from startTs and a confirmed counter rather
      than from timers, so closing the tab or reloading cannot dodge a
      check-in: the state is recomputed from the clock on every tick and on
      restore. */
   const CHECKIN_EVERY_MS = 3 * 60 * 60 * 1000;
-  const CHECKIN_GRACE_MS = 60 * 60 * 1000;
+  const CHECKIN_GRACE_MS = 3 * 60 * 60 * 1000;
 
   const checkinDueAt = (s) => s.startTs + CHECKIN_EVERY_MS * ((s.confirmed || 0) + 1);
   const checkinDeadlineAt = (s) => checkinDueAt(s) + CHECKIN_GRACE_MS;
@@ -2783,7 +2784,8 @@
     renderSubjects();
     renderTimerUI();
     renderTodayTotal();
-    showToast(`🚫 1시간 동안 응답이 없어 ${subj ? subj.name : '이번'} 측정이 무효 처리됐어요.`);
+    const graceHours = Math.round(CHECKIN_GRACE_MS / 3600000);
+    showToast(`🚫 ${graceHours}시간 동안 응답이 없어 ${subj ? subj.name : '이번'} 측정이 무효 처리됐어요.`);
   }
 
   checkinYesBtn.addEventListener('click', () => {
