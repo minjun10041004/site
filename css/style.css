@@ -655,6 +655,12 @@ body {
   flex-wrap: wrap;
 }
 
+.topbar-currencies {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 .gold-badge {
   display: inline-flex;
   align-items: center;
@@ -667,6 +673,17 @@ body {
   font-weight: 500;
   color: var(--accent);
 }
+.gold-badge.core-badge {
+  background: color-mix(in srgb, var(--accent-2) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent-2) 24%, transparent);
+}
+.gold-badge.core-badge strong { color: var(--accent-2); }
+.gold-badge.seal-badge {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 24%, transparent);
+}
+.gold-badge.seal-badge strong { color: var(--accent); }
+.currency-emoji { font-size: 0.9em; line-height: 1; }
 .gold-badge strong {
   color: var(--gold);
   font-size: 0.86rem;
