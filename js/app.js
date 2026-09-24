@@ -1630,8 +1630,22 @@
     else renderGrowthRelics();
   }
 
+  // 등급 높은 순으로 정렬한 뒤, 장착 중인 검이 있으면 맨 앞으로 끌어온다 --
+  // 강화하려고 들어왔을 때 대개 손보고 싶은 건 지금 쓰고 있는 검이라서.
+  function growthEnhanceSortedIds() {
+    const ids = growthEligibleSwordIds()
+      .slice()
+      .sort((a, b) => nebelacSwordPower(nebelacSwordById(b)) - nebelacSwordPower(nebelacSwordById(a)));
+    const equippedAt = ids.indexOf(equippedSwordId);
+    if (equippedAt > 0) {
+      ids.splice(equippedAt, 1);
+      ids.unshift(equippedSwordId);
+    }
+    return ids;
+  }
+
   function renderGrowthEnhance() {
-    const ids = growthEligibleSwordIds();
+    const ids = growthEnhanceSortedIds();
     if (!ids.length) {
       growthEnhanceDisplay.style.display = 'none';
       growthEnhanceEmpty.style.display = 'block';
