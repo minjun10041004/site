@@ -451,6 +451,8 @@
   const themeSwitch = el('themeSwitch');
 
   const goldAmountEl = el('goldAmount');
+  const topCoreAmountEl = el('topCoreAmount');
+  const topSealAmountEl = el('topSealAmount');
   const tabButtons = Array.from(document.querySelectorAll('.tab-btn'));
   const tabPanels = {
     main: el('panel-main'),
@@ -1510,6 +1512,7 @@
             if (!result) return;
             renderHallPanel();
             renderCodex();
+            renderGold();
             const msg = result.isNew
               ? `⭐ ${result.sword.name}을(를) 확정 획득했습니다!`
               : `⭐ 이미 가진 검이라 공명 파편으로 바뀌었어요.`;
@@ -1772,6 +1775,7 @@
     renderStudyHint();
     renderHeader();
     renderMainPanel();
+    renderGold();
     showToast(`💫 ${nebelacSwordById(id).name}이(가) ${RESONANCE_STAGES[resonanceStageIndexFor(id)].name} 단계에 도달했습니다.`);
   });
 
@@ -1840,6 +1844,7 @@
     journeyCores.textContent = `${starCores.toLocaleString('ko-KR')}개`;
     renderAchievementsInto(journeyAchievementList);
     renderAchievementsInto(recordAchievementList);
+    renderGold();
     showToast(`🗺️ ${r.name} 해금! ${rewardText}`);
   });
 
@@ -2383,9 +2388,11 @@
     toastTimeout = setTimeout(() => toastEl.classList.remove('show'), 2800);
   }
 
-  /* ---------------- 성휘 ---------------- */
+  /* ---------------- 성휘 / 성핵 / 별자리 인장 (상단 바) ---------------- */
   function renderGold() {
     goldAmountEl.textContent = gold.toLocaleString('ko-KR');
+    topCoreAmountEl.textContent = starCores.toLocaleString('ko-KR');
+    topSealAmountEl.textContent = constellationSeals.toLocaleString('ko-KR');
   }
 
   function addGold(amount) {

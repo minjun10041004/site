@@ -26,7 +26,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=Cinzel:wght@500;600;700&family=Noto+Sans+KR:wght@300;400;500&family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260923-badge1">
+<link rel="stylesheet" href="css/style.css?v=20260924-topcur1">
 </head>
 <body>
 
@@ -86,9 +86,19 @@
 <div class="app">
 
   <div class="topbar">
-    <div class="gold-badge" title="보유 성휘">
-      <span class="gold-icon" aria-hidden="true"></span>
-      <span>성휘 : <strong id="goldAmount">0</strong></span>
+    <div class="topbar-currencies">
+      <div class="gold-badge" title="보유 성휘">
+        <span class="gold-icon" aria-hidden="true"></span>
+        <span>성휘 : <strong id="goldAmount">0</strong></span>
+      </div>
+      <div class="gold-badge core-badge" title="보유 성핵">
+        <span class="currency-emoji" aria-hidden="true">💠</span>
+        <span>성핵 : <strong id="topCoreAmount">0</strong></span>
+      </div>
+      <div class="gold-badge seal-badge" title="보유 별자리 인장">
+        <span class="currency-emoji" aria-hidden="true">⭐</span>
+        <span>인장 : <strong id="topSealAmount">0</strong></span>
+      </div>
     </div>
     <nav class="tab-nav" id="tabNav">
       <button class="tab-btn active" data-tab="main">🏠 메인</button>
@@ -813,6 +823,6 @@
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/app.js?v=20260924-swords42"></script>
+<script src="js/app.js?v=20260924-topcur1"></script>
 </body>
 </html>
