@@ -531,6 +531,10 @@
 
   const toastEl = el('toast');
 
+  const updateBannerEl = el('updateBanner');
+  const updateBannerRefreshBtn = el('updateBannerRefreshBtn');
+  const updateBannerCloseBtn = el('updateBannerCloseBtn');
+
   /* ---------------- 검의 전당 (소환 + 보유 검) ---------------- */
   const hallEquippedGrade = el('hallEquippedGrade');
   const hallEquippedName = el('hallEquippedName');
@@ -2402,6 +2406,50 @@
     toastTimeout = setTimeout(() => toastEl.classList.remove('show'), 2800);
   }
 
+  /* ---------------- Update banner ---------------- */
+  // Users keep this tab open for hours (the anti-idle 체크인 system assumes
+  // it). A stale tab silently running old code after a deploy would show
+  // wrong numbers/behavior with no signal, so we poll the live index.html
+  // for a changed build id and prompt a refresh instead of forcing one.
+  const APP_BUILD = document.querySelector('meta[name="app-build"]')?.content || '';
+  const UPDATE_CHECK_EVERY_MS = 5 * 60 * 1000;
+  let updateAvailable = false;
+  let lastUpdateCheckAt = 0;
+
+  async function checkForUpdate() {
+    if (updateAvailable || !APP_BUILD) return;
+    lastUpdateCheckAt = Date.now();
+    try {
+      const res = await fetch(`index.html?_=${Date.now()}`, { cache: 'no-store' });
+      if (!res.ok) return;
+      const html = await res.text();
+      const match = html.match(/<meta name="app-build" content="([^"]+)"/);
+      if (match && match[1] && match[1] !== APP_BUILD) {
+        updateAvailable = true;
+        updateBannerEl.classList.add('show');
+        document.body.classList.add('has-update-banner');
+      }
+    } catch {
+      // Offline or blocked fetch -- silently skip, next interval retries.
+    }
+  }
+
+  function startUpdateChecker() {
+    checkForUpdate();
+    setInterval(checkForUpdate, UPDATE_CHECK_EVERY_MS);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && Date.now() - lastUpdateCheckAt > 60000) {
+        checkForUpdate();
+      }
+    });
+  }
+
+  updateBannerRefreshBtn.addEventListener('click', () => location.reload());
+  updateBannerCloseBtn.addEventListener('click', () => {
+    updateBannerEl.classList.remove('show');
+    document.body.classList.remove('has-update-banner');
+  });
+
   /* ---------------- 성휘 / 성핵 / 별자리 인장 (상단 바) ---------------- */
   function renderGold() {
     goldAmountEl.textContent = gold.toLocaleString('ko-KR');
@@ -3194,6 +3242,7 @@
 
     lastStudyDay = studyDayKey();
     setInterval(checkStudyDayRollover, 60000);
+    startUpdateChecker();
   }
 
   /* ---------------- Session lifecycle ---------------- */
