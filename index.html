@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="app-build" content="20260925-summonfix1">
+<meta name="app-build" content="20260925-fragbadge1">
 <!-- GitHub Pages serves this file as-is with no custom HTTP headers, so a
      real CSP header isn't possible here -- this meta-tag version is the
      strongest defense-in-depth available on static hosting. It can't carry
@@ -27,7 +27,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=Cinzel:wght@500;600;700&family=Noto+Sans+KR:wght@300;400;500&family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260925-codexfix1">
+<link rel="stylesheet" href="css/style.css?v=20260925-fragbadge1">
 </head>
 <body>
 
@@ -483,6 +483,7 @@
         <div class="enhance-select-row">
           <label for="growthEnhanceSelect">강화할 검</label>
           <select id="growthEnhanceSelect"></select>
+          <span class="fragment-badge">✳ 보유 <strong id="growthEnhanceFragmentCount">0</strong></span>
         </div>
         <div class="enhance-display" id="growthEnhanceDisplay">
           <img class="enhance-badge-art" id="growthEnhanceBadgeArt" alt="" hidden>
@@ -832,6 +833,6 @@
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/app.js?v=20260925-summonfix1"></script>
+<script src="js/app.js?v=20260925-fragbadge1"></script>
 </body>
 </html>

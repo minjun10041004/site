@@ -569,6 +569,7 @@
     relics: el('growth-relics'),
   };
   const growthEnhanceSelect = el('growthEnhanceSelect');
+  const growthEnhanceFragmentCount = el('growthEnhanceFragmentCount');
   const growthEnhanceDisplay = el('growthEnhanceDisplay');
   const growthEnhanceBadgeArt = el('growthEnhanceBadgeArt');
   const growthEnhanceEmpty = el('growthEnhanceEmpty');
@@ -1649,6 +1650,7 @@
   }
 
   function renderGrowthEnhance() {
+    growthEnhanceFragmentCount.textContent = resonanceFragments.toLocaleString('ko-KR');
     const ids = growthEnhanceSortedIds();
     if (!ids.length) {
       growthEnhanceDisplay.style.display = 'none';
