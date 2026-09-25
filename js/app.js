@@ -254,6 +254,7 @@
       study_total: sumStudySecondsAllTime(),
       sword_collection: nebelacDiscoveredCount(),
       max_resonance_stage: maxResonanceStage(),
+      sword_power: swordIncomeAt(equippedSwordId),
       updated_at: new Date().toISOString(),
     };
   }
@@ -1697,7 +1698,7 @@
       growthEnhanceBtn.disabled = true;
       growthEnhanceBtn.textContent = '강화 완료';
     } else {
-      growthEnhanceNextInfo.innerHTML = `+${next.level} 도전 · 공명 파편 ${next.fragment.toLocaleString('ko-KR')} · 성휘 ${next.gold.toLocaleString('ko-KR')} · 효율 누적 +${Math.round(next.pct * 100)}%`;
+      growthEnhanceNextInfo.innerHTML = `+${next.level} 도전 · <span class="fragment-icon" aria-hidden="true"></span> ${next.fragment.toLocaleString('ko-KR')} · 성휘 ${next.gold.toLocaleString('ko-KR')} · 효율 누적 +${Math.round(next.pct * 100)}%`;
       growthEnhanceBtn.disabled = !canEnhance(id);
       growthEnhanceBtn.textContent = `강화하기 (+${lv} → +${next.level})`;
     }
@@ -1769,7 +1770,7 @@
         growthResonanceNextInfo.textContent = `${next.name} 단계까지 공부시간이 더 필요해요.`;
         growthResonanceBtn.disabled = true;
       } else {
-        growthResonanceNextInfo.innerHTML = `${next.name} 단계 · 성핵 ${next.core} · 공명 파편 ${next.fragment.toLocaleString('ko-KR')} · 효율 누적 +${Math.round(next.pct * 100)}%`;
+        growthResonanceNextInfo.innerHTML = `${next.name} 단계 · 성핵 ${next.core} · <span class="fragment-icon" aria-hidden="true"></span> ${next.fragment.toLocaleString('ko-KR')} · 효율 누적 +${Math.round(next.pct * 100)}%`;
         growthResonanceBtn.disabled = !canResonate(id);
       }
       growthResonanceBtn.textContent = `공명하기 (${RESONANCE_STAGES[resonanceStageIndexFor(id)].name} → ${next.name})`;
@@ -2488,10 +2489,12 @@
     study_total: { column: 'study_total', label: (v) => formatDurationLabel(v || 0) },
     sword_collection: { column: 'sword_collection', label: (v) => `${v || 0} / ${NEBELAC_SWORDS.length}` },
     max_resonance_stage: { column: 'max_resonance_stage', label: (v) => RESONANCE_STAGES[v || 0].name },
+    sword_power: { column: 'sword_power', label: (v) => `분당 +${(v || 0).toLocaleString('ko-KR')} 성휘` },
   };
   const RANK_LABELS = {
     study_today: '☀️ 오늘 공부', study_week: '📅 최근 7일', study_month: '🗓️ 최근 30일',
     study_total: '⏳ 총 공부시간', sword_collection: '📖 도감 수집률', max_resonance_stage: '💫 최고 공명',
+    sword_power: '⚔️ 검 랭킹',
   };
   let currentRankCategory = 'study_today';
   // Flips false the first time a new-column query errors outright (the
@@ -2499,11 +2502,12 @@
   // alter table leaderboard add column if not exists study_total bigint not null default 0;
   // alter table leaderboard add column if not exists sword_collection int not null default 0;
   // alter table leaderboard add column if not exists max_resonance_stage int not null default 0;
+  // alter table leaderboard add column if not exists sword_power bigint not null default 0;
   // Remembering the failure avoids re-issuing a doomed request on every
   // render and lets the empty state explain *why* instead of just looking
   // broken.
   let newRankColumnsAvailable = true;
-  const NEW_RANK_COLUMNS = ['study_total', 'sword_collection', 'max_resonance_stage'];
+  const NEW_RANK_COLUMNS = ['study_total', 'sword_collection', 'max_resonance_stage', 'sword_power'];
 
   // hyojanom asked to see themself on the 랭킹 tab from their own screen
   // while staying invisible to everyone else viewing the same shared rows.
@@ -2532,7 +2536,7 @@
     } else {
       // Named columns, not '*' -- keeps updated_at and anything added later out
       // of a query that already runs often and carries an avatar per row.
-      const fullColumns = 'user_id, username, nickname, avatar, study_today, study_week, study_month, study_total, sword_collection, max_resonance_stage';
+      const fullColumns = 'user_id, username, nickname, avatar, study_today, study_week, study_month, study_total, sword_collection, max_resonance_stage, sword_power';
       const legacyColumns = 'user_id, username, nickname, avatar, study_today, study_week, study_month';
       let query = sb.from('leaderboard').select(fullColumns).order(cfg.column, { ascending: false });
       let { data, error } = await query.limit(200);
