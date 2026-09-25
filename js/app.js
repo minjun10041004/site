@@ -698,7 +698,7 @@
     { id: 'ink-tome-relic', name: '잔서검 이레실', title: '읽은 것은 잊지 않는다',
       grade: 'janggwang', image: 'img/ink-tome-relic.png', imageAlt: '', baseIncome: 250,
       lore: '검신에 스친 글귀는 그대로 칼날에 새겨져 사라지지 않는다.',
-      desc: '낡은 서고에서 발견된 얇은 단검으로, 벤 자리마다 옛 문헌의 글자가 순간적으로 떠올랐다 사라진다.' },
+      desc: '까마득히 높은 서고 한가운데 매달린 가느다란 장검으로, 손잡이에는 빛바랜 양피지 꼬리표와 나침반 모양의 작은 부적이 걸려 있다. 검이 흔들릴 때마다 주위를 떠도는 책장들이 나부끼며 잊힌 문장들을 흩뿌린다.' },
     { id: 'lost-road-compass', name: '미로향검 벨나크', title: '모든 길은 결국 여기로',
       grade: 'janggwang', image: 'img/lost-road-compass.png', imageAlt: '', baseIncome: 290,
       lore: '방향을 잃은 자가 쥐면 검끝이 가장 가까운 안전한 길을 가리킨다.',
@@ -1143,10 +1143,10 @@
     renderCodex();
     renderJourneyPanel();
 
-    const best = results.reduce((a, b) => (b.gradeIdx > a.gradeIdx ? b : a));
     const fragText = fragmentsGained > 0 ? ` (✳ 공명 파편 +${fragmentsGained.toLocaleString('ko-KR')})` : '';
     if (newlyDiscovered > 0) {
-      showToast(`⚔️ [${SWORD_GRADES[best.gradeIdx].name}] ${best.sword.name} 등 새로운 검 ${newlyDiscovered}자루를 도감에 기록했습니다.${fragText}`);
+      const bestNew = results.filter((r) => r.isNew).reduce((a, b) => (b.gradeIdx > a.gradeIdx ? b : a));
+      showToast(`⚔️ [${SWORD_GRADES[bestNew.gradeIdx].name}] ${bestNew.sword.name} 등 새로운 검 ${newlyDiscovered}자루를 도감에 기록했습니다.${fragText}`);
     } else {
       showToast(`✳ 이미 가진 검이라 공명 파편 ${fragmentsGained.toLocaleString('ko-KR')}개로 바뀌었어요.`);
     }

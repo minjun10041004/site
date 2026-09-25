@@ -2874,12 +2874,12 @@ body.has-update-banner { padding-top: 54px; transition: padding-top 0.25s ease; 
   position: relative;
   z-index: 1;
   margin: 0;
-  font-size: 0.76rem;
-  line-height: 1.65;
-  color: var(--text-soft);
+  font-size: 0.9rem;
+  line-height: 1.75;
+  color: var(--text);
   word-break: keep-all;
 }
-.codex-lore { font-style: italic; color: var(--text-faint); }
+.codex-lore { font-style: italic; color: var(--text-soft); }
 .codex-bonus {
   position: relative;
   z-index: 1;
