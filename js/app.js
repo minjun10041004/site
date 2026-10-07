@@ -3124,13 +3124,13 @@
   }
 
   themeSwitch.addEventListener('click', () => {
-    const current = load(THEME_KEY, 'dark');
+    const current = load(THEME_KEY, 'light');
     const next = current === 'dark' ? 'light' : 'dark';
     save(THEME_KEY, next);
     applyTheme(next);
   });
 
-  applyTheme(load(THEME_KEY, 'dark'));
+  applyTheme(load(THEME_KEY, 'light'));
 
   /* ---------------- Accounts (Supabase Auth) ---------------- */
   function usernameError(username) {

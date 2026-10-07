@@ -1,32 +1,32 @@
 /* ============ 네벨라크 (Nevelac) 아트 디렉션 ============
-   "균열 너머의 서고" -- 낮에는 볕이 드는 오래된 코덱스(양피지·잉크·
-   금박), 밤에는 별빛 도는 심연(유물함 가죽·균열보랏빛·성물의 금).
+   "균열 너머의 서고" -- 낮에는 선셋빛 화사한 서고(코랄·오렌지·바이올렛
+   파스텔), 밤에는 별빛 도는 심연(유물함 가죽·균열보랏빛·성물의 금).
    토글은 밝기만 바꾸는 게 아니라 실제로 두 세계를 오간다: "낮의 서고"
-   (토글 off, 기본 :root)와 "밤의 심연"(토글 on, [data-theme="dark"],
-   index.html 기본값). 변수명은 기존 컴포넌트 전체가 이미 참조하고 있어
+   (토글 off, 기본 :root, index.html 기본값)와 "밤의 심연"(토글 on,
+   [data-theme="dark"]). 변수명은 기존 컴포넌트 전체가 이미 참조하고 있어
    그대로 재사용 -- 값만 새 팔레트로 교체한다. */
 :root {
-  --bg-a: #f6f0dc;
-  --bg-b: #ece0bf;
-  --surface: #fbf7ec;
-  --surface-solid: #fbf7ec;
-  --border: #e4d9b8;
-  --text: #241f2e;
-  --text-soft: #5c5570;
-  --text-faint: #8a83a0;
-  --accent: #6a56e0;
-  --accent-2: #2f9e8f;
-  --accent-3: #2f9e8f;
-  --danger: #c1495a;
-  --gold: #a9762c;
-  --gold-2: #c99542;
+  --bg-a: #fff6f2;
+  --bg-b: #fef1f8;
+  --surface: #ffffff;
+  --surface-solid: #ffffff;
+  --border: #f6e4ef;
+  --text: #2a1f3d;
+  --text-soft: #7a6f94;
+  --text-faint: #b0a6c9;
+  --accent: #ff6b9d;
+  --accent-2: #845ef7;
+  --accent-3: #ffa94d;
+  --danger: #fa5252;
+  --gold: #ff922b;
+  --gold-2: #ffc078;
   --quote-color: #fbf7ec;
   --quote-glow: rgba(36, 31, 46, 0.25);
-  --shadow: 0 20px 40px -24px rgba(106, 86, 32, 0.28);
-  --shadow-sm: 0 8px 20px -14px rgba(106, 86, 32, 0.22);
-  --radius-lg: 24px;
-  --radius-md: 16px;
-  --radius-sm: 12px;
+  --shadow: 0 20px 40px -22px rgba(132, 94, 247, 0.35);
+  --shadow-sm: 0 10px 20px -12px rgba(132, 94, 247, 0.3);
+  --radius-lg: 26px;
+  --radius-md: 20px;
+  --radius-sm: 14px;
   color-scheme: light;
 }
 
@@ -86,7 +86,9 @@ body {
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
+  display: none;
 }
+[data-theme="dark"] .bg-decor { display: block; }
 
 .blob {
   position: absolute;
@@ -120,13 +122,16 @@ body {
 .hero {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(120deg, #4b3aa8 0%, #7c56d6 45%, #c9954a 100%);
+  background: linear-gradient(135deg, #ff6b9d 0%, #ff922b 50%, #ffd43b 100%);
   border: none;
   border-radius: var(--radius-lg);
   padding: 28px 30px 32px;
   box-shadow: var(--shadow);
   margin-bottom: 24px;
   color: #fff;
+}
+[data-theme="dark"] .hero {
+  background: linear-gradient(120deg, #4b3aa8 0%, #7c56d6 45%, #c9954a 100%);
 }
 .hero::before {
   content: '';
@@ -264,13 +269,25 @@ body {
   position: relative;
   z-index: 0;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: none;
   border-radius: var(--radius-lg);
   padding: 24px 24px 26px;
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
 }
+[data-theme="dark"] .card { border: 1px solid var(--border); }
+
+/* 메인 탭의 핵심 카드 4장에만 옅은 색 그라데이션을 얹어 화사함을
+   더한다 -- 밤의 심연 테마에서는 다른 카드와 통일된 표면색으로 되돌림. */
+.main-sword-card { background: linear-gradient(150deg, #fff, #f3f0ff); }
+.todo-card { background: linear-gradient(150deg, #fff, #fff0f6); }
+.schedule-card { background: linear-gradient(150deg, #fff, #eafaf6); }
+.exam-checklist-card { background: linear-gradient(150deg, #fff, #fff8e8); }
+[data-theme="dark"] .main-sword-card,
+[data-theme="dark"] .todo-card,
+[data-theme="dark"] .schedule-card,
+[data-theme="dark"] .exam-checklist-card { background: var(--surface); }
 
 .card-head {
   display: flex;
@@ -292,13 +309,14 @@ body {
 .card-icon { font-size: 1.1rem; }
 
 .badge {
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  background: linear-gradient(135deg, var(--gold), var(--gold-2));
   color: #fff;
   font-size: 0.75rem;
   font-weight: 400;
   padding: 4px 12px;
   border-radius: 999px;
 }
+[data-theme="dark"] .badge { background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
 
 /* ---------- Forms ---------- */
 .inline-form {
