@@ -1,18 +1,6 @@
 (() => {
   'use strict';
 
-  /* ---------------- Local (device-level) storage — theme only ---------------- */
-  const THEME_KEY = 'momentum_theme';
-  const load = (key, fallback) => {
-    try {
-      const raw = localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : fallback;
-    } catch {
-      return fallback;
-    }
-  };
-  const save = (key, value) => localStorage.setItem(key, JSON.stringify(value));
-
   /* ---------------- Supabase (accounts + cloud data) ---------------- */
   const SUPABASE_URL = 'https://mtjqnbmtyiqncococimb.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10anFuYm10eWlxbmNvY29jaW1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyMTA0MzUsImV4cCI6MjEwMjc4NjQzNX0.w7xBKguv8ynXLOqNMMlJJf6ODnypwR-4a7hR_yztOcE';
@@ -448,8 +436,6 @@
   const happinessEmpty = el('happinessEmpty');
   const happinessBadge = el('happinessBadge');
   const happinessItemTpl = el('happinessItemTemplate');
-
-  const themeSwitch = el('themeSwitch');
 
   const goldAmountEl = el('goldAmount');
   const topCoreAmountEl = el('topCoreAmount');
@@ -3115,22 +3101,6 @@
     renderSubjects();
   });
 
-  /* ---------------- Theme ---------------- */
-  function applyTheme(theme) {
-    const isDark = theme === 'dark';
-    if (isDark) document.documentElement.setAttribute('data-theme', 'dark');
-    else document.documentElement.removeAttribute('data-theme');
-    themeSwitch.setAttribute('aria-checked', String(isDark));
-  }
-
-  themeSwitch.addEventListener('click', () => {
-    const current = load(THEME_KEY, 'light');
-    const next = current === 'dark' ? 'light' : 'dark';
-    save(THEME_KEY, next);
-    applyTheme(next);
-  });
-
-  applyTheme(load(THEME_KEY, 'light'));
 
   /* ---------------- Accounts (Supabase Auth) ---------------- */
   function usernameError(username) {

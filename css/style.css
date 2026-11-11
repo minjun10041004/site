@@ -1,54 +1,31 @@
 /* ============ 네벨라크 (Nevelac) 아트 디렉션 ============
-   "균열 너머의 서고" -- 낮에는 선셋빛 화사한 서고(코랄·오렌지·바이올렛
-   파스텔), 밤에는 별빛 도는 심연(유물함 가죽·균열보랏빛·성물의 금).
-   토글은 밝기만 바꾸는 게 아니라 실제로 두 세계를 오간다: "낮의 서고"
-   (토글 off, 기본 :root, index.html 기본값)와 "밤의 심연"(토글 on,
-   [data-theme="dark"]). 변수명은 기존 컴포넌트 전체가 이미 참조하고 있어
-   그대로 재사용 -- 값만 새 팔레트로 교체한다. */
+   일정·할 일 전용 앱으로 전환하며 "글로시 네온 다크" 단일 테마로
+   정리한다 (라이트/다크 토글 제거 -- 이제 테마는 하나뿐). 짙은 남색
+   배경 위에 핑크/바이올렛/시안 네온 글로우, 유리질 카드. 변수명은
+   기존 컴포넌트 전체가 이미 참조하고 있어 그대로 재사용 -- 값만
+   새 팔레트로 교체한다. */
 :root {
-  --bg-a: #fff6f2;
-  --bg-b: #fef1f8;
-  --surface: #ffffff;
-  --surface-solid: #ffffff;
-  --border: #f6e4ef;
-  --text: #2a1f3d;
-  --text-soft: #7a6f94;
-  --text-faint: #b0a6c9;
-  --accent: #ff6b9d;
-  --accent-2: #845ef7;
-  --accent-3: #ffa94d;
-  --danger: #fa5252;
-  --gold: #ff922b;
-  --gold-2: #ffc078;
-  --quote-color: #fbf7ec;
-  --quote-glow: rgba(36, 31, 46, 0.25);
-  --shadow: 0 20px 40px -22px rgba(132, 94, 247, 0.35);
-  --shadow-sm: 0 10px 20px -12px rgba(132, 94, 247, 0.3);
-  --radius-lg: 26px;
-  --radius-md: 20px;
-  --radius-sm: 14px;
-  color-scheme: light;
-}
-
-[data-theme="dark"] {
-  --bg-a: #0a0c16;
-  --bg-b: #12101c;
-  --surface: #1b1728;
-  --surface-solid: #1b1728;
-  --border: rgba(224, 181, 108, 0.22);
-  --text: #ece7f5;
-  --text-soft: #b0a9cc;
-  --text-faint: #756e93;
-  --accent: #a292ff;
-  --accent-2: #4fc3b0;
-  --accent-3: #4fc3b0;
-  --danger: #e06478;
-  --gold: #e0b56c;
-  --gold-2: #f0c785;
-  --quote-color: #ece7f5;
-  --quote-glow: rgba(0, 0, 0, 0.4);
-  --shadow: 0 20px 40px -22px rgba(162, 146, 255, 0.35);
-  --shadow-sm: 0 8px 20px -14px rgba(162, 146, 255, 0.28);
+  --bg-a: #1a1035;
+  --bg-b: #05060f;
+  --surface: rgba(255, 255, 255, 0.045);
+  --surface-solid: #13112a;
+  --border: rgba(124, 140, 255, 0.3);
+  --text: #eef0ff;
+  --text-soft: #9aa0d6;
+  --text-faint: #686c82;
+  --accent: #7c8cff;
+  --accent-2: #30e3dc;
+  --accent-3: #ff3dc5;
+  --danger: #ff6b81;
+  --gold: #ff3dc5;
+  --gold-2: #7c8cff;
+  --quote-color: #eef0ff;
+  --quote-glow: rgba(255, 61, 197, 0.35);
+  --shadow: 0 20px 50px -24px rgba(124, 140, 255, 0.5);
+  --shadow-sm: 0 8px 20px -14px rgba(124, 140, 255, 0.4);
+  --radius-lg: 20px;
+  --radius-md: 16px;
+  --radius-sm: 12px;
   color-scheme: dark;
 }
 
@@ -61,21 +38,17 @@ html, body {
 }
 
 body {
-  font-family: 'Sora', 'Noto Sans KR', sans-serif;
-  font-weight: 300;
-  background: linear-gradient(160deg, var(--bg-a), var(--bg-b));
-  color: var(--text);
-  transition: background 0.4s ease, color 0.4s ease;
-  overflow-x: hidden;
-}
-
-/* 밤의 심연 전용 별가루: 심연 배경에 흩뿌려진 잔별 텍스처 (고정 타일, 애니메이션 없음) */
-[data-theme="dark"] body {
+  font-family: 'Noto Sans KR', 'Sora', sans-serif;
+  font-weight: 400;
+  background-color: #05060f;
   background-image:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Ccircle cx='24' cy='58' r='1' fill='%23fff' opacity='0.7'/%3E%3Ccircle cx='120' cy='22' r='1.2' fill='%23fff' opacity='0.5'/%3E%3Ccircle cx='210' cy='90' r='0.8' fill='%23fff' opacity='0.6'/%3E%3Ccircle cx='260' cy='40' r='1' fill='%23fff' opacity='0.4'/%3E%3Ccircle cx='60' cy='150' r='1.3' fill='%23fff' opacity='0.5'/%3E%3Ccircle cx='180' cy='170' r='0.9' fill='%23fff' opacity='0.6'/%3E%3Ccircle cx='250' cy='140' r='1' fill='%23fff' opacity='0.4'/%3E%3Ccircle cx='20' cy='220' r='1' fill='%23fff' opacity='0.5'/%3E%3Ccircle cx='100' cy='250' r='1.4' fill='%23fff' opacity='0.6'/%3E%3Ccircle cx='230' cy='260' r='0.8' fill='%23fff' opacity='0.5'/%3E%3Ccircle cx='280' cy='200' r='1' fill='%23fff' opacity='0.45'/%3E%3Ccircle cx='150' cy='100' r='0.7' fill='%23fff' opacity='0.4'/%3E%3C/svg%3E"),
-    linear-gradient(160deg, var(--bg-a), var(--bg-b));
+    radial-gradient(ellipse at 20% 0%, #1a1035, #05060f 60%);
   background-repeat: repeat, no-repeat;
   background-size: 300px 300px, cover;
+  background-attachment: fixed, fixed;
+  color: var(--text);
+  overflow-x: hidden;
 }
 
 /* 모던 앰비언트 글로우: 카드는 플랫한 유리 패널로 정리하고, 입체감은
@@ -88,7 +61,6 @@ body {
   pointer-events: none;
   display: none;
 }
-[data-theme="dark"] .bg-decor { display: block; }
 
 .blob {
   position: absolute;
@@ -110,10 +82,22 @@ body {
 .app {
   position: relative;
   z-index: 1;
-  max-width: 1240px;
+  max-width: 760px;
   margin: 0 auto;
   padding: 32px 24px 60px;
 }
+
+.app-brand {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+/* Several components set their own `display`, which otherwise beats the
+   browser's default [hidden] rule at equal specificity -- without this,
+   hiding the sword card / currency badges / dropped hero stats via the
+   `hidden` attribute silently does nothing. */
+.card[hidden], .gold-badge[hidden], .stat[hidden] { display: none; }
 
 /* ---------- Header ---------- */
 /* The one place the gradient goes big: everything else on the page is a
@@ -122,16 +106,13 @@ body {
 .hero {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #ff6b9d 0%, #ff922b 50%, #ffd43b 100%);
+  background: linear-gradient(135deg, #2d1f5e, #6a2a8f 55%, #ff3dc5 100%);
   border: none;
   border-radius: var(--radius-lg);
   padding: 28px 30px 32px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow), 0 0 50px -14px rgba(255, 61, 197, 0.6);
   margin-bottom: 24px;
   color: #fff;
-}
-[data-theme="dark"] .hero {
-  background: linear-gradient(120deg, #4b3aa8 0%, #7c56d6 45%, #c9954a 100%);
 }
 .hero::before {
   content: '';
@@ -165,8 +146,8 @@ body {
 }
 
 .exam-dday-wrap { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-.exam-dday-value { font-size: clamp(1.8rem, 4.5vw, 2.6rem); font-weight: 600; letter-spacing: -0.01em; }
-.exam-dday-label { font-size: 0.85rem; font-weight: 400; }
+.exam-dday-value { font-size: 3.2rem; font-weight: 600; letter-spacing: -0.01em; }
+.exam-dday-label { font-size: 1rem; font-weight: 400; }
 
 .icon-btn {
   border: 1px solid var(--border);
@@ -205,7 +186,7 @@ body {
 
 .hero-quote {
   margin: 0 0 22px;
-  font-size: clamp(1.25rem, 2.4vw, 1.7rem);
+  font-size: 1.9rem;
   font-weight: 500;
   line-height: 1.4;
   letter-spacing: -0.01em;
@@ -219,11 +200,11 @@ body {
 
 .hero-stats { display: flex; gap: 28px; flex-wrap: wrap; }
 .stat { display: flex; flex-direction: column; gap: 2px; }
-.stat-value { font-size: 1.6rem; font-weight: 500; }
-.stat-label { font-size: 0.78rem; color: var(--text-soft); font-weight: 300; }
+.stat-value { font-size: 2.1rem; font-weight: 500; }
+.stat-label { font-size: 0.95rem; color: var(--text-soft); font-weight: 300; }
 
-.progress-ring-wrap { position: relative; width: 140px; height: 140px; flex-shrink: 0; }
-.progress-ring { width: 140px; height: 140px; transform: rotate(-90deg); }
+.progress-ring-wrap { position: relative; width: 170px; height: 170px; flex-shrink: 0; }
+.progress-ring { width: 170px; height: 170px; transform: rotate(-90deg); }
 .ring-bg {
   fill: none;
   stroke: var(--border);
@@ -247,20 +228,16 @@ body {
   align-items: center;
   justify-content: center;
 }
-.progress-ring-label span { font-size: 1.5rem; font-weight: 500; }
-.progress-ring-label small { font-size: 0.72rem; color: var(--text-soft); font-weight: 400; margin-top: 2px; }
+.progress-ring-label span { font-size: 1.9rem; font-weight: 500; }
+.progress-ring-label small { font-size: 0.88rem; color: var(--text-soft); font-weight: 400; margin-top: 2px; }
 
 /* ---------- Grid & Cards ---------- */
 .grid {
   display: grid;
-  grid-template-columns: 1.25fr 1fr;
-  gap: 22px;
+  grid-template-columns: 1fr;
+  gap: 28px;
 }
-.exam-checklist-card { grid-column: 1 / -1; }
-
-@media (max-width: 760px) {
-  .grid { grid-template-columns: 1fr; }
-}
+.exam-checklist-card { grid-column: auto; }
 
 /* 모던 카드: 반투명 처리가 배경의 어두운 톤과 섞여 탁한 회색으로
    보였던 문제를 없애기 위해 표면색을 완전 불투명으로 되돌린다.
@@ -268,55 +245,54 @@ body {
 .card {
   position: relative;
   z-index: 0;
-  background: var(--surface);
-  border: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015));
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 24px 24px 26px;
-  box-shadow: var(--shadow);
+  padding: 34px 36px 38px;
+  box-shadow: 0 0 0 1px rgba(124, 140, 255, 0.08), var(--shadow), 0 0 40px -18px rgba(255, 61, 197, 0.35);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
-[data-theme="dark"] .card { border: 1px solid var(--border); }
-
-/* 메인 탭의 핵심 카드 4장에만 옅은 색 그라데이션을 얹어 화사함을
-   더한다 -- 밤의 심연 테마에서는 다른 카드와 통일된 표면색으로 되돌림. */
-.main-sword-card { background: linear-gradient(150deg, #fff, #f3f0ff); }
-.todo-card { background: linear-gradient(150deg, #fff, #fff0f6); }
-.schedule-card { background: linear-gradient(150deg, #fff, #eafaf6); }
-.exam-checklist-card { background: linear-gradient(150deg, #fff, #fff8e8); }
-[data-theme="dark"] .main-sword-card,
-[data-theme="dark"] .todo-card,
-[data-theme="dark"] .schedule-card,
-[data-theme="dark"] .exam-checklist-card { background: var(--surface); }
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 46%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent);
+  pointer-events: none;
+  z-index: 0;
+}
+.card > * { position: relative; z-index: 1; }
 
 .card-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 22px;
   gap: 10px;
   flex-wrap: wrap;
 }
 
 .card-head h2 {
-  font-size: 1.08rem;
+  font-size: 1.5rem;
   font-weight: 500;
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
-.card-icon { font-size: 1.1rem; }
+.card-icon { font-size: 1.5rem; }
 
 .badge {
-  background: linear-gradient(135deg, var(--gold), var(--gold-2));
-  color: #fff;
-  font-size: 0.75rem;
-  font-weight: 400;
-  padding: 4px 12px;
+  background: linear-gradient(135deg, var(--accent-2), var(--accent));
+  color: #05060f;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 7px 18px;
   border-radius: 999px;
+  box-shadow: 0 0 14px -2px var(--accent-2);
 }
-[data-theme="dark"] .badge { background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
 
 /* ---------- Forms ---------- */
 .inline-form {
@@ -330,12 +306,12 @@ body {
   min-width: 140px;
 }
 .inline-form input {
-  padding: 10px 14px;
+  padding: 13px 18px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background: var(--surface-solid);
   color: var(--text);
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-family: inherit;
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -347,16 +323,17 @@ body {
 .inline-form input[type="date"] { color: var(--text); min-width: 150px; }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  background: linear-gradient(135deg, var(--accent-3), var(--accent));
   color: #fff;
   border: none;
-  padding: 10px 20px;
+  padding: 13px 22px;
   border-radius: var(--radius-sm);
   font-weight: 400;
-  font-size: 0.9rem;
+  font-size: 1rem;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   white-space: nowrap;
+  box-shadow: 0 0 20px -4px var(--accent-3), inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 .btn-primary:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); }
 .btn-primary:active { transform: translateY(0); }
@@ -380,10 +357,7 @@ body {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  max-height: 420px;
-  overflow-y: auto;
-  padding-right: 4px;
+  gap: 16px;
 }
 
 .schedule-list::-webkit-scrollbar, .todo-list::-webkit-scrollbar { width: 6px; }
@@ -395,11 +369,11 @@ body {
 .schedule-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 20px;
   background: var(--surface-solid);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 12px 14px;
+  border-radius: 18px;
+  padding: 20px 22px;
   animation: slideIn 0.3s ease;
 }
 
@@ -410,24 +384,25 @@ body {
 
 .dday-pill {
   flex-shrink: 0;
-  min-width: 62px;
+  min-width: 84px;
   text-align: center;
-  padding: 7px 10px;
-  border-radius: 999px;
+  padding: 12px 16px;
+  border-radius: 14px;
   font-weight: 500;
-  font-size: 0.82rem;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  font-size: 1.1rem;
+  background: linear-gradient(135deg, var(--accent-3), var(--accent));
   color: #fff;
+  box-shadow: 0 0 14px -4px var(--accent-3);
 }
 .dday-pill.today { background: linear-gradient(135deg, #ffb238, #ff6f6f); }
 .dday-pill.past { background: var(--border); color: var(--text-faint); }
 
 .schedule-info { flex: 1; min-width: 0; }
-.schedule-title { margin: 0; font-weight: 400; font-size: 0.92rem; }
-.schedule-date { margin: 2px 0 0; font-size: 0.76rem; color: var(--text-faint); }
+.schedule-title { margin: 0; font-weight: 400; font-size: 1.25rem; }
+.schedule-date { margin: 4px 0 0; font-size: 1rem; color: var(--text-faint); }
 
 .delete-btn {
-  width: 28px; height: 28px; font-size: 0.75rem;
+  width: 34px; height: 34px; font-size: 0.9rem;
   color: var(--text-faint);
   flex-shrink: 0;
 }
@@ -448,18 +423,18 @@ body {
 .todo-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 20px;
   background: var(--surface-solid);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 10px 14px;
+  border-radius: 18px;
+  padding: 20px 22px;
   animation: slideIn 0.3s ease;
 }
 
 .check-btn {
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   border: 2px solid var(--border);
   background: var(--surface-solid);
   cursor: pointer;
@@ -467,22 +442,23 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.8rem;
+  font-size: 1.1rem;
   font-weight: 500;
   color: transparent;
   transition: all 0.15s ease;
 }
 .check-btn:hover { border-color: var(--accent); transform: scale(1.06); }
 .check-btn.done {
-  background: linear-gradient(135deg, var(--accent-3), #10b981);
+  background: linear-gradient(135deg, var(--accent-2), var(--accent));
   border-color: transparent;
-  color: #fff;
+  color: #05060f;
+  box-shadow: 0 0 16px -2px var(--accent-2);
 }
 
 .todo-text {
   flex: 1;
   min-width: 90px;
-  font-size: 0.9rem;
+  font-size: 1.25rem;
   font-weight: 400;
   word-break: break-word;
 }
@@ -498,14 +474,15 @@ body {
   flex-shrink: 0;
 }
 .percent-slider {
-  width: 90px;
+  width: 150px;
+  height: 8px;
   accent-color: var(--accent);
 }
 .percent-value {
-  font-size: 0.78rem;
+  font-size: 1.05rem;
   font-weight: 400;
   color: var(--text-soft);
-  min-width: 34px;
+  min-width: 44px;
   text-align: right;
 }
 
@@ -524,9 +501,9 @@ body {
   background: var(--surface-solid);
   border: 1px solid var(--border);
   color: var(--text-soft);
-  padding: 5px 12px;
+  padding: 8px 16px;
   border-radius: 999px;
-  font-size: 0.78rem;
+  font-size: 0.95rem;
   font-weight: 400;
   font-family: inherit;
   cursor: pointer;
