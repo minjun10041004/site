@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="app-build" content="20260925-fragicon1">
+<meta name="app-build" content="20261111-todoonly1">
 <!-- GitHub Pages serves this file as-is with no custom HTTP headers, so a
      real CSP header isn't possible here -- this meta-tag version is the
      strongest defense-in-depth available on static hosting. It can't carry
@@ -27,7 +27,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=Cinzel:wght@500;600;700&family=Noto+Sans+KR:wght@300;400;500&family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260925-fragicon1">
+<link rel="stylesheet" href="css/style.css?v=20261111-todoonly1">
 </head>
 <body>
 
@@ -88,29 +88,22 @@
 
   <div class="topbar">
     <div class="topbar-currencies">
-      <div class="gold-badge" title="보유 성휘">
+      <div class="app-brand">🗓️ 할 일 &amp; 일정</div>
+      <div class="gold-badge" title="보유 성휘" hidden>
         <span class="gold-icon" aria-hidden="true"></span>
         <span>성휘 : <strong id="goldAmount">0</strong></span>
       </div>
-      <div class="gold-badge core-badge" title="보유 성핵">
+      <div class="gold-badge core-badge" title="보유 성핵" hidden>
         <span class="core-icon" aria-hidden="true"></span>
         <span>성핵 : <strong id="topCoreAmount">0</strong></span>
       </div>
-      <div class="gold-badge seal-badge" title="보유 별자리 인장">
+      <div class="gold-badge seal-badge" title="보유 별자리 인장" hidden>
         <span class="seal-icon" aria-hidden="true"></span>
         <span>인장 : <strong id="topSealAmount">0</strong></span>
       </div>
     </div>
     <nav class="tab-nav" id="tabNav">
       <button class="tab-btn active" data-tab="main">🏠 메인</button>
-      <button class="tab-btn" data-tab="study">⏱️ 집중</button>
-      <button class="tab-btn" data-tab="journey">🗺️ 여정</button>
-      <button class="tab-btn" data-tab="hall">⚔️ 검의 전당</button>
-      <button class="tab-btn" data-tab="growth">📈 성장</button>
-      <button class="tab-btn" data-tab="codex">📖 도감</button>
-      <button class="tab-btn" data-tab="record">📝 기록</button>
-      <button class="tab-btn" data-tab="profile">🪪 프로필</button>
-      <button class="tab-btn" data-tab="ranking">🏆 랭킹</button>
       <button class="tab-btn" data-tab="settings">⚙️ 설정</button>
     </nav>
   </div>
@@ -143,15 +136,15 @@
             <span class="stat-value" id="todoCount">0</span>
             <span class="stat-label">오늘 할 일</span>
           </div>
-          <div class="stat">
+          <div class="stat" hidden>
             <span class="stat-value" id="mainTodayStudy">0분</span>
             <span class="stat-label">오늘 공부시간</span>
           </div>
-          <div class="stat">
+          <div class="stat" hidden>
             <span class="stat-value" id="incomePerMinute">0</span>
             <span class="stat-label" id="incomePerMinuteLabel">분당 성휘</span>
           </div>
-          <div class="stat">
+          <div class="stat" hidden>
             <span class="stat-value" id="incomePerHour">0</span>
             <span class="stat-label">시간당 성휘</span>
           </div>
@@ -174,7 +167,7 @@
   <main class="grid">
 
     <!-- Equipped sword mini-card -->
-    <section class="card main-sword-card">
+    <section class="card main-sword-card" hidden>
       <div class="card-head">
         <h2><span class="card-icon">⚔️</span> 장착 중인 검</h2>
         <span class="sword-grade rar-chip rar-0" id="mainSwordGrade">시작 검</span>
@@ -247,7 +240,7 @@
     <!-- Exam Checklist Section -->
     <section class="card exam-checklist-card">
       <div class="card-head">
-        <h2><span class="card-icon">📝</span> 시험 전 체크리스트</h2>
+        <h2><span class="card-icon">📝</span> 체크리스트</h2>
         <span class="badge" id="examChecklistBadge">0개</span>
       </div>
 
@@ -720,16 +713,6 @@
 
       <div class="settings-row">
         <div class="settings-row-text">
-          <p class="settings-row-title">테마</p>
-          <p class="settings-row-desc">라이트 / 다크 모드를 전환해요</p>
-        </div>
-        <button class="theme-switch" id="themeSwitch" type="button" role="switch" aria-checked="false">
-          <span class="theme-switch-thumb"></span>
-        </button>
-      </div>
-
-      <div class="settings-row">
-        <div class="settings-row-text">
           <p class="settings-row-title">계정</p>
           <p class="settings-row-desc">현재 로그인: <strong id="settingsUsername">-</strong></p>
         </div>
@@ -834,6 +817,6 @@
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/app.js?v=20260925-fragicon1"></script>
+<script src="js/app.js?v=20261111-todoonly1"></script>
 </body>
 </html>
