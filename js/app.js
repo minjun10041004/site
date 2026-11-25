@@ -333,7 +333,7 @@
     await flushSave();
   }
 
-  const EXAM_TARGET_DATE = '2026-09-29';
+  const EXAM_TARGET_DATE = '2027-11-18';
 
   /* ---------------- Date helpers ---------------- */
   const toKey = (d) => {
